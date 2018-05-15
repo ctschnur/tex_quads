@@ -4,13 +4,15 @@ from direct.showbase.ShowBase import ShowBase
 
 from panda3d.core import GeomVertexFormat
 from panda3d.core import GeomVertexData
-from panda3d.core import Geom
-from panda3d.core import GeomVertexWriter
+from panda3d.core import Geom, GeomVertexWriter 
 from panda3d.core import GeomTriangles 
-from panda3d.core import GeomNode
+from panda3d.core import GeomNode 
 from panda3d.core import PNMImage
 from panda3d.core import Filename
-from panda3d.core import Texture
+from panda3d.core import Texture, TransparencyAttrib
+from panda3d.core import PandaSystem
+
+print "Panda version:", PandaSystem.getVersionString()
 
 class MyApp(ShowBase):
  
@@ -19,6 +21,10 @@ class MyApp(ShowBase):
 
         self.disableMouse()
         self.camera.setPos(0, -5, 0)
+
+        # screen resolution
+        screen_res_width = 1920
+        screen_res_height = 1080
 
         # Own Geometry
 
@@ -71,36 +77,37 @@ class MyApp(ShowBase):
         # get nodepath by attaching to the scenegraph
         nodePath = render.attachNewNode(quadGN)
 
-        def getTextureFromFile(filename="sample.png"):
+        def getImageFromFile(filename="sample.png"):
+            image = PNMImage()
+            image.read(Filename(filename))
+            return image
 
-            myImage = PNMImage()
-            myImage.read(Filename(filename))
-
-            print("myImage.getNumChannels(): ", myImage.getNumChannels())
-            print("myImage.getXSize(): ", myImage.getXSize())
-            print("myImage.getYSize(): ", myImage.getYSize())
-            print("myImage.hasAlpha(): ", myImage.hasAlpha())
+        def getTextureFromImage(pnmImage):
+            print("myImage.getNumChannels(): ", pnmImage.getNumChannels())
+            print("myImage.getXSize(): ", pnmImage.getXSize())
+            print("myImage.getYSize(): ", pnmImage.getYSize())
+            print("myImage.hasAlpha(): ", pnmImage.hasAlpha())
 
             # assign the PNMImage to a Texture (load PNMImage to Texture, opposite of store)
             myTexture = Texture()
-            myTexture.load(myImage)
+            myTexture.load(pnmImage)
             return myTexture
 
-        myTexture = getTextureFromFile()
+        myPNMImage = getImageFromFile()
+        # myPNMImage.alphaFill(0)
+        # for x in range(100):
+        #     for y in range(100):
+        #         print(x, y, myPNMImage.getAlpha(x, y))
 
-        # adjust quad geometry to have the same aspect ratio as the texture
-        # scale the unit square using matrix operations
-
-        # def ScaleWidthToMatchAspectRatio():
-        # PyGLM can be useful for getting the matrices
-        # https://pypi.org/project/PyGLM/
-        # NodePath.setTransform() can apparently given a matrix and then
-        # transforms the vertices accordingly
-
+        myTexture = getTextureFromImage(myPNMImage)
+        # scale the unit square using matrix operations by the aspect ratio
+        nodePath.setSx((myPNMImage.getXSize()/myPNMImage.getYSize()))
 
         # only on the nodepath you can assign textures with setTexture()
         nodePath.setTexture(myTexture, 1)  # priority 1 could also be 0 here, 
         # since nothing is inherited
+        nodePath.setTransparency(TransparencyAttrib.MAlpha)
+
 
 app = MyApp()
 app.run()
