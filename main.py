@@ -47,25 +47,6 @@ class MyApp(ShowBase):
         texcoordWriter.addData2f(1,1) 
         texcoordWriter.addData2f(0,1) 
 
-        # let's make a texture
-        # myImage = PNMImage()
-        # myImage.read(Filename("sample.png"))
-        # if it's loaded, it probably has dimensions other than powers of two 
-
-        myImage = PNMImage(256, 256)
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
-        myImage.getNumChannels()
-        myImage.removeAlpha()
-        myImage.fillVal(255, 0, 0)
-        
-        print("myImage.hasAlpha(): ", myImage.hasAlpha())
-
-        # assign the PNMImage to a Texture (load PNMImage to Texture, opposite of store)
-        myTexture = Texture()
-        myTexture.load(myImage)
-
         # make primitives and assign vertices to them (primitives and primitive
         # groups can be made independently from vdata, and are later assigned 
         # to vdata)
@@ -89,6 +70,33 @@ class MyApp(ShowBase):
         quadGN.addGeom(quadGeom) 
         # get nodepath by attaching to the scenegraph
         nodePath = render.attachNewNode(quadGN)
+
+        def getTextureFromFile(filename="sample.png"):
+
+            myImage = PNMImage()
+            myImage.read(Filename(filename))
+
+            print("myImage.getNumChannels(): ", myImage.getNumChannels())
+            print("myImage.getXSize(): ", myImage.getXSize())
+            print("myImage.getYSize(): ", myImage.getYSize())
+            print("myImage.hasAlpha(): ", myImage.hasAlpha())
+
+            # assign the PNMImage to a Texture (load PNMImage to Texture, opposite of store)
+            myTexture = Texture()
+            myTexture.load(myImage)
+            return myTexture
+
+        myTexture = getTextureFromFile()
+
+        # adjust quad geometry to have the same aspect ratio as the texture
+        # scale the unit square using matrix operations
+
+        # def ScaleWidthToMatchAspectRatio():
+        # PyGLM can be useful for getting the matrices
+        # https://pypi.org/project/PyGLM/
+        # NodePath.setTransform() can apparently given a matrix and then
+        # transforms the vertices accordingly
+
 
         # only on the nodepath you can assign textures with setTexture()
         nodePath.setTexture(myTexture, 1)  # priority 1 could also be 0 here, 
