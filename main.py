@@ -8,6 +8,9 @@ from panda3d.core import Geom
 from panda3d.core import GeomVertexWriter
 from panda3d.core import GeomTriangles 
 from panda3d.core import GeomNode
+from panda3d.core import PNMImage
+from panda3d.core import Filename
+from panda3d.core import Texture
 
 class MyApp(ShowBase):
  
@@ -19,8 +22,9 @@ class MyApp(ShowBase):
 
         # Own Geometry
 
-        format = GeomVertexFormat.getV3c4()
-        vdata = GeomVertexData("colored_quad", format, Geom.UHStatic) 
+        # format = GeomVertexFormat.getV3c4t2()
+        format = GeomVertexFormat.getV3t2()
+        vdata = GeomVertexData("textured_quad", format, Geom.UHStatic) 
         vdata.setNumRows(4) 
 
         vertexPosWriter = GeomVertexWriter(vdata, "vertex") 
@@ -30,11 +34,37 @@ class MyApp(ShowBase):
         vertexPosWriter.addData3f(0,0,1) 
 
         # let's also add color to each vertex
-        colorWriter = GeomVertexWriter(vdata, "color") 
-        colorWriter.addData4f(0,0,1,1) 
-        colorWriter.addData4f(0,0,1,1) 
-        colorWriter.addData4f(0,0,1,1) 
-        colorWriter.addData4f(0,0,1,1) 
+        # colorWriter = GeomVertexWriter(vdata, "color") 
+        # colorWriter.addData4f(0,0,1,1) 
+        # colorWriter.addData4f(0,0,1,1) 
+        # colorWriter.addData4f(0,0,1,1) 
+        # colorWriter.addData4f(0,0,1,1) 
+
+        # let's add texture coordinates (u,v)
+        texcoordWriter = GeomVertexWriter(vdata, "texcoord") 
+        texcoordWriter.addData2f(0,0) 
+        texcoordWriter.addData2f(1,0) 
+        texcoordWriter.addData2f(1,1) 
+        texcoordWriter.addData2f(0,1) 
+
+        # let's make a texture
+        # myImage = PNMImage()
+        # myImage.read(Filename("sample.png"))
+        # if it's loaded, it probably has dimensions other than powers of two 
+
+        myImage = PNMImage(256, 256)
+
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+        myImage.getNumChannels()
+        myImage.removeAlpha()
+        myImage.fillVal(255, 0, 0)
+        
+        print("myImage.hasAlpha(): ", myImage.hasAlpha())
+
+        # assign the PNMImage to a Texture (load PNMImage to Texture, opposite of store)
+        myTexture = Texture()
+        myTexture.load(myImage)
 
         # make primitives and assign vertices to them (primitives and primitive
         # groups can be made independently from vdata, and are later assigned 
@@ -57,7 +87,12 @@ class MyApp(ShowBase):
         # in the scene graph. 
         quadGN = GeomNode("quad") 
         quadGN.addGeom(quadGeom) 
-        render.attachNewNode(quadGN)
+        # get nodepath by attaching to the scenegraph
+        nodePath = render.attachNewNode(quadGN)
+
+        # only on the nodepath you can assign textures with setTexture()
+        nodePath.setTexture(myTexture, 1)  # priority 1 could also be 0 here, 
+        # since nothing is inherited
 
 app = MyApp()
 app.run()
