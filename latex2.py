@@ -1,7 +1,6 @@
 import os
 import subprocess
-
-
+import hashlib
 
 def ImgFileFromTexExpr(expression_str, tex_xcolor="white"):
     latexcommands = (r'''
@@ -22,7 +21,11 @@ def ImgFileFromTexExpr(expression_str, tex_xcolor="white"):
     # You have to escape dollar signs if passed as arguments as of this version
 
     # give it a name (a hash generated from expression)
-    name_hash = str(hash(expression_str))
+    name_hash = hashlib.sha256(str(expression_str).encode("utf-8")).hexdigest()
+
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+    print(name_hash)
 
     with open(name_hash + '.tex','w') as f:
         f.write(latexcommands)
@@ -42,4 +45,5 @@ def ImgFileFromTexExpr(expression_str, tex_xcolor="white"):
     os.unlink(name_hash + '.aux')
 
 
-ImgFileFromTexExpr("hello world")
+while True:
+    ImgFileFromTexExpr("hello world")

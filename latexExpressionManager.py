@@ -10,6 +10,8 @@ class LatexObject:
         ImgFileFromTexExpr(expression_str, tex_xcolor="white")
 
 
+import os
+import subprocess
 
 latexcommands = (r'''
 \documentclass[convert={density=300,outext=.png},preview]{standalone}
