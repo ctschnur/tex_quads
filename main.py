@@ -20,8 +20,8 @@ class MyApp(ShowBase):
         # for now, we only have one pre-compiled image, so the expressions
         # we provide don't actually do anything
 
-        myLatexObject = LatexObject("myLatexObject")
-        myLatexObject2 = LatexObject("myLatexObject2")
+        myLatexObject = LatexObject("Obj 1")
+        myLatexObject2 = LatexObject(r"$a \cdot b  - \frac{c}{d}$")
         myLatexObject2.translate(v_x=0.5, v_z=2.)
 
 app = MyApp()

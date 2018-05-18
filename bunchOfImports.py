@@ -18,6 +18,8 @@ print("Panda version:", PandaSystem.getVersionString())
 
 from panda3d.core import loadPrcFileData 
 
+import hashlib
+
 # p3d window
 winsizex = 480.
 winsizey = 272.

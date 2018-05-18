@@ -1,0 +1,8 @@
+*.aux
+*.pdf
+*.png
+*.tex
+*.log
+*.pyc
+__pycache__/
+latex_compiled/
