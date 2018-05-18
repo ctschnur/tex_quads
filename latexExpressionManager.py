@@ -16,20 +16,12 @@ class LatexImageManager:
     m_set_compiled = set()
     m_set_loaded = set()  # aka the hash and pnm_image are given
 
-    subfolder = LATEX_SUBFOLDER
+    populate_compiled_set_again = True
 
     @staticmethod 
     def getImageIfLoaded(expr_hash):
         for img in LatexImageManager.m_set_loaded:
             if img.sha_hash is expr_hash: 
-                return img
-        return None
-
-    @staticmethod
-    def loadImageIfCompiled(expr_hash):
-        for img in LatexImageManager.m_set_compiled:
-            if img.sha_hash is expr_hash: 
-                LatexImage.assignImageFromCompiledFile()
                 return img
         return None
 
@@ -41,16 +33,43 @@ class LatexImageManager:
         if image is not None: 
             return image
 
+        if LatexImageManager.populate_compiled_set_again is True:
+            LatexImageManager.populateCompiledSet()
+            LatexImageManager.populate_compiled_set_again = False
+       
         # if compiled, load it 
         image = LatexImageManager.loadImageIfCompiled(expr_hash)
         if image is not None: 
-            m_set_loaded.add(image)
-            return retrieveLatexImageFromHash(expr_hash)
+            LatexImageManager.m_set_loaded.add(image)
+            return image        
 
-        # if not compiled, you can't produce it from a hash
+        # if not compiled, you can't produce it from just a hash
         # sometimes I have to remind myself of the KISS principle
         return None
 
+    @staticmethod
+    def populateCompiledSet():
+        # scan LATEX_SUBFOLDER and populate m_set_compiled with found hashes
+        png_filename_list = glob.glob('./' + LATEX_SUBFOLDER + '/*.png')
+        for c_filename in png_filename_list: 
+            hash_from_filename = os.path.splitext(os.path.basename(c_filename))[0]
+
+            # only populate, don't load the images in
+            c_latexImage = LatexImage(sha_hash=hash_from_filename, 
+                                      p3d_PNMImage=None) 
+            LatexImageManager.m_set_compiled.add(c_latexImage)
+            # the hash should match the filename's hash
+            print(c_latexImage.sha_hash, hash_from_filename)
+
+
+    @staticmethod
+    def loadImageIfCompiled(expr_hash):
+        for img in LatexImageManager.m_set_compiled:
+            if img.sha_hash == expr_hash: 
+                print("found match in m_set_compiled")
+                img.assignImageFromCompiledFile()
+                return img
+        return None
 
     @staticmethod
     def addLatexImageToCompiledSet(myLatexImage): 
@@ -60,31 +79,13 @@ class LatexImageManager:
 
         LatexImageManager.m_set_compiled.add(myLatexImage)
 
-    # -- operations on batches of images
     @staticmethod
-    def loadAllCompiledImages():
-        # go through self.subfolder and create PNMImages
-        png_filename_list = glob.glob('./*.png')
-        for c_filename in png_filename_list: 
-            # first check if image is already loaded
-            # get the hash
-            hash_from_filename = os.path.splitext(os.path.basename(c_filename))[0]
-            # search the m_set_loaded for it, if it's not in there, load it
-            already_loaded = False
-            for c_loaded_latexImage in LatexImageManager.m_set_loaded:
-                if c_loaded_latexImage.sha_hash is hash_from_filename:
-                    already_loaded = True
-                    continue
+    def addLatexImageToLoadedSet(myLatexImage): 
+        # is there one with the same hash?
+        for img in LatexImageManager.m_set_loaded:
+            assert (img.sha_hash is not myLatexImage.sha_hash)
 
-            if already_loaded is False: 
-                LatexImageManager.m_set_loaded.add(c_latexImage)
-                c_latexImage = LatexImage(subfolder=self.subfolder, sha_hash=hash_from_filename) 
-
-            # no matter what, 
-            # we add it also to compiled (since the png exists)
-            # and also to accessible (since png filename contains hash and
-            # png exists)
-            LatexImageManager.m_set_compiled.add(c_latexImage)
+        LatexImageManager.m_set_loaded.add(myLatexImage)
 
 class LatexImage:
     # a LatexImage can in theory be incomplete. 
@@ -94,18 +95,18 @@ class LatexImage:
             expression_str=None, 
             sha_hash=None, 
             tex_xcolor="white", 
-            subfolder=LATEX_SUBFOLDER, 
             p3d_PNMImage=None):
-        # hash
-        self.sha_hash = hashlib.sha256(str(expression_str).encode("utf-8")).hexdigest()
+
+        self.sha_hash = sha_hash
+
+        if self.sha_hash is None:  # that is, if the image is already compiled
+            # generate hash
+            self.sha_hash = hashlib.sha256(str(expression_str).encode("utf-8")).hexdigest()
 
         # latex expression
         # You have to escape dollar signs if passed as arguments as of this version
         self.expression_str = expression_str
         
-        # image file
-        self.subfolder = subfolder
-
         # spespecify all file paths
         import os
         self.directory = os.getcwd() + "/" + LATEX_SUBFOLDER
@@ -165,6 +166,5 @@ class LatexImage:
         return self.p3d_PNMImage
     
     def assignImageFromCompiledFile(self):
-        image = PNMImage()
-        image.read(Filename(str(self.sha_hash) + ".png"))
-        self.p3d_PNMImage = image
+        self.p3d_PNMImage = PNMImage()
+        self.p3d_PNMImage.read(Filename(self.fullfilepath_png_file))

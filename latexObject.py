@@ -40,11 +40,11 @@ class LatexObject:
         # load image with that hash
         from latexExpressionManager import LatexImageManager, LatexImage
         myLatexImage = LatexImageManager.retrieveLatexImageFromHash(expr_hash)
-        if myLatexImage is None: 
-            # it wasn't compiled yet, so do it
-            myLatexImage = LatexImage(self.tex_expression)
+        if myLatexImage is None:  # it wasn't compiled yet, so do it
+            myLatexImage = LatexImage(expression_str=self.tex_expression)
             myLatexImage.compileToPNG()
             LatexImageManager.addLatexImageToCompiledSet(myLatexImage)
+            LatexImageManager.addLatexImageToLoadedSet(myLatexImage)
 
         self.myPNMImage = myLatexImage.getPNMImage()
         
