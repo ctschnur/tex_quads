@@ -22,6 +22,7 @@ class MyApp(ShowBase):
 
         myLatexObject = LatexObject("myLatexObject")
         myLatexObject2 = LatexObject("myLatexObject2")
+        myLatexObject2.translate(v_x=0.5, v_z=2.)
 
 app = MyApp()
 app.run()
