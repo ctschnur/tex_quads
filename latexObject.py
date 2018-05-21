@@ -9,18 +9,11 @@ from direct.interval.IntervalGlobal import *
 from direct.interval.LerpInterval import *
 
 
-class LatexObject: 
-
-    def __init__(self, tex_expression, renderit=True):
-        self.tex_expression = tex_expression
-        self.renderit = renderit
-        self.customTransform = Mat4(1., 0., 0., 0., 
-                                    0., 1., 0., 0., 
-                                    0., 0., 1., 0., 
-                                    0., 0., 0., 1.)
-        self.makeNewLatexObject()
-        
+class Animator:   # only derivatives of this class should be called
+    def __init__(self):
+        self.customTransform = Mat4()
         self.net_trafo_at_t0_mat4 = Mat4()
+        self.standardTransform = Mat4()  # each subclass has a specific transform (Line, LatexObject, ...)
 
     def initiateTranslationMovement(self, v_x, delta_t, delay=0.): 
         extraArgs = [ 
@@ -38,15 +31,34 @@ class LatexObject:
     def _apply_net_trafo_to_nodepath(self):
         self.quad_nodepath.setMat(self.customTransform * self.standardTransform)
 
-    def makeNewGeometry(self):
-        # procedurally create a Geom() (here: a textured quad made up of 2
-        # triangles) and make a GeomNode() from it
-        self.quad_node = customGeometry.createTexturedUnitQuadGeomNode()
+    def render(self): 
+        # after each detaching from the scenegraph, if you want to attach the
+        # node again, you have to redo all the things that can only be operated on a
+        # the corresponding nodepath. A nodepath that has a texture and 
+        # transformation applied to it can't be detached and reattached to 
+        # the render scenegraph while keeping the applied texture and 
+        # transformation information 
+        # That's why we only hide() the nodepath, to make it invisible to all
+        # cameras and show() it if necessary
+        self.renderit = True
+        self.quad_nodepath.show()
+
+    def hide(self):
+        self.renderit = False
+        self.quad_nodepath.hide()
+
+
+class LatexObject(Animator): 
+    def __init__(self, tex_expression, renderit=True):
+        Animator.__init__(self)
+
+        self.tex_expression = tex_expression
+        self.renderit = renderit
+        self.makeNewLatexObject()
 
     def getImageAndApplyTexture(self):
         # TODO: check if latex image is compiled and loaded, and if so retrieve it and not
         # load it anew
-        
         # get expression hash
         expr_hash = hashlib.sha256(str(self.tex_expression).encode("utf-8")).hexdigest()
         # load image with that hash
@@ -72,50 +84,26 @@ class LatexObject:
         self.quad_nodepath.setTexture(self.myTexture, 1)
         self.quad_nodepath.setTransparency(TransparencyAttrib.MAlpha)
 
-    def makeNewLatexObject(self, renderit=True):
+    def makeNewLatexObject(self):
         
-        self.makeNewGeometry()
-
+        self.quad_node = customGeometry.createTexturedUnitQuadGeomNode()
         # the concept of a NodePath() only makes sense only the node is attached 
         # to a scenegraph, so do it:
         self.quad_nodepath = render.attachNewNode(self.quad_node)
-
-        # if you don't want to render it, hide it, after attachNewNode, you
-        # don't need to manually show() it
-        if renderit is False:
-            self.hide()
-
+        # specifically for this type of data:
         self.getImageAndApplyTexture()
 
         # Whatever is your texture, it now has been applied to a unit square.
         # If all you want to do is show an image, it is probably stretched/squished
-        # to fit in the unit square
+        # into the unit square.
         # There are two solutions to this problem: 
         # 1. You can scale the unit square by applying a custom model matrix
         #    onto your unit square geometry. p3d provides utility functions for
         #    that (e.g. nodepath.setSx/y/z(float)), but I prefer to construct 
         #    my own matrix and then give it to p3d
-        # 2. You could apply a transform on your texture's (u,v) coordinates
-        #    that can result in the same output as in (1.). And you would have
-        #    to dig through the p3d manual and reference yourself, 
-        #    because I'm using (1.)
+        # 2. You could apply a transform on your textures (u,v) coordinates
 
         self.standardTransform = getMat4_scaleUnitQuadProperly(self.myPNMImage.getXSize(), self.myPNMImage.getYSize())
 
         self._apply_net_trafo_to_nodepath()
 
-    def render(self): 
-        # after each detaching from the scenegraph, if you want to attach the
-        # node again, you have to redo all the things that can only be operated on a
-        # the corresponding nodepath. A nodepath that has a texture and 
-        # transformation applied to it can't be detached and reattached to 
-        # the render scenegraph while keeping the applied texture and 
-        # transformation information 
-        # That's why we only hide() the nodepath, to make it invisible to all
-        # cameras and show() it if necessary
-        self.renderit = True
-        self.quad_nodepath.show()
-
-    def hide(self):
-        self.renderit = False
-        self.quad_nodepath.hide()

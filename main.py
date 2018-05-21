@@ -22,5 +22,7 @@ class MyApp(ShowBase):
         myLatexObject2 = LatexObject(r"$a \cdot b  - \frac{c}{d}$")
         myLatexObject2.initiateTranslationMovement(v_x=1., delta_t=1.0)
 
+        # numberLine = NumberLine()
+
 app = MyApp()
 app.run()

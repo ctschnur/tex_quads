@@ -11,7 +11,7 @@ from panda3d.core import PNMImage
 from panda3d.core import Filename
 from panda3d.core import Texture, TransparencyAttrib
 from panda3d.core import PandaSystem
-from panda3d.core import Mat4
+from panda3d.core import Mat4, Vec3
 from panda3d.core import OrthographicLens
 
 print("Panda version:", PandaSystem.getVersionString())
