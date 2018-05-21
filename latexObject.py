@@ -11,20 +11,22 @@ from direct.interval.LerpInterval import *
 
 class Animator:   # only derivatives of this class should be called
     def __init__(self):
+        self.renderit = True
         self.customTransform = Mat4()
         self.net_trafo_at_t0_mat4 = Mat4()
         self.standardTransform = Mat4()  # each subclass has a specific transform (Line, LatexObject, ...)
 
-    def initiateTranslationMovement(self, v_x, delta_t, delay=0.): 
+    def initiateTranslationMovement(self, v_x=0., v_z=0., delta_t=0., delay=0.): 
         extraArgs = [ 
                 v_x,
+                v_z,
                 delta_t
             ]
         self.interval = LerpFunc(self.translate_update_matrix, duration=1.0, blendType="easeInOut", extraArgs=extraArgs) 
         Sequence(Wait(delay), self.interval).start()
 
-    def translate_update_matrix(self, t, v_x, delta_t):
-        self.customTransform = (Mat4.translateMat(v_x*(t/delta_t), 0., 0.) * 
+    def translate_update_matrix(self, t, v_x, v_z, delta_t):
+        self.customTransform = (Mat4.translateMat(v_x*(t/delta_t), 0., v_z*(t/delta_t)) * 
                                 self.net_trafo_at_t0_mat4)
         self._apply_net_trafo_to_nodepath()
 
@@ -49,12 +51,11 @@ class Animator:   # only derivatives of this class should be called
 
 
 class LatexObject(Animator): 
-    def __init__(self, tex_expression, renderit=True):
+    def __init__(self, tex_expression):
         Animator.__init__(self)
 
         self.tex_expression = tex_expression
-        self.renderit = renderit
-        self.makeNewLatexObject()
+        self.makeObject()
 
     def getImageAndApplyTexture(self):
         # TODO: check if latex image is compiled and loaded, and if so retrieve it and not
@@ -84,7 +85,7 @@ class LatexObject(Animator):
         self.quad_nodepath.setTexture(self.myTexture, 1)
         self.quad_nodepath.setTransparency(TransparencyAttrib.MAlpha)
 
-    def makeNewLatexObject(self):
+    def makeObject(self):
         
         self.quad_node = customGeometry.createTexturedUnitQuadGeomNode()
         # the concept of a NodePath() only makes sense only the node is attached 
@@ -103,7 +104,74 @@ class LatexObject(Animator):
         #    my own matrix and then give it to p3d
         # 2. You could apply a transform on your textures (u,v) coordinates
 
-        self.standardTransform = getMat4_scaleUnitQuadProperly(self.myPNMImage.getXSize(), self.myPNMImage.getYSize())
+        self.standardTransform = LatexObject.getMat4_scaleUnitQuadProperly(self.myPNMImage.getXSize(), self.myPNMImage.getYSize())
 
         self._apply_net_trafo_to_nodepath()
+
+    @staticmethod
+    def getMat4_scaleUnitQuadProperly(image_width_pixels, image_height_pixels):
+        return (
+            getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution() * 
+            getMat4_scale_unit_quad_to_image_aspect_ratio(image_width_pixels, image_height_pixels))
+
+class Line(Animator): 
+    thickness = 0.02
+    length = 1.
+    position = Vec3(0., 0., 0.) 
+
+    def __init__(self):
+        Animator.__init__(self)
+
+        self.makeObject()
+ 
+    def makeObject(self): 
+        self.quad_node = customGeometry.createColoredUnitQuadGeomNode(color_vec4=Vec4(1., 1., 1., 1.))
+        # the concept of a NodePath() makes sense only if the node is attached 
+        # to a scenegraph, so do it:
+        self.quad_nodepath = render.attachNewNode(self.quad_node)
+
+        self.standardTransform = Line.getMat4_scaleUnitQuadForLine(self.thickness, self.length, self.position)
+
+        self._apply_net_trafo_to_nodepath()
+
+    @staticmethod
+    def getMat4_scaleUnitQuadForLine(thickness, length, position):
+        # scale height down
+        # quad_scalex = float(length)
+        quad_scalez = float(thickness)
+        return Mat4(1., 0, 0, 0, 
+                    0, 1., 0, 0, 
+                    0, 0, quad_scalez * 1., 0, 
+                    0, 0, 0, 1) 
+
+
+class ArrowForLine(Animator): 
+    eqilateral_length = Line.thickness * 4.
+    position = Vec3(0., 0., 0.) 
+
+    def __init__(self):
+        Animator.__init__(self)
+
+        self.makeObject()
+ 
+    def makeObject(self): 
+        self.quad_node = customGeometry.createColoredArrowGeomNode(color_vec4=Vec4(1., 1., 1., 1.))
+        # the concept of a NodePath() makes sense only if the node is attached 
+        # to a scenegraph, so do it:
+        self.quad_nodepath = render.attachNewNode(self.quad_node)
+
+        self.standardTransform = ArrowForLine.getMat4_scaleGeometry(self.eqilateral_length, self.position)
+
+        self._apply_net_trafo_to_nodepath()
+
+    @staticmethod
+    def getMat4_scaleGeometry(equilateral_length, position):
+        # scale height down
+        # quad_scalex = float(length)
+        scale = float(equilateral_length)
+        return Mat4(scale, 0, 0, 0, 
+                    0, 1., 0, 0, 
+                    0, 0, scale* 1., 0, 
+                    0, 0, 0, 1) 
+
 

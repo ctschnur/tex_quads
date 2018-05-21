@@ -20,7 +20,3 @@ def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution():
                 0, 0, 1./pixel_per_unit, 0, 
                 0, 0, 0, 1)
 
-def getMat4_scaleUnitQuadProperly(image_width_pixels, image_height_pixels):
-    return (
-        getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution() * 
-        getMat4_scale_unit_quad_to_image_aspect_ratio(image_width_pixels, image_height_pixels))
