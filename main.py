@@ -22,7 +22,7 @@ class MyApp(ShowBase):
 
         myLatexObject = LatexObject("Obj 1")
         myLatexObject2 = LatexObject(r"$a \cdot b  - \frac{c}{d}$")
-        myLatexObject2.translate(v_x=0.5, v_z=2.)
+        myLatexObject2.initiateTranslationMovement(self.taskMgr, v_x=0.5, v_z=2.)
 
 app = MyApp()
 app.run()

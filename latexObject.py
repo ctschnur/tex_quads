@@ -5,6 +5,8 @@ from latexDisplayConventions import *
 import customGeometry
 import textureUtils
 
+from direct.task import Task
+
 class LatexObject: 
 
     def __init__(self, tex_expression, renderit=True):
@@ -16,12 +18,41 @@ class LatexObject:
                                     0., 0., 0., 1.)
         self.makeNewLatexObject()
         
-        self.translate()
+        # self.translate()
 
-    def translate(self, v_x=0., v_y=0., v_z=0.):
-        self.customTransform = (Mat4.translateMat(v_x, v_y, v_z) * 
-                                self.customTransform)
+        self.cur_t = 0.
+
+        self.net_trafo_at_t0_mat4 = Mat4()
+        
+        self.trafo_movement_finished = True
+
+        self.v_x=0.
+        self.v_y=0.
+        self.v_z=0.
+
+    def initiateTranslationMovement(self, taskMgr, v_x=1., v_y=0., v_z=1.): 
+        self.v_x=v_x
+        self.v_y=v_y
+        self.v_z=v_z
+        self.trafo_movement_finished = False
+
+        taskMgr.add(self.p3d_translate_interval_task, "p3d_translate_interval_task")
+
+    def p3d_translate_interval_task(self, task):
+        self.translate(self.v_x, self.v_y, self.v_z, frac=sin(task.time))
+        return task.cont
+
+    def translate(self, v_x, v_y, v_z, frac=1.0):
+        # just s = v*t
+        # assert (frac >= 0. and frac <= 1.)
+        # assert (self.trafo_movement_finished is False)
+
+        self.customTransform = (Mat4.translateMat(v_x*frac, v_y*frac, v_z*frac) * 
+                                self.net_trafo_at_t0_mat4)
         self._apply_net_trafo_to_nodepath()
+
+        if frac > 0.99: 
+            self.trafo_movement_finished = True
 
     def _apply_net_trafo_to_nodepath(self):
         self.quad_nodepath.setMat(self.customTransform * self.standardTransform)
