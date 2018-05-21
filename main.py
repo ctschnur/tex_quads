@@ -17,12 +17,10 @@ class MyApp(ShowBase):
 
         # create some LatexObjects
 
-        # for now, we only have one pre-compiled image, so the expressions
-        # we provide don't actually do anything
-
         myLatexObject = LatexObject("Obj 1")
+        myLatexObject.initiateTranslationMovement(v_x=-1., delta_t=1.0, delay=0.5)
         myLatexObject2 = LatexObject(r"$a \cdot b  - \frac{c}{d}$")
-        myLatexObject2.initiateTranslationMovement(self.taskMgr, v_x=0.5, v_z=2.)
+        myLatexObject2.initiateTranslationMovement(v_x=1., delta_t=1.0)
 
 app = MyApp()
 app.run()
