@@ -13,6 +13,7 @@ from panda3d.core import Texture, TransparencyAttrib
 from panda3d.core import PandaSystem
 from panda3d.core import Mat4, Vec3, Vec4
 from panda3d.core import OrthographicLens
+from panda3d.core import AntialiasAttrib
 
 print("Panda version:", PandaSystem.getVersionString())
 
