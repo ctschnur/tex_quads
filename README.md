@@ -1,2 +1,2 @@
 # tex_quads
-Creating and transforming quads in Panda3D that have latex output as png textures on them.
+Converting LaTeX formulas from pdf form to svg to eventually polygons and rendering them in panda3d.
