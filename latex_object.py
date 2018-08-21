@@ -1,7 +1,9 @@
 import conventions
 
-import customGeometry
-import textureUtils
+import custom_geometry
+import texture_utils
+
+from latex_expression_manager import LatexImageManager, LatexImage
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
@@ -53,7 +55,7 @@ class Shape2d(Animator):
         self.makeObject()
 
     def makeObject(self):
-        self.node = customGeometry.createColoredUnitQuadGeomNode(
+        self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
 
@@ -79,7 +81,7 @@ class LatexObject(Shape2d):
 
     def makeObject(self):
         """only creates geometry (doesn't transform it)"""
-        self.node = customGeometry.createTexturedUnitQuadGeomNode()
+        self.node = custom_geometry.createTexturedUnitQuadGeomNode()
         self.nodePath = render.attachNewNode(self.node)
 
         def applyImageAndTexture():
@@ -87,7 +89,7 @@ class LatexObject(Shape2d):
             load image with the object's hash"""
             expr_hash = hashlib.sha256(
                 str(self.tex_expression).encode("utf-8")).hexdigest()
-            from latexExpressionManager import LatexImageManager, LatexImage
+
             myLatexImage = LatexImageManager.retrieveLatexImageFromHash(
                 expr_hash)
             if myLatexImage is None:
@@ -97,7 +99,7 @@ class LatexObject(Shape2d):
                 LatexImageManager.addLatexImageToLoadedSet(myLatexImage)
 
             self.myPNMImage = myLatexImage.getPNMImage()
-            self.myTexture = textureUtils.getTextureFromImage(self.myPNMImage)
+            self.myTexture = texture_utils.getTextureFromImage(self.myPNMImage)
             self.nodePath.setTexture(self.myTexture, 1)
             self.nodePath.setTransparency(TransparencyAttrib.MAlpha)
 
@@ -131,7 +133,7 @@ class ArrowHead(Shape2d):
 
     def makeObject(self):
         """it's not just a scaled quad, so it needs different Geometry"""
-        self.node = customGeometry.createColoredArrowGeomNode(
+        self.node = custom_geometry.createColoredArrowGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
 

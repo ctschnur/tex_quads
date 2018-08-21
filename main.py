@@ -1,6 +1,6 @@
 import conventions
 from direct.showbase.ShowBase import ShowBase
-from latexObject import LatexObject, Axis
+from latex_object import LatexObject, Axis
 
 class MyApp(ShowBase):
  

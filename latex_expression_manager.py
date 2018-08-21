@@ -1,4 +1,4 @@
-import textureUtils
+import texture_utils
 
 from panda3d.core import PNMImage, Filename
 import os
@@ -162,7 +162,7 @@ class LatexImage:
         # LatexImage can also be in a state where the image is not loaded
         # but for now, it always also loads the pnmImage from disk
         if load_p3d_PNMImage is True:
-            self.p3d_PNMImage = textureUtils.getImageFromFile(
+            self.p3d_PNMImage = texture_utils.getImageFromFile(
                 filename=self.fullfilepath_without_extentsion + ".png")
 
         return self.p3d_PNMImage
