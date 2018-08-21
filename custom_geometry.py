@@ -3,6 +3,7 @@ from panda3d.core import (
     GeomVertexData,
     Geom, GeomVertexWriter,
     GeomTriangles,
+    GeomTrifans,
     GeomNode, 
     Vec4)
 
@@ -146,3 +147,40 @@ def createColoredArrowGeomNode(color_vec4=Vec4(0., 0., 1., 1.)):
     quadGN.addGeom(quadGeom)
 
     return quadGN
+
+
+def create_colored_polygon2d_GeomNode_from_point_cloud(point_cloud, color_vec4=Vec4(0., 0., 1., 1.)):
+    # Own Geometry
+
+    # format = GeomVertexFormat.getV3c4t2()
+    format = GeomVertexFormat.getV3c4()
+    vdata = GeomVertexData("colored_polygon", format, Geom.UHStatic)
+    vdata.setNumRows(4)
+    
+    # let's also add color to each vertex
+    colorWriter = GeomVertexWriter(vdata, "color")
+    vertexPosWriter = GeomVertexWriter(vdata, "vertex")
+
+    for point in point_cloud: 
+        vertexPosWriter.addData3f(point[0], 0, point[1])
+        colorWriter.addData4f(color_vec4)
+
+    # make primitives and assign vertices to them (primitives and primitive
+    # groups can be made independently from vdata, and are later assigned
+    # to vdata)
+    tris = GeomTrifans(Geom.UHStatic)
+
+    tris.add_consecutive_vertices(0, len(point_cloud))
+    tris.closePrimitive()
+
+    # make a Geom object to hold the primitives
+    polygonGeom = Geom(vdata)
+    polygonGeom.addPrimitive(tris)
+
+    # now put quadGeom in a GeomNode. You can now position your geometry
+    # in the scene graph.
+    polygonGN = GeomNode("colored_polygon_node")
+    polygonGN.addGeom(polygonGeom)
+
+    return polygonGN
+

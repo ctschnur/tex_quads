@@ -47,7 +47,20 @@ class Animator:
     #     self.nodePath.setPos(s_x*(t/duration), 1., s_z*(t/duration))
 
 
-class Shape2d(Animator):
+class Polygon2d(Animator):
+    def __init__(self, point_cloud):
+        Animator.__init__(self)
+
+        self.makeObject(point_cloud)
+
+    def makeObject(self, point_cloud):
+        self.node = custom_geometry.create_colored_polygon2d_GeomNode_from_point_cloud(
+            point_cloud, 
+            color_vec4=Vec4(1., 1., 1., 1.))
+        self.nodePath = render.attachNewNode(self.node)
+
+
+class Box2d(Animator):
 
     def __init__(self):
         Animator.__init__(self)
@@ -60,7 +73,7 @@ class Shape2d(Animator):
         self.nodePath = render.attachNewNode(self.node)
 
 
-class LatexObject(Shape2d):
+class LatexTextureObject(Box2d):
     def __init__(self, tex_expression):
         Animator.__init__(self)
 
@@ -80,7 +93,7 @@ class LatexObject(Shape2d):
             conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(self.myPNMImage.getXSize(), self.myPNMImage.getYSize()))
 
     def makeObject(self):
-        """only creates geometry (doesn't transform it)"""
+        """ only creates geometry (doesn't transform it) """
         self.node = custom_geometry.createTexturedUnitQuadGeomNode()
         self.nodePath = render.attachNewNode(self.node)
 
@@ -106,12 +119,12 @@ class LatexObject(Shape2d):
         applyImageAndTexture()
 
 
-class Line(Shape2d):
+class Line(Box2d):
     scale_z = .02
     scale_x = 1.
 
     def __init__(self):
-        Shape2d.__init__(self)
+        Box2d.__init__(self)
 
         self.doInitialSetupTransformation()
 
@@ -119,12 +132,12 @@ class Line(Shape2d):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
 
 
-class ArrowHead(Shape2d):
+class ArrowHead(Box2d):
     equilateral_length = Line.scale_z * 4.
     scale = .1
 
     def __init__(self):
-        Shape2d.__init__(self)
+        Box2d.__init__(self)
 
         self.doInitialSetupTransformation()
 
