@@ -1,4 +1,6 @@
 import conventions
+import svgtopointcloud 
+
 from direct.showbase.ShowBase import ShowBase
 from latex_object import LatexTextureObject, Axis, Polygon2d
 
@@ -21,16 +23,16 @@ class MyApp(ShowBase):
 
         axis = Axis()
 
+        def latex_multi_polygon():
+            svgtopointcloud.simplify_svg
         polygon2d = Polygon2d([
             [0.0, 0.0],
-            [0.2, 1.2],
-            [0.4, 1.5],
-            [-0.9, 0.2]])
+            [1.0, 0.0],
+            [1.0, 1.0],
+            [0.0, 1.0]])
 
         childs = render.getChildren()
         print(len(childs))
-        # for c_child in childs: 
-        #     c_child.showBounds()
 
 
 app = MyApp()

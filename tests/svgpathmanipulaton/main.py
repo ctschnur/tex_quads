@@ -2,6 +2,8 @@
 import numpy as np
 from svgpathtools import Path, CubicBezier, svg2paths, wsvg, disvg, svg2paths2, parse_path, bpoints2bezier
 
+from pathlib import PurePath
+
 import os
 import subprocess
 
@@ -9,7 +11,7 @@ import xml.etree.ElementTree as ET
 import copy
 import re
 
-def simplify_svg(filename_in='in.svg', filename_out='out.svg'):
+def simplify_svg(filename_in, filename_out):
     # First, simplify the svg using svgcleaner
     cmd = [
         'svgcleaner/svgcleaner',
@@ -32,11 +34,11 @@ def simplify_svg(filename_in='in.svg', filename_out='out.svg'):
         os.unlink(str(filename_out))
         raise ValueError('Error {} executing command: {}'.format(retcode, ' '.join(cmd)))
 
-def simplified_svg_custom_cleanup(filename_in='out.svg', filename_out='out2.svg'):
+def simplified_svg_custom_cleanup(filename_in, filename_out):
     SVG_XLINK_NS = "{http://www.w3.org/1999/xlink}"
     SVG_NS = "{http://www.w3.org/2000/svg}"
 
-    tree = ET.parse('out.svg')
+    tree = ET.parse(str(filename_in))
     root = tree.getroot()
 
     # register all namespaces
@@ -91,23 +93,62 @@ def simplified_svg_custom_cleanup(filename_in='out.svg', filename_out='out2.svg'
         root.remove(child)
     root.extend(paths)
 
-    tree.write("out2.svg")
+    tree.write(str(filename_out))
 
-def read_flattened_svg(filename_in='out2.svg'): 
-    paths, attributes, svg_attributes = svg2paths2(filename_in)
+def read_flattened_svg(filename_in): 
+    paths, attributes = svg2paths(str(filename_in))
 
     # now you can extract the path coordinates (complex plane) with 
     # e.g. paths[0][0].control1.imag (for a CubicBezier 
     # type path segment)
     print(paths[0][0].control1.imag)
 
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    point_clouds = []
 
-    print("end")
+    for path in paths: 
+        xs = []
+        ys = []
+
+        for segment in path: 
+            xs.append(segment.start.real)
+            ys.append(segment.start.imag)
+            if type(segment) is CubicBezier: 
+                for i in np.arange(1., 5.):  # This probably needs adjustment
+                    point = segment.point(i/5.)
+                    xs.append(point.real)
+                    ys.append(point.imag)
+
+            xs.append(segment.end.real)
+            ys.append(segment.end.imag)
+        
+        point_clouds.append(np.transpose([np.array(xs), np.array(ys)]))
     
-    disvg(paths, attributes=attributes)
+    point_clouds = np.array(point_clouds)
+    import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    # disvg(paths, attributes=attributes)
 
 
-simplify_svg()
-simplified_svg_custom_cleanup()
-read_flattened_svg()
+def get_point_clouds_from_svg(svg_filename):
+
+    simplified_svg_path = (
+        PurePath(
+            str(PurePath(svg_filename).stem) + 
+            str(PurePath("_simplified_")) + 
+            str(PurePath(svg_filename).suffix)))
+
+    simplify_svg(svg_filename, 
+                 simplified_svg_path)
+
+    custom_cleaned_up_svg_path = (
+        PurePath(
+            str(PurePath(simplified_svg_path).stem) + 
+            str(PurePath("_customcleaned_")) + 
+            str(PurePath(simplified_svg_path).suffix)))
+
+    simplified_svg_custom_cleanup(
+        simplified_svg_path, custom_cleaned_up_svg_path)
+
+    read_flattened_svg(custom_cleaned_up_svg_path)
+
+
+get_point_clouds_from_svg("main.svg")
