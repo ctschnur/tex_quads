@@ -1,12 +1,16 @@
-from bunchOfImports import *
-
-from latexDisplayConventions import *
+import conventions
 
 import customGeometry
 import textureUtils
 
-from direct.interval.IntervalGlobal import *
-from direct.interval.LerpInterval import *
+from direct.showbase.ShowBase import ShowBase
+from panda3d.core import (
+    Vec4,
+    TransparencyAttrib)
+from direct.interval.IntervalGlobal import Wait, Sequence
+from direct.interval.LerpInterval import LerpFunc
+
+import hashlib
 
 
 class Animator:
@@ -16,27 +20,27 @@ class Animator:
         self.p3d_interval = LerpFunc(
             self.updatePosition, duration=duration, extraArgs=extraArgs)
         Sequence(Wait(delay), self.p3d_interval).start()
-    
+
     def initiateRotationMovement(self, h=0., p=0., r=0., duration=0., delay=0.):
         extraArgs = [duration, h, p, r]
         self.p3d_interval = LerpFunc(
             self.updateRotation, duration=duration, extraArgs=extraArgs)
         Sequence(Wait(delay), self.p3d_interval).start()
-    
+
     # def initiateScalingMovement(self, s_x=0., s_z=0., duration=0., delay=0.):
     #     extraArgs = [duration, s_x, s_z]
     #     self.p3d_interval = LerpFunc(
     #         self.updatePosition, duration=duration, extraArgs=extraArgs)
     #     Sequence(Wait(delay), self.p3d_interval).start()
-    
 
     # interval update functions
     def updatePosition(self, t, duration, v_x, v_z):
-        self.nodePath.setPos(v_x*(t/duration), 1., v_z*(t/duration))
-    
+        self.nodePath.setPos(v_x * (t / duration), 1., v_z * (t / duration))
+
     def updateRotation(self, t, duration, h, p, r):
-        self.nodePath.setHpr(h*(t/duration), p*(t/duration), r*(t/duration))
-    
+        self.nodePath.setHpr(h * (t / duration), p *
+                             (t / duration), r * (t / duration))
+
     # def updateScaling(self, t, duration, s_x, s_z):
     #     self.nodePath.setPos(s_x*(t/duration), 1., s_z*(t/duration))
 
@@ -70,8 +74,8 @@ class LatexObject(Shape2d):
         exactly with the screen resolution"""
 
         self.nodePath.setMat(
-            getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution() *
-            getMat4_scale_unit_quad_to_image_aspect_ratio(self.myPNMImage.getXSize(), self.myPNMImage.getYSize()))
+            conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution() *
+            conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(self.myPNMImage.getXSize(), self.myPNMImage.getYSize()))
 
     def makeObject(self):
         """only creates geometry (doesn't transform it)"""
@@ -103,7 +107,7 @@ class LatexObject(Shape2d):
 class Line(Shape2d):
     scale_z = .02
     scale_x = 1.
-    
+
     def __init__(self):
         Shape2d.__init__(self)
 
@@ -132,13 +136,15 @@ class ArrowHead(Shape2d):
         self.nodePath = render.attachNewNode(self.node)
 
 
-class Axis: 
+class Axis:
     length = 1.
+
     def __init__(self):
         self.numberLine = Line()
-        self.numberLine.nodePath.setPos(0., 0., -0.5*self.numberLine.scale_z)
+        self.numberLine.nodePath.setPos(0., 0., -0.5 * self.numberLine.scale_z)
         # numberLine.initiateScalingMovement(s_x=.5, duration=1.)
-        
+
         self.arrow = ArrowHead()
-        self.arrow.nodePath.setPos(self.length, 0., -0.5*self.arrow.equilateral_length)
+        self.arrow.nodePath.setPos(
+            self.length, 0., -0.5 * self.arrow.equilateral_length)
         # self.arrow.initiateTranslationMovement(v_x=self.length, duration=1., delay=0.)

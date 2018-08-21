@@ -1,5 +1,4 @@
-from bunchOfImports import *
-
+from panda3d.core import (PNMImage, Filename, Texture)
 def getImageFromFile(filename="sample.png"):
     image = PNMImage()
     image.read(Filename(filename))
