@@ -4,6 +4,7 @@ from panda3d.core import (
     Geom, GeomVertexWriter,
     GeomTriangles,
     GeomTrifans,
+    GeomLinestrips,
     GeomNode, 
     Vec4)
 
@@ -168,7 +169,7 @@ def create_colored_polygon2d_GeomNode_from_point_cloud(point_cloud, color_vec4=V
     # make primitives and assign vertices to them (primitives and primitive
     # groups can be made independently from vdata, and are later assigned
     # to vdata)
-    tris = GeomTrifans(Geom.UHStatic)
+    tris = GeomLinestrips(Geom.UHStatic)
 
     tris.add_consecutive_vertices(0, len(point_cloud))
     tris.closePrimitive()

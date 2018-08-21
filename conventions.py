@@ -5,8 +5,10 @@ from panda3d.core import (
     PandaSystem,
     OrthographicLens,
     loadPrcFileData)
-
 print("Panda version:", PandaSystem.getVersionString())
+
+
+svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
 
 # p3d window
 winsizex = 480

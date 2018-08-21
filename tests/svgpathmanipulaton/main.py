@@ -2,6 +2,8 @@
 import numpy as np
 from svgpathtools import Path, CubicBezier, svg2paths, wsvg, disvg, svg2paths2, parse_path, bpoints2bezier
 
+import conventions
+
 from pathlib import PurePath
 
 import os
@@ -14,7 +16,7 @@ import re
 def simplify_svg(filename_in, filename_out):
     # First, simplify the svg using svgcleaner
     cmd = [
-        'svgcleaner/svgcleaner',
+        conventions.svgcleaner_path,
         str(filename_in),
         str(filename_out),
         '--ungroup-groups',
@@ -101,10 +103,9 @@ def read_flattened_svg(filename_in):
     # now you can extract the path coordinates (complex plane) with 
     # e.g. paths[0][0].control1.imag (for a CubicBezier 
     # type path segment)
-    print(paths[0][0].control1.imag)
 
     point_clouds = []
-
+    num_intermediate_points = 10.
     for path in paths: 
         xs = []
         ys = []
@@ -113,8 +114,8 @@ def read_flattened_svg(filename_in):
             xs.append(segment.start.real)
             ys.append(segment.start.imag)
             if type(segment) is CubicBezier: 
-                for i in np.arange(1., 5.):  # This probably needs adjustment
-                    point = segment.point(i/5.)
+                for i in np.arange(1., num_intermediate_points):  # This probably needs adjustment
+                    point = segment.point(i/num_intermediate_points)
                     xs.append(point.real)
                     ys.append(point.imag)
 
@@ -124,8 +125,8 @@ def read_flattened_svg(filename_in):
         point_clouds.append(np.transpose([np.array(xs), np.array(ys)]))
     
     point_clouds = np.array(point_clouds)
-    import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
     # disvg(paths, attributes=attributes)
+    return point_clouds
 
 
 def get_point_clouds_from_svg(svg_filename):
@@ -148,7 +149,9 @@ def get_point_clouds_from_svg(svg_filename):
     simplified_svg_custom_cleanup(
         simplified_svg_path, custom_cleaned_up_svg_path)
 
-    read_flattened_svg(custom_cleaned_up_svg_path)
+    return read_flattened_svg(custom_cleaned_up_svg_path)
 
+def main(): 
+    get_point_clouds_from_svg("main.svg")
 
-get_point_clouds_from_svg("main.svg")
+# main()
