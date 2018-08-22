@@ -10,6 +10,9 @@ from panda3d.core import (
 
 from math import pi, cos
 
+import numpy as np
+
+import tripy_modified
 
 def createTexturedUnitQuadGeomNode():
     # Own Geometry
@@ -152,6 +155,13 @@ def createColoredArrowGeomNode(color_vec4=Vec4(0., 0., 1., 1.)):
 
 def create_colored_polygon2d_GeomNode_from_point_cloud(point_cloud, color_vec4=Vec4(0., 0., 1., 1.)):
     # Own Geometry
+    _, idx = np.unique(point_cloud, return_index=True, axis=0) 
+    point_cloud = np.array(point_cloud)[np.sort(idx)]  # that goes into the geomNode
+
+    # triangulate
+    triangles, indices = tripy_modified.earclip([tuple(elem) for elem in point_cloud])
+    indices = np.array(indices)  # that goes into the triangles
+    
 
     # format = GeomVertexFormat.getV3c4t2()
     format = GeomVertexFormat.getV3c4()
@@ -169,10 +179,13 @@ def create_colored_polygon2d_GeomNode_from_point_cloud(point_cloud, color_vec4=V
     # make primitives and assign vertices to them (primitives and primitive
     # groups can be made independently from vdata, and are later assigned
     # to vdata)
-    tris = GeomLinestrips(Geom.UHStatic)
-
-    tris.add_consecutive_vertices(0, len(point_cloud))
-    tris.closePrimitive()
+    
+    tris = GeomTriangles(Geom.UHStatic)
+    for idx_triple in indices: 
+        tris.addVertex(int(idx_triple[0]))
+        tris.addVertex(int(idx_triple[1]))
+        tris.addVertex(int(idx_triple[2]))
+        tris.closePrimitive()
 
     # make a Geom object to hold the primitives
     polygonGeom = Geom(vdata)
