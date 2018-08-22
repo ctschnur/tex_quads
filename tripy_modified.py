@@ -6,10 +6,6 @@ Point = namedtuple('Point', ['x', 'y'])
 
 def earclip(polygon):
     """
-    # taken from https://github.com/mrbaozi/triangulation, and modified to fit
-    # my purposes (to not only spit out vertices, but the indices of those
-    # vertices too for later rendering with an index buffer)
-
     Simple earclipping algorithm for a given polygon p.
     polygon is expected to be an array of 2-tuples of the cartesian points of the polygon
 
@@ -27,10 +23,8 @@ def earclip(polygon):
     """
     ear_vertex = []
     triangles = []
-    triangles_indices = []  # my modification
 
     polygon = [Point(*point) for point in polygon]
-    polygon_original = copy.deepcopy(polygon)  # my modification
 
     if _is_clockwise(polygon):
         polygon.reverse()
@@ -58,11 +52,6 @@ def earclip(polygon):
         polygon.remove(ear)
         point_count -= 1
         triangles.append(((prev_point.x, prev_point.y), (ear.x, ear.y), (next_point.x, next_point.y)))
-        # --- BEGIN my modification
-        i_original = polygon_original.index(ear)  
-        triangles_indices.append((i_original - 1, i_original, i_original + 1))
-        # --- END my modification
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         
         if point_count > 3:
             prev_prev_point = polygon[prev_index - 1]
@@ -80,7 +69,7 @@ def earclip(polygon):
                         ear_vertex.append(p)
                 elif p in ear_vertex:
                     ear_vertex.remove(p)
-    return triangles, triangles_indices  # my modification: added triangles_indices
+    return triangles
 
 
 def _is_clockwise(polygon):
