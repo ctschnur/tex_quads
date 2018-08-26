@@ -16,6 +16,8 @@ class MyApp(ShowBase):
 
         # create some LatexObjects
 
+        myLatexObject3 = LatexTextureObject(r"$\frac{\pi}{ 4} $")
+
         myLatexObject = LatexTextureObject("Obj 1")
         myLatexObject.initiateTranslationMovement(v_x=1.5, v_z=0., duration=1., delay=0.)
         myLatexObject2 = LatexTextureObject(r"$a \cdot b  - \frac{c}{d}$")
