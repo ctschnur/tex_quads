@@ -1,3 +1,8 @@
+import sys
+sys.path.append("..")
+
+import triangulator.main
+
 import svgpathtools
 import sys
 import numpy as np
@@ -38,6 +43,7 @@ class OuterPolygonWithInnerHolePolygons:  # e.g. an 8
     def __init__(self): 
         self.inner_hole_polygons = []
         self.outer_polygon = None
+        self.indexed_geometry = IndexedGeometry()
 
     def addInnerHolePolygon(self, inner_hole_polygon):
         self.inner_hole_polygons.append(inner_hole_polygon)
@@ -70,7 +76,7 @@ def get_points_continuous_path_part(parsed_path):
 def get_OuterPolygonWithInnerHolePolygonss_from_svg_paths(svg_paths):
     outerPolygonWithInnerHolePolygonss = []
 
-    import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
     for svg_path in svg_paths:
         # split: without the M's in front, cut the first one off because it's ""
@@ -79,7 +85,7 @@ def get_OuterPolygonWithInnerHolePolygonss_from_svg_paths(svg_paths):
         pathSegs_strs = ["M " + s for s in pathSegs_strs]
         # parse the individual segment of that one path
         parsed_continuous_path_parts = [svgpathtools.parse_path(x) for x in pathSegs_strs]
-        import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
         # categorize them into outer polygons with inner holes
         owip = OuterPolygonWithInnerHolePolygons()
@@ -114,10 +120,17 @@ if __name__ == "__main__":
     # only need paths
     paths, _ = svgpathtools.svg2paths(file)
 
+    # order them into the datastructures
     outerPolygonWithInnerHolePolygonss = get_OuterPolygonWithInnerHolePolygonss_from_svg_paths(paths)
-    # now they are ready for the panda3d triangulator
 
-    import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    # now they are ready for the panda3d triangulator
+    for owip in outerPolygonWithInnerHolePolygonss:
+        import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+        # TODO: remove inner hole polygons, and it works, with them it
+        # doesn't work yet.
+        vertices, triangle_indices = triangulator.main.triangulate_outer_polygon_with_hole_polygons(owip)
+
     print("end")
 
 
