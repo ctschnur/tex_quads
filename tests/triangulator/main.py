@@ -61,6 +61,8 @@ if __name__ == "__main__":
     polygon1_points = (
         np.array([(0, 1), (-1, 0), (0, -1), (1, 0)], dtype=np.float64))
 
+
+
     outerPolygon = svgpathtodat.OuterPolygon(polygon1_points)
 
     outerPolygonWithInnerHolePolygons = (
@@ -70,7 +72,7 @@ if __name__ == "__main__":
     vertices, triangle_indices = triangulate_outer_polygon_with_hole_polygons(
         outerPolygonWithInnerHolePolygons)
     
-    import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
     print("end")
     
