@@ -2,7 +2,7 @@ import conventions
 from tests.svgpathmanipulaton.main import get_point_clouds_from_svg
 
 from direct.showbase.ShowBase import ShowBase
-from latex_object import LatexTextureObject, Axis, Polygon2d, Polygon2dTest
+from latex_object import LatexTextureObject, Axis, Polygon2d, Polygon2dTest, Polygon2dTestLineStrips
 
 class MyApp(ShowBase):
  
@@ -41,7 +41,9 @@ class MyApp(ShowBase):
         #     [0.1, 0.1],
         #     [0.0, 0.1]])
 
-        polygontest = Polygon2dTest()
+        # polygontest = Polygon2dTest()
+        
+        polygontest = Polygon2dTestLineStrips()
         
         # polygon2d2 = Polygon2d(point_clouds[0])
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
