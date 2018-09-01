@@ -1,5 +1,5 @@
 import conventions
-from tests.svgpathmanipulaton.main import get_point_clouds_from_svg
+from tests.svgpathmanipulaton.main import get_point_clouds_from_svg, read_flattened_svg
 
 import tripy_modified
 
@@ -8,8 +8,7 @@ import numpy as np
 from latex_object import LatexTextureObject, Axis, Polygon2d, Polygon2dTest, Polygon2dTestLineStrips
 
 class MyApp(ShowBase):
- 
-    def __init__(self):
+ def __init__(self):
         ShowBase.__init__(self)
 
         # make self-defined camera control possible
@@ -34,21 +33,9 @@ class MyApp(ShowBase):
         # cloud = np.array([(0,1), (-1, 0), (0, -1), (1, 0)])
         # polygon2d2 = Polygon2d(cloud)
 
-        # point_clouds = get_point_clouds_from_svg("tests/svgpathmanipulaton/main.svg")
+        point_clouds = get_point_clouds_from_svg("tests/svgpathmanipulaton/main.svg")
         
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
-        # polygon2d2 = Polygon2d(
-        #     point_clouds[0]/10.)
-        # 
-        # polygon2d3 = Polygon2d(
-        #     point_clouds[1]/10.)
-
-        # polygon2d = Polygon2d([
-        #     [0.0, 0.0],
-        #     [0.1, 0.0],
-        #     [0.1, 0.1],
-        #     [0.0, 0.1]])
+        import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
         # polygontest = Polygon2dTest()
         

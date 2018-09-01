@@ -13,8 +13,14 @@ import re
 
 def simplify_svg(filename_in, filename_out):
     # First, simplify the svg using svgcleaner
+    svgcleaner_path = PurePath(
+        PurePath(str(__file__)).parent /
+        PurePath("svgcleaner/svgcleaner"))
+
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
     cmd = [
-        "svgcleaner/svgcleaner",
+        str(svgcleaner_path),
         str(filename_in),
         str(filename_out),
         '--ungroup-groups',
