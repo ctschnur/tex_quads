@@ -2,8 +2,6 @@
 import numpy as np
 from svgpathtools import Path, CubicBezier, svg2paths, wsvg, disvg, svg2paths2, parse_path, bpoints2bezier
 
-import conventions
-
 from pathlib import PurePath
 
 import os
@@ -16,7 +14,7 @@ import re
 def simplify_svg(filename_in, filename_out):
     # First, simplify the svg using svgcleaner
     cmd = [
-        conventions.svgcleaner_path,
+        "svgcleaner/svgcleaner",
         str(filename_in),
         str(filename_out),
         '--ungroup-groups',
@@ -106,9 +104,12 @@ def read_flattened_svg(filename_in):
 
     point_clouds = []
     num_intermediate_points = 10.
+
     for path in paths: 
         xs = []
         ys = []
+        print("---------------------------")
+        print(path)
 
         for segment in path: 
             xs.append(segment.start.real)
@@ -151,7 +152,7 @@ def get_point_clouds_from_svg(svg_filename):
 
     return read_flattened_svg(custom_cleaned_up_svg_path)
 
-def main(): 
+
+if __name__ == "__main__":
     get_point_clouds_from_svg("main.svg")
 
-# main()
