@@ -1,14 +1,12 @@
 import conventions
-from tests.svgpathmanipulaton.main import get_point_clouds_from_svg, read_flattened_svg
-
-import tripy_modified
+import tests.svgpathtodat.main
 
 from direct.showbase.ShowBase import ShowBase
 import numpy as np
-from latex_object import LatexTextureObject, Axis, Polygon2d, Polygon2dTest, Polygon2dTestLineStrips
+from latex_object import LatexTextureObject, Axis, Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 
 class MyApp(ShowBase):
- def __init__(self):
+    def __init__(self):
         ShowBase.__init__(self)
 
         # make self-defined camera control possible
@@ -33,13 +31,16 @@ class MyApp(ShowBase):
         # cloud = np.array([(0,1), (-1, 0), (0, -1), (1, 0)])
         # polygon2d2 = Polygon2d(cloud)
 
-        point_clouds = get_point_clouds_from_svg("tests/svgpathmanipulaton/main.svg")
-        
-        import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        # point_clouds = get_point_clouds_from_svg("tests/svgpathmanipulaton/main.svg")
+
+        symbol_geometries = tests.svgpathtodat.main.get_test_symbol_geometries()
+ 
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
         # polygontest = Polygon2dTest()
         
-        polygontest = Polygon2dTestLineStrips()
+        # polygontest = Polygon2dTestLineStrips(symbol_geometries)
+        polygontest = Polygon2dTestTriangles(symbol_geometries)
         
         # polygon2d2 = Polygon2d(point_clouds[0])
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT

@@ -9,9 +9,7 @@ from panda3d.core import (
     Vec4)
 
 from math import pi, cos
-
 import numpy as np
-
 
 def createTexturedUnitQuadGeomNode():
     # Own Geometry
@@ -204,13 +202,18 @@ def create_colored_polygon2d_GeomNode_from_point_cloud(point_cloud, color_vec4=V
 
     return geom_node 
 
-def create_GeomNode_Simple_Polygon_with_Hole():
+def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
 
-    color_vec4=Vec4(1., 1., 1., 1.)
-    outerpolygon_contour_points = (
-        np.array([(0, 1), (-1, 0), (0, -1), (1, 0)], dtype=np.float64))
-    inner_hole_contour_points = 0.5 * (
-        np.array([(0, 1), (-1, 0), (0, -1), (1, 0)], dtype=np.float64))
+    color_vec4 = Vec4(1., 1., 1., 1.)
+
+    outerpolygon_contour_points = 0.1 * symbol_geometries[0][0]
+    inner_hole_contour_points = 0.1 * symbol_geometries[0][1]
+
+    # outerpolygon_contour_points = (
+    #     np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
+
+    # inner_hole_contour_points = (
+    #     0.5 * np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
 
     from panda3d.core import Triangulator, LPoint2d
     
@@ -272,13 +275,19 @@ def create_GeomNode_Simple_Polygon_with_Hole():
 
     return polygonGN
 
-def create_GeomNode_Simple_Polygon_with_Hole_LineStrips():
+def create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries):
+    color_vec4 = Vec4(1., 1., 1., 1.)
 
-    color_vec4=Vec4(1., 1., 1., 1.)
-    outerpolygon_contour_points = (
-        np.array([(0, 1), (-1, 0), (0, -1), (1, 0)], dtype=np.float64))
-    inner_hole_contour_points = 0.5 * (
-        np.array([(0, 1), (-1, 0), (0, -1), (1, 0)], dtype=np.float64))
+    outerpolygon_contour_points = 0.1 * symbol_geometries[0][0]
+    inner_hole_contour_points = 0.1 * symbol_geometries[0][1]
+
+    # outerpolygon_contour_points = (
+    #     np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
+
+    # inner_hole_contour_points = (
+    #     0.5 * np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
+
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT 
 
     from panda3d.core import Triangulator, LPoint2d
     
@@ -308,7 +317,7 @@ def create_GeomNode_Simple_Polygon_with_Hole_LineStrips():
     format = GeomVertexFormat.getV3c4()
     vdata = GeomVertexData("colored_polygon", format, Geom.UHStatic)
     vdata.setNumRows(4)
-    
+
     # let's also add color to each vertex
     colorWriter = GeomVertexWriter(vdata, "color")
     vertexPosWriter = GeomVertexWriter(vdata, "vertex")

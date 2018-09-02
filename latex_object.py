@@ -59,25 +59,27 @@ class Polygon2d(Animator):
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
 
-class Polygon2dTest(Animator):
-    def __init__(self, point_cloud=None):
+class Polygon2dTestTriangles(Animator):
+    def __init__(self, symbol_geometries):
         Animator.__init__(self)
 
-        self.makeObject(point_cloud)
+        self.makeObject(symbol_geometries)
 
-    def makeObject(self, point_cloud):
-        self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole()
+    def makeObject(self, symbol_geometries):
+        self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries)
+
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setRenderModeWireframe()
 
 class Polygon2dTestLineStrips(Animator):
-    def __init__(self, point_cloud=None):
+    def __init__(self, symbol_geometries):
         Animator.__init__(self)
 
-        self.makeObject(point_cloud)
+        self.makeObject(symbol_geometries)
 
-    def makeObject(self, point_cloud):
-        self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole_LineStrips()
+    def makeObject(self, symbol_geometries):
+        self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries)
+
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setRenderModeWireframe()
 
