@@ -67,6 +67,7 @@ class Polygon2dTestTriangles(Animator):
 
     def makeObject(self, symbol_geometries):
         self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries)
+        # self.node = custom_geometry.create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries)
 
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setRenderModeWireframe()

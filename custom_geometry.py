@@ -8,6 +8,8 @@ from panda3d.core import (
     GeomNode, 
     Vec4)
 
+from panda3d.core import Triangulator, LPoint2d
+
 from math import pi, cos
 import numpy as np
 
@@ -215,9 +217,17 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
     # inner_hole_contour_points = (
     #     0.5 * np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
 
-    from panda3d.core import Triangulator, LPoint2d
     
     tr = Triangulator()
+
+    # very simple triangular hole
+    v1 = np.array([ 
+        np.amax(outerpolygon_contour_points[:, 0]), 
+        np.amax(outerpolygon_contour_points[:, 1]), 
+    ]) + np.array([-0.2, -0.15]) 
+    v2 = v1 + np.array([-0.05, -0.05])
+    v3 = v1 + np.array([0.0, -0.05])
+    inner_hole_contour_points = [v1, v2, v3]
 
     for vertex in outerpolygon_contour_points: 
         vi = tr.addVertex(vertex[0], vertex[1])
@@ -227,6 +237,9 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
     for vertex in inner_hole_contour_points:
         vi = tr.addVertex(vertex[0], vertex[1])
         tr.addHoleVertex(vi)
+
+ 
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
     tr.triangulate()
     
@@ -358,3 +371,76 @@ def create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries):
 
     return polygonGN
 
+
+def create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries):
+
+    color_vec4 = Vec4(1., 1., 1., 1.)
+
+    outerpolygon_contour_points = 0.1 * symbol_geometries[0][0]
+    # inner_hole_contour_points = 0.1 * symbol_geometries[0][1]
+
+    # outerpolygon_contour_points = (
+    #     np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
+
+    # inner_hole_contour_points = (
+    #     0.5 * np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
+
+    from panda3d.core import Triangulator, LPoint2d
+    
+    tr = Triangulator()
+
+    for vertex in outerpolygon_contour_points: 
+        vi = tr.addVertex(vertex[0], vertex[1])
+        tr.addPolygonVertex(vi)
+
+    # tr.beginHole()
+    # for vertex in inner_hole_contour_points:
+    #     vi = tr.addVertex(vertex[0], vertex[1])
+    #     tr.addHoleVertex(vi)
+
+    tr.triangulate()
+    
+    vertices = tr.getVertices()
+
+    indices = []
+    num_triangles = tr.getNumTriangles()
+    for i in range(num_triangles):
+        indices.append([tr.getTriangleV0(i), tr.getTriangleV1(i), tr.getTriangleV2(i)])
+
+    # Own Geometry
+
+    # format = GeomVertexFormat.getV3c4t2()
+    format = GeomVertexFormat.getV3c4()
+    vdata = GeomVertexData("colored_polygon", format, Geom.UHStatic)
+    vdata.setNumRows(4)
+    
+    # let's also add color to each vertex
+    colorWriter = GeomVertexWriter(vdata, "color")
+    vertexPosWriter = GeomVertexWriter(vdata, "vertex")
+
+    for v in vertices: 
+        vertexPosWriter.addData3f(v[0], 0, v[1])
+        colorWriter.addData4f(color_vec4)
+
+    # make primitives and assign vertices to them (primitives and primitive
+    # groups can be made independently from vdata, and are later assigned
+    # to vdata)
+    tris = GeomTriangles(Geom.UHStatic) 
+    
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+    for index_triple in indices: 
+        tris.addVertices(index_triple[0], index_triple[1], index_triple[2])
+
+    tris.closePrimitive()
+
+    # make a Geom object to hold the primitives
+    polygonGeom = Geom(vdata)  # vdata contains the vertex position/color/... buffers
+    polygonGeom.addPrimitive(tris)  # tris contains the index buffer
+
+    # now put quadGeom in a GeomNode. You can now position your geometry
+    # in the scene graph.
+    polygonGN = GeomNode("colored_polygon_node")
+    polygonGN.addGeom(polygonGeom)
+
+    return polygonGN
