@@ -211,6 +211,8 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
     outerpolygon_contour_points = 0.1 * symbol_geometries[0][0]
     inner_hole_contour_points = 0.1 * symbol_geometries[0][1]
 
+    outerpolygon_contour_points = inner_hole_contour_points
+
     # outerpolygon_contour_points = (
     #     np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
 
@@ -221,22 +223,22 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
     tr = Triangulator()
 
     # very simple triangular hole
-    v1 = np.array([ 
-        np.amax(outerpolygon_contour_points[:, 0]), 
-        np.amax(outerpolygon_contour_points[:, 1]), 
-    ]) + np.array([-0.2, -0.15]) 
-    v2 = v1 + np.array([-0.05, -0.05])
-    v3 = v1 + np.array([0.0, -0.05])
-    inner_hole_contour_points = [v1, v2, v3]
+    # v1 = np.array([ 
+    #     np.amax(outerpolygon_contour_points[:, 0]), 
+    #     np.amax(outerpolygon_contour_points[:, 1]), 
+    # ]) + np.array([-0.2, -0.15]) 
+    # v2 = v1 + np.array([-0.05, -0.05])
+    # v3 = v1 + np.array([0.0, -0.05])
+    # inner_hole_contour_points = [v1, v2, v3]
 
     for vertex in outerpolygon_contour_points: 
         vi = tr.addVertex(vertex[0], vertex[1])
         tr.addPolygonVertex(vi)
 
-    tr.beginHole()
-    for vertex in inner_hole_contour_points:
-        vi = tr.addVertex(vertex[0], vertex[1])
-        tr.addHoleVertex(vi)
+    # tr.beginHole()
+    # for vertex in inner_hole_contour_points:
+    #     vi = tr.addVertex(vertex[0], vertex[1])
+    #     tr.addHoleVertex(vi)
 
  
     # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
