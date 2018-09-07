@@ -211,7 +211,20 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
     outerpolygon_contour_points = 0.1 * symbol_geometries[0][0]
     inner_hole_contour_points = 0.1 * symbol_geometries[0][1]
 
-    outerpolygon_contour_points = inner_hole_contour_points
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+    from itertools import groupby
+
+    inner_hole_contour_points = [k for k,g in groupby(inner_hole_contour_points.tolist())]
+    # inner_hole_contour_points.append(inner_hole_contour_points[0])
+    inner_hole_contour_points = np.array(inner_hole_contour_points)[:-1]
+    outerpolygon_contour_points = [k for k,g in groupby(outerpolygon_contour_points.tolist())]
+    # outerpolygon_contour_points.append(outerpolygon_contour_points[0])
+    outerpolygon_contour_points = np.array(outerpolygon_contour_points)[:-1]
+
+    # remove consecutive doubles in contour 
+
+    # outerpolygon_contour_points = inner_hole_contour_points
 
     # outerpolygon_contour_points = (
     #     np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
@@ -235,10 +248,10 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
         vi = tr.addVertex(vertex[0], vertex[1])
         tr.addPolygonVertex(vi)
 
-    # tr.beginHole()
-    # for vertex in inner_hole_contour_points:
-    #     vi = tr.addVertex(vertex[0], vertex[1])
-    #     tr.addHoleVertex(vi)
+    tr.beginHole()
+    for vertex in inner_hole_contour_points:
+        vi = tr.addVertex(vertex[0], vertex[1])
+        tr.addHoleVertex(vi)
 
  
     # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT

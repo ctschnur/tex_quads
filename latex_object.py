@@ -8,7 +8,8 @@ from latex_expression_manager import LatexImageManager, LatexImage
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
     Vec4,
-    TransparencyAttrib)
+    TransparencyAttrib, 
+    AntialiasAttrib)
 from direct.interval.IntervalGlobal import Wait, Sequence
 from direct.interval.LerpInterval import LerpFunc
 
@@ -70,7 +71,8 @@ class Polygon2dTestTriangles(Animator):
         # self.node = custom_geometry.create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries)
 
         self.nodePath = render.attachNewNode(self.node)
-        self.nodePath.setRenderModeWireframe()
+        
+        # self.nodePath.setRenderModeWireframe()
 
 class Polygon2dTestLineStrips(Animator):
     def __init__(self, symbol_geometries):

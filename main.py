@@ -2,8 +2,10 @@ import conventions
 import tests.svgpathtodat.main
 
 from direct.showbase.ShowBase import ShowBase
+from panda3d.core import AntialiasAttrib
 import numpy as np
 from latex_object import LatexTextureObject, Axis, Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
+
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -22,6 +24,10 @@ class MyApp(ShowBase):
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         
         polygontest = Polygon2dTestTriangles(symbol_geometries)
+
+        polygontest.initiateTranslationMovement(v_x=1., duration=1.)
+    
+        render.setAntialias(AntialiasAttrib.MAuto)
 
         childs = render.getChildren()
         print(len(childs))
