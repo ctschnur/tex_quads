@@ -21,12 +21,10 @@ class MyApp(ShowBase):
 
         symbol_geometries = tests.svgpathtodat.main.get_test_symbol_geometries()
  
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        
         polygontest = Polygon2dTestTriangles(symbol_geometries)
 
         polygontest.initiateTranslationMovement(v_x=1., duration=1.)
-    
+        
         render.setAntialias(AntialiasAttrib.MAuto)
 
         childs = render.getChildren()
