@@ -189,3 +189,14 @@ class Axis:
         self.arrow.nodePath.setPos(
             self.length, 0., -0.5 * self.arrow.equilateral_length)
         # self.arrow.initiateTranslationMovement(v_x=self.length, duration=1., delay=0.)
+
+class YAxis(Axis):
+    """ YAxis, basically a rotated XAxis
+
+    """
+    def __init__(self):
+        super(YAxis, self).__init__()
+        # x(right), y(out of screen), z(up)
+        self.numberLine.nodePath.setPos(0.0, 0.0, 0.0)
+        # around z, around x', around y''
+        self.numberLine.nodePath.setHpr(0.0, 0.0, -90.0)

@@ -70,7 +70,7 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention():
     # The total height ($z \in [-1, +1]$) is here fixed to be 2.
     # setting the view matrix as a function of the p3d window's 
     # aspect ratio
-    lens_view_height_in_world_coords = 2.
+    lens_view_height_in_world_coords = 2.5
     lens_view_width_in_world_coords = (
         lens_view_height_in_world_coords * (winsizex/winsizey))
     print(
