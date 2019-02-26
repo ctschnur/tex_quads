@@ -14,6 +14,7 @@ from direct.interval.IntervalGlobal import Wait, Sequence
 from direct.interval.LerpInterval import LerpFunc
 
 import hashlib
+import numpy as np
 
 
 class Animator:
@@ -156,6 +157,34 @@ class Line(Box2d):
 
     def doInitialSetupTransformation(self):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
+
+class ParallelLines:
+    """ Draw Parallel Lines
+
+    """
+    def __init__(self):
+        self.spacing = .25
+        self.number_of_lines = 15
+
+        # self.numoflines = int(self.length_in_segments - 1)
+
+
+        # transform the lines
+        # - stretch the unit length lines to the specified size
+        # - position them in order, evenly spaced
+
+        self.lines = [Line() for i in range(self.number_of_lines)]
+        for idx, line in enumerate(self.lines): 
+            line.nodePath.setScale(line.nodePath, 1., 1., 1.)
+            line.nodePath.setPos(0., 0, idx * self.spacing)
+
+    def rotatey(self):
+        for idx, line in enumerate(self.lines):
+            # around z, around x', around y''
+            # self.numberLine.nodePath.setHpr(0.0, 0.0, -90.0)
+            # line.nodePath.setHpr(line.nodePath, 0., 1., -90.)
+            line.nodePath.setHpr(0., 0., -45.)
+
 
 
 class ArrowHead(Box2d):
