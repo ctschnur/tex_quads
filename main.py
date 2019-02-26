@@ -19,7 +19,6 @@ class MyApp(ShowBase):
         myLatexObject = LatexTextureObject("Obj 1")
         axis = Axis()
         axis2 = YAxis()
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT<C-c>
 
         parallelLines = ParallelLines()
         hparallelLines = ParallelLines()
