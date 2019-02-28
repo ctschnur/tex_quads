@@ -7,9 +7,11 @@ from latex_expression_manager import LatexImageManager, LatexImage
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
+    Vec3, 
     Vec4,
     TransparencyAttrib, 
-    AntialiasAttrib)
+    AntialiasAttrib,
+    NodePath)
 from direct.interval.IntervalGlobal import Wait, Sequence
 from direct.interval.LerpInterval import LerpFunc
 
@@ -152,11 +154,32 @@ class Line(Box2d):
 
     def __init__(self):
         Box2d.__init__(self)
-
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
+
+    # def setTailPoint(self, tail_point):
+    #     self.tail_point = tail_point
+    #     self.nodePath.setPos(self.tail_point)
+
+    def setTipPoint(self, tip_point):
+        # since the template is already normalized in world coordinates,
+        # I only need to scale it in the x direction and then rotate it so
+        # it points to the intended coordinate
+        self.tip_point = tip_point
+        # scale it
+        self.nodePath.setScale(self.nodePath, np.sqrt(tip_point.getX()**2. + tip_point.getY()**2. + tip_point.getZ()**2.))
+        # angle between (1, 0, 0)^T and tip_point
+        xhat = Vec3(1., 0., 0.)
+        print("the angle between ",
+              tip_point.getX(), tip_point.getY(), tip_point.getZ(),
+              " and ",
+              xhat.getX(), xhat.getY(), xhat.getZ(),
+              " is ",
+              xhat.angleDeg(tip_point))
+              
+        self.nodePath.setHpr(0., 0., tip_point.angleDeg(xhat))
 
 class ParallelLines:
     """ Draw Parallel Lines
@@ -177,14 +200,6 @@ class ParallelLines:
         for idx, line in enumerate(self.lines): 
             line.nodePath.setScale(line.nodePath, 1., 1., 1.)
             line.nodePath.setPos(0., 0, idx * self.spacing)
-
-    def rotatey(self):
-        for idx, line in enumerate(self.lines):
-            # around z, around x', around y''
-            # self.numberLine.nodePath.setHpr(0.0, 0.0, -90.0)
-            # line.nodePath.setHpr(line.nodePath, 0., 1., -90.)
-            line.nodePath.setHpr(0., 0., -45.)
-
 
 
 class ArrowHead(Box2d):
@@ -229,3 +244,17 @@ class YAxis(Axis):
         self.numberLine.nodePath.setPos(0.0, 0.0, 0.0)
         # around z, around x', around y''
         self.numberLine.nodePath.setHpr(0.0, 0.0, -90.0)
+
+class GroupNode(Animator):
+    """Documentation for GroupNode
+
+    """
+    def __init__(self):
+        super(GroupNode, self).__init__()
+        self.nodePath = NodePath("empty")
+        self.nodePath.reparentTo(render)
+
+    def addChildNodePaths(self, NodePaths):
+        for np in NodePaths:
+            np.reparentTo(self.nodePath)
+        
