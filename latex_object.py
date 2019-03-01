@@ -188,13 +188,51 @@ class Line(Box2dCentered):
 
         # create a transformation matrix (for column vectors, as usual)
 
-        trafo_mat4_forcolvecs = np.array([[1, 0, 0, 0],
-                                          [0, 1, 0, 0],
-                                          [.5, 0, 1, 0], 
-                                          [0, 0, 0, 1]])
+        # trafo_mat4_forcolvecs = np.array([[1, 0, 0, 0],
+        #                                   [0, 1, 0, 0],
+        #                                   [.5, 0, 1, 0], 
+        #                                   [0, 0, 0, 1]])
 
 
-        trafo = Mat4(*tuple(np.transpose(trafo_mat4_forcolvecs).flatten()))
+        xhat = np.array([1, 0, 0])
+        
+        xhat_prime = np.array([-.1, 0, 2.])  # where I want to move it
+
+        normal = np.array([0, 1, 0])  # yhat
+        
+        # # find angle between xhat and xhat_prime, range theta = [-pi/2, pi/2]
+        # theta = np.arcsin(np.linalg.norm(np.cross(xhat, xhat_prime)) / (np.linalg.norm(xhat) * np.linalg.norm(xhat_prime)))
+
+        # find angle between xhat and xhat_prime with fixed normal vector (axis of rotation), range theta = [-pi, pi]
+        det = np.dot(normal, np.cross(xhat, xhat_prime))
+        dot = np.dot(xhat, xhat_prime)
+        theta = np.arctan2(det, dot)
+
+        # print("the angle between ",
+        #       xhat, 
+        #       " and ",
+        #       xhat_prime, 
+        #       " is ",
+        #       theta)
+
+        # rotation
+        rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
+                             [0,              1,             0, 0],
+                             [-np.sin(theta), 0, np.cos(theta), 0], 
+                             [0,              0,             0, 1]])
+
+        # scaling
+        vx = np.linalg.norm(xhat_prime)
+        vy = 1.
+        vz = 1.
+        scaling = np.array([[vx,  0,  0, 0],
+                            [0,  vy,  0, 0],
+                            [0,   0, vz, 0], 
+                            [0,   0,  0, 1]])
+
+        rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
+        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+        trafo = scaling_forrowvecs * rotation_forrowvecs  # first the scaling, then the rotation, remember the row vector stands on the left
 
         self.nodePath.setMat(self.nodePath.getMat() * trafo)  # reverse order multiplication for row vectors
 
