@@ -11,7 +11,9 @@ from panda3d.core import (
     Vec4,
     TransparencyAttrib, 
     AntialiasAttrib,
-    NodePath)
+    NodePath,
+    Mat4,
+    Mat3)
 from direct.interval.IntervalGlobal import Wait, Sequence
 from direct.interval.LerpInterval import LerpFunc
 
@@ -100,7 +102,17 @@ class Box2d(Animator):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setTwoSided(True)  # enable backface-culling for all Animators
 
+class Box2dCentered(Box2d):
+
+    def __init__(self):
+        super(Box2dCentered, self).__init__()
+
+    def makeObject(self):
+        self.node = custom_geometry.createColoredUnitQuadGeomNode(
+            color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
+        self.nodePath = render.attachNewNode(self.node)
 
 class LatexTextureObject(Box2d):
     def __init__(self, tex_expression):
@@ -147,70 +159,63 @@ class LatexTextureObject(Box2d):
 
         applyImageAndTexture()
 
-
-class Line(Box2d):
-    width = 0.05
+        
+class Line(Box2dCentered):
+    width = 0.1
 
     def __init__(self):
-        Box2d.__init__(self)
+        super(Line, self).__init__()
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
         self.nodePath.setScale(1., 1., self.width)
-        # self.nodePath.setPos(self.nodePath, 0, 0, - 1. * 0.5)  # first, translate the box of dimensions 1x1
-        self.nodePath.setPos(0, 0, - self.width * 0.5)  # then, translate it half of it's intended with up
+        self.axis_spawning_preparation_trafo = self.nodePath.getMat()
+        self.nodePath.setPos(0.5, 0, 0)
+        self.to_xhat_trafo = self.nodePath.getMat()
 
-    # def setTipPoint(self, tip_point):
-    #     # since the template is already normalized in world coordinates,
-    #     # I only need to scale it in the x direction and then rotate it so
-    #     # it points to the intended coordinate
-    #     self.tip_point = tip_point
-    #     # scale it
-    #     self.nodePath.setScale(self.nodePath, np.sqrt(tip_point.getX()**2. + tip_point.getY()**2. + tip_point.getZ()**2.))
-    #     # angle between (1, 0, 0)^T and tip_point
-    #     xhat = Vec3(1., 0., 0.)
-    #     print("the angle between ",
-    #           tip_point.getX(), tip_point.getY(), tip_point.getZ(),
-    #           " and ",
-    #           xhat.getX(), xhat.getY(), xhat.getZ(),
-    #           " is ",
-    #           xhat.angleDeg(tip_point))
-    #           
-    #     self.nodePath.setHpr(0., 0., tip_point.angleDeg(xhat))
+    def setTipPoint(self):
+        # self.tip_point = tip_point
+        # if it's converted to xhat, just put a transformation matrix that moves xhat to the destination
+        # self.nodePath.setScale(self.nodePath, np.sqrt(tip_point.getX()**2. + tip_point.getY()**2. + tip_point.getZ()**2.))
+        # # angle between (1, 0, 0)^T and tip_point
+        # xhat = Vec3(1., 0., 0.)
+        # print("the angle between ",
+        #       tip_point.getX(), tip_point.getY(), tip_point.getZ(),
+        #       " and ",
+        #       xhat.getX(), xhat.getY(), xhat.getZ(),
+        #       " is ",
+        #       xhat.angleDeg(tip_point))
 
-class Point(Box2d):
+        # create a transformation matrix (for column vectors, as usual)
+
+        trafo_mat4_forcolvecs = np.array([[1, 0, 0, 0],
+                                          [0, 1, 0, 0],
+                                          [.5, 0, 1, 0], 
+                                          [0, 0, 0, 1]])
+
+
+        trafo = Mat4(*tuple(np.transpose(trafo_mat4_forcolvecs).flatten()))
+
+        self.nodePath.setMat(self.nodePath.getMat() * trafo)  # reverse order multiplication for row vectors
+
+        self.nodePath.setRenderModeWireframe()
+        
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT<C-c>
+        # print("end")
+
+
+class Point(Box2dCentered):
     scale_z = .05
     scale_x = .05
 
     def __init__(self):
-        Box2d.__init__(self)
+        super(Point, self).__init__()
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
 
-    # def setTailPoint(self, tail_point):
-    #     self.tail_point = tail_point
-    #     self.nodePath.setPos(self.tail_point)
-
-    def setTipPoint(self, tip_point):
-        # since the template is already normalized in world coordinates,
-        # I only need to scale it in the x direction and then rotate it so
-        # it points to the intended coordinate
-        self.tip_point = tip_point
-        # scale it
-        self.nodePath.setScale(self.nodePath, np.sqrt(tip_point.getX()**2. + tip_point.getY()**2. + tip_point.getZ()**2.))
-        # angle between (1, 0, 0)^T and tip_point
-        xhat = Vec3(1., 0., 0.)
-        print("the angle between ",
-              tip_point.getX(), tip_point.getY(), tip_point.getZ(),
-              " and ",
-              xhat.getX(), xhat.getY(), xhat.getZ(),
-              " is ",
-              xhat.angleDeg(tip_point))
-              
-        self.nodePath.setHpr(0., 0., tip_point.angleDeg(xhat))
-
+    
 class ParallelLines:
     """ Draw Parallel Lines
 
@@ -231,7 +236,6 @@ class ParallelLines:
             line.nodePath.setScale(line.nodePath, 1., 1., 1.)
             line.nodePath.setPos(0., 0, idx * self.spacing)
 
-
 class ArrowHead(Box2d):
     equilateral_length = Line.width * 4.
     scale = .1
@@ -249,25 +253,6 @@ class ArrowHead(Box2d):
         self.node = custom_geometry.createColoredArrowGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
-
-
-class Axis:
-    def __init__(self):
-        self.numberLine = Line()
-        # self.arrow = ArrowHead()
-        # self.arrow.nodePath.setPos(
-        #     self.length, 0., -0.5 * self.arrow.equilateral_length)
-
-class YAxis(Axis):
-    """ YAxis, basically a rotated XAxis
-
-    """
-    def __init__(self):
-        super(YAxis, self).__init__()
-        # x(right), y(into screen), z(up)
-        # self.numberLine.nodePath.setPos(0.0, 0.0, 0.0)
-        # around z, around x', around y''
-        self.numberLine.nodePath.setHpr(0.0, 0.0, -90.0)
 
 class GroupNode(Animator):
     """Documentation for GroupNode

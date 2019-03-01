@@ -4,7 +4,7 @@ import tests.svgpathtodat.main
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AntialiasAttrib, NodePath, Vec3
 import numpy as np
-from latex_object import LatexTextureObject, Axis, YAxis, Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips, ParallelLines, GroupNode, Line, Point
+from latex_object import LatexTextureObject, Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips, ParallelLines, GroupNode, Line, Point
 
 
 class MyApp(ShowBase):
@@ -61,10 +61,14 @@ class MyApp(ShowBase):
                 if i == 0 and j == 0:
                     point.nodePath.setColor(0., 1., 0., 1.)
 
-        # axis = Axis()
-        axis2 = Axis()
-        axis2.numberLine.nodePath.setColor(0., 0., 0., 1.)
-        axis2.numberLine.nodePath.setHpr(0, 0, 90)
+        line = Line()
+        line2 = Line()
+        line2.nodePath.setColor(0., 0., 0., 1.)
+        line2.nodePath.setMat(line.axis_spawning_preparation_trafo)
+        line2.nodePath.setHpr(line2.nodePath, 0, 0, -90)
+        line2.nodePath.setPos(line2.nodePath, 0.5, 0, 0)
+
+        line.setTipPoint()
 
         targetpoint = Point()
         targetpoint.nodePath.setPos(1, 0, 1)
@@ -74,7 +78,7 @@ class MyApp(ShowBase):
         point.nodePath.setPos(1, 0, 0)
         point.nodePath.setColor(1., 0., 0., 1.)
 
-        render.setAntialias(AntialiasAttrib.MAuto)
+        # render.setAntialias(AntialiasAttrib.MAuto)
 
         childs = render.getChildren()
         print(len(childs))

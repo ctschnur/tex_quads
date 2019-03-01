@@ -66,7 +66,7 @@ def createTexturedUnitQuadGeomNode():
     return quadGN
 
 
-def createColoredUnitQuadGeomNode(color_vec4=Vec4(0., 0., 1., 1.)):
+def createColoredUnitQuadGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=False):
     # Own Geometry
 
     # format = GeomVertexFormat.getV3c4t2()
@@ -75,10 +75,17 @@ def createColoredUnitQuadGeomNode(color_vec4=Vec4(0., 0., 1., 1.)):
     vdata.setNumRows(4)
 
     vertexPosWriter = GeomVertexWriter(vdata, "vertex")
-    vertexPosWriter.addData3f(0, 0, 0)
-    vertexPosWriter.addData3f(1, 0, 0)
-    vertexPosWriter.addData3f(1, 0, 1)
-    vertexPosWriter.addData3f(0, 0, 1)
+    if center_it == False: 
+        vertexPosWriter.addData3f(0, 0, 0)
+        vertexPosWriter.addData3f(1, 0, 0)
+        vertexPosWriter.addData3f(1, 0, 1)
+        vertexPosWriter.addData3f(0, 0, 1)
+    else:
+        vertexPosWriter.addData3f(0 - 0.5, 0, 0 - 0.5)
+        vertexPosWriter.addData3f(1 - 0.5, 0, 0 - 0.5)
+        vertexPosWriter.addData3f(1 - 0.5, 0, 1 - 0.5)
+        vertexPosWriter.addData3f(0 - 0.5, 0, 1 - 0.5)
+
 
     # let's also add color to each vertex
     colorWriter = GeomVertexWriter(vdata, "color")

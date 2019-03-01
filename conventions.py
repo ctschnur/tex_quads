@@ -11,8 +11,8 @@ print("Panda version:", PandaSystem.getVersionString())
 svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
 
 # p3d window
-winsizex = 480 * 3.
-winsizey = 272 * 3.
+winsizex = int(480 * 3.5)
+winsizey = int(272 * 3.5)
 loadPrcFileData('', 'win-size ' + str(winsizex) + ' ' + str(winsizey))
 
 # utility variable
