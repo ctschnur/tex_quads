@@ -192,6 +192,28 @@ class Point(Box2d):
     def doInitialSetupTransformation(self):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
 
+    # def setTailPoint(self, tail_point):
+    #     self.tail_point = tail_point
+    #     self.nodePath.setPos(self.tail_point)
+
+    def setTipPoint(self, tip_point):
+        # since the template is already normalized in world coordinates,
+        # I only need to scale it in the x direction and then rotate it so
+        # it points to the intended coordinate
+        self.tip_point = tip_point
+        # scale it
+        self.nodePath.setScale(self.nodePath, np.sqrt(tip_point.getX()**2. + tip_point.getY()**2. + tip_point.getZ()**2.))
+        # angle between (1, 0, 0)^T and tip_point
+        xhat = Vec3(1., 0., 0.)
+        print("the angle between ",
+              tip_point.getX(), tip_point.getY(), tip_point.getZ(),
+              " and ",
+              xhat.getX(), xhat.getY(), xhat.getZ(),
+              " is ",
+              xhat.angleDeg(tip_point))
+              
+        self.nodePath.setHpr(0., 0., tip_point.angleDeg(xhat))
+
 class ParallelLines:
     """ Draw Parallel Lines
 
