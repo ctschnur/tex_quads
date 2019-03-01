@@ -11,8 +11,8 @@ print("Panda version:", PandaSystem.getVersionString())
 svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
 
 # p3d window
-winsizex = 480
-winsizey = 272
+winsizex = 480 * 2.
+winsizey = 272 * 2.
 loadPrcFileData('', 'win-size ' + str(winsizex) + ' ' + str(winsizey))
 
 # utility variable
@@ -70,7 +70,7 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention():
     # The total height ($z \in [-1, +1]$) is here fixed to be 2.
     # setting the view matrix as a function of the p3d window's 
     # aspect ratio
-    lens_view_height_in_world_coords = 2.5
+    lens_view_height_in_world_coords = 5.
     lens_view_width_in_world_coords = (
         lens_view_height_in_world_coords * (winsizex/winsizey))
     print(

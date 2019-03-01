@@ -8,7 +8,7 @@ from panda3d.core import (
     GeomNode, 
     Vec4)
 
-from panda3d.core import Triangulator, LPoint2d
+from panda3d.core import Triangulator, LPoint2d, NodePath
 
 from math import pi, cos
 import numpy as np
