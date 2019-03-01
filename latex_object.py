@@ -149,37 +149,34 @@ class LatexTextureObject(Box2d):
 
 
 class Line(Box2d):
-    scale_z = .02
-    scale_x = 1.
+    width = 0.05
 
     def __init__(self):
         Box2d.__init__(self)
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
-        self.nodePath.setScale(self.scale_x, 1., self.scale_z)
+        self.nodePath.setScale(1., 1., self.width)
+        # self.nodePath.setPos(self.nodePath, 0, 0, - 1. * 0.5)  # first, translate the box of dimensions 1x1
+        self.nodePath.setPos(0, 0, - self.width * 0.5)  # then, translate it half of it's intended with up
 
-    # def setTailPoint(self, tail_point):
-    #     self.tail_point = tail_point
-    #     self.nodePath.setPos(self.tail_point)
-
-    def setTipPoint(self, tip_point):
-        # since the template is already normalized in world coordinates,
-        # I only need to scale it in the x direction and then rotate it so
-        # it points to the intended coordinate
-        self.tip_point = tip_point
-        # scale it
-        self.nodePath.setScale(self.nodePath, np.sqrt(tip_point.getX()**2. + tip_point.getY()**2. + tip_point.getZ()**2.))
-        # angle between (1, 0, 0)^T and tip_point
-        xhat = Vec3(1., 0., 0.)
-        print("the angle between ",
-              tip_point.getX(), tip_point.getY(), tip_point.getZ(),
-              " and ",
-              xhat.getX(), xhat.getY(), xhat.getZ(),
-              " is ",
-              xhat.angleDeg(tip_point))
-              
-        self.nodePath.setHpr(0., 0., tip_point.angleDeg(xhat))
+    # def setTipPoint(self, tip_point):
+    #     # since the template is already normalized in world coordinates,
+    #     # I only need to scale it in the x direction and then rotate it so
+    #     # it points to the intended coordinate
+    #     self.tip_point = tip_point
+    #     # scale it
+    #     self.nodePath.setScale(self.nodePath, np.sqrt(tip_point.getX()**2. + tip_point.getY()**2. + tip_point.getZ()**2.))
+    #     # angle between (1, 0, 0)^T and tip_point
+    #     xhat = Vec3(1., 0., 0.)
+    #     print("the angle between ",
+    #           tip_point.getX(), tip_point.getY(), tip_point.getZ(),
+    #           " and ",
+    #           xhat.getX(), xhat.getY(), xhat.getZ(),
+    #           " is ",
+    #           xhat.angleDeg(tip_point))
+    #           
+    #     self.nodePath.setHpr(0., 0., tip_point.angleDeg(xhat))
 
 class Point(Box2d):
     scale_z = .05
@@ -236,7 +233,7 @@ class ParallelLines:
 
 
 class ArrowHead(Box2d):
-    equilateral_length = Line.scale_z * 4.
+    equilateral_length = Line.width * 4.
     scale = .1
 
     def __init__(self):
@@ -255,17 +252,11 @@ class ArrowHead(Box2d):
 
 
 class Axis:
-    length = 1.
-
     def __init__(self):
         self.numberLine = Line()
-        self.numberLine.nodePath.setPos(0., 0., -0.5 * self.numberLine.scale_z)
-        # numberLine.initiateScalingMovement(s_x=.5, duration=1.)
-
-        self.arrow = ArrowHead()
-        self.arrow.nodePath.setPos(
-            self.length, 0., -0.5 * self.arrow.equilateral_length)
-        # self.arrow.initiateTranslationMovement(v_x=self.length, duration=1., delay=0.)
+        # self.arrow = ArrowHead()
+        # self.arrow.nodePath.setPos(
+        #     self.length, 0., -0.5 * self.arrow.equilateral_length)
 
 class YAxis(Axis):
     """ YAxis, basically a rotated XAxis
@@ -273,8 +264,8 @@ class YAxis(Axis):
     """
     def __init__(self):
         super(YAxis, self).__init__()
-        # x(right), y(out of screen), z(up)
-        self.numberLine.nodePath.setPos(0.0, 0.0, 0.0)
+        # x(right), y(into screen), z(up)
+        # self.numberLine.nodePath.setPos(0.0, 0.0, 0.0)
         # around z, around x', around y''
         self.numberLine.nodePath.setHpr(0.0, 0.0, -90.0)
 

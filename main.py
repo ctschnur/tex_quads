@@ -17,8 +17,6 @@ class MyApp(ShowBase):
         conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention()
 
         # myLatexObject = LatexTextureObject("Obj 1")
-        axis = Axis()
-        axis2 = YAxis()
 
         # axis2.numberLine.nodePath.setColor(0.6, 0.6, 1.0, 1.0)
 
@@ -59,10 +57,22 @@ class MyApp(ShowBase):
             for j in range(-2, 3):
                 point = Point()
                 point.nodePath.setPos(i, 100, j)
+                # color the origin
+                if i == 0 and j == 0:
+                    point.nodePath.setColor(0., 1., 0., 1.)
+
+        # axis = Axis()
+        axis2 = Axis()
+        axis2.numberLine.nodePath.setColor(0., 0., 0., 1.)
+        axis2.numberLine.nodePath.setHpr(0, 0, 90)
 
         targetpoint = Point()
         targetpoint.nodePath.setPos(1, 0, 1)
         targetpoint.nodePath.setColor(0., 0., 0., 1.)
+
+        point = Point()
+        point.nodePath.setPos(1, 0, 0)
+        point.nodePath.setColor(1., 0., 0., 1.)
 
         render.setAntialias(AntialiasAttrib.MAuto)
 
