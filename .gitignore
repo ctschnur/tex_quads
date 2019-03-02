@@ -1,7 +1,6 @@
 *.aux
 *.pdf
 *.png
-!screenshots/*.png
 *.tex
 *.log
 *.pyc
