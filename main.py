@@ -4,7 +4,7 @@ import tests.svgpathtodat.main
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AntialiasAttrib, NodePath, Vec3
 import numpy as np
-from latex_object import LatexTextureObject, Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips, ParallelLines, GroupNode, Line, Point
+from latex_object import LatexTextureObject, Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips, ParallelLines, GroupNode, Line, Point, ArrowHead, Vector
 
 
 class MyApp(ShowBase):
@@ -53,22 +53,29 @@ class MyApp(ShowBase):
         # polygontest.initiateTranslationMovement(v_x=1., duration=1.)
 
         # create point grid
-        for i in range(-2, 3):
-            for j in range(-2, 3):
+        irange = range(-2, 3)
+        jrange = range(-2, 3)
+
+        for i in irange:
+            for j in jrange:
                 point = Point()
                 point.nodePath.setPos(i, 100, j)
                 # color the origin
                 if i == 0 and j == 0:
                     point.nodePath.setColor(0., 1., 0., 1.)
+                else: 
+                    vector = Vector(Vec3(i, 0, j))
+                    # gradient_color = len(irange)/(min(irange)+i+0.001)
+                    gradient_color = 1. - np.abs((min(irange)+i)/float(len(irange)))
+                    gradient_color2 = 1. - np.abs((min(jrange)+j)/float(len(jrange)))
+                    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT<C-c>
+                    print(gradient_color)
+                    vector.line.nodePath.setColor(gradient_color, gradient_color2, 1., 1.)
+                    vector.arrowhead.nodePath.setColor(gradient_color, gradient_color2, 1., 1.)
 
-        line = Line()
-        line2 = Line()
-        line2.nodePath.setColor(0., 0., 0., 1.)
-        line2.nodePath.setMat(line.axis_spawning_preparation_trafo)
-        line2.nodePath.setHpr(line2.nodePath, 0, 0, -90)
-        line2.nodePath.setPos(line2.nodePath, 0.5, 0, 0)
-
-        line.setTipPoint()
+        children = render.get_children()
+        for child in children: 
+            child.setRenderModeFilled()
 
         targetpoint = Point()
         targetpoint.nodePath.setPos(1, 0, 1)
@@ -77,6 +84,9 @@ class MyApp(ShowBase):
         point = Point()
         point.nodePath.setPos(1, 0, 0)
         point.nodePath.setColor(1., 0., 0., 1.)
+
+        # line = Line()
+        # line.setTipPoint(Vec3(1, 0, 1.5))
 
         # render.setAntialias(AntialiasAttrib.MAuto)
 

@@ -119,7 +119,7 @@ def createColoredUnitQuadGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=Fal
     return quadGN
 
 
-def createColoredArrowGeomNode(color_vec4=Vec4(0., 0., 1., 1.)):
+def createColoredArrowGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=False):
     # Own Geometry
 
     # format = GeomVertexFormat.getV3c4t2()
@@ -128,9 +128,15 @@ def createColoredArrowGeomNode(color_vec4=Vec4(0., 0., 1., 1.)):
     vdata.setNumRows(4)
 
     vertexPosWriter = GeomVertexWriter(vdata, "vertex")
-    vertexPosWriter.addData3f(0, 0, 0)
-    vertexPosWriter.addData3f(0, 0, 1)
-    vertexPosWriter.addData3f(cos(pi / 6.), 0., .5)
+
+    if center_it is False: 
+        vertexPosWriter.addData3f(           0,  0,  0)
+        vertexPosWriter.addData3f(           0,  0,  1)
+        vertexPosWriter.addData3f(cos(pi / 6.), 0., .5)
+    else:
+        vertexPosWriter.addData3f(           0,  0,  0 - 0.5)
+        vertexPosWriter.addData3f(           0,  0,  1 - 0.5)
+        vertexPosWriter.addData3f(cos(pi / 6.), 0., .5 - 0.5)
 
     # let's also add color to each vertex
     colorWriter = GeomVertexWriter(vdata, "color")

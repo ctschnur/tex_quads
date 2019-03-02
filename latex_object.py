@@ -161,7 +161,7 @@ class LatexTextureObject(Box2d):
 
         
 class Line(Box2dCentered):
-    width = 0.1
+    width = 0.05
 
     def __init__(self):
         super(Line, self).__init__()
@@ -173,45 +173,33 @@ class Line(Box2dCentered):
         self.nodePath.setPos(0.5, 0, 0)
         self.to_xhat_trafo = self.nodePath.getMat()
 
-    def setTipPoint(self):
-        # self.tip_point = tip_point
-        # if it's converted to xhat, just put a transformation matrix that moves xhat to the destination
-        # self.nodePath.setScale(self.nodePath, np.sqrt(tip_point.getX()**2. + tip_point.getY()**2. + tip_point.getZ()**2.))
-        # # angle between (1, 0, 0)^T and tip_point
-        # xhat = Vec3(1., 0., 0.)
-        # print("the angle between ",
-        #       tip_point.getX(), tip_point.getY(), tip_point.getZ(),
-        #       " and ",
-        #       xhat.getX(), xhat.getY(), xhat.getZ(),
-        #       " is ",
-        #       xhat.angleDeg(tip_point))
-
+    def setTipPoint(self, tip_point):
+        # tip_point is a Vec3
         # create a transformation matrix (for column vectors, as usual)
-
         # trafo_mat4_forcolvecs = np.array([[1, 0, 0, 0],
         #                                   [0, 1, 0, 0],
         #                                   [.5, 0, 1, 0], 
         #                                   [0, 0, 0, 1]])
 
-
         xhat = np.array([1, 0, 0])
-        
-        xhat_prime = np.array([-.1, 0, 2.])  # where I want to move it
+
+        # tip_point = Vec3(-2., 0, 2.)
+
+        # where I want to move it
+        self.xhat_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
 
         normal = np.array([0, 1, 0])  # yhat
         
-        # # find angle between xhat and xhat_prime, range theta = [-pi/2, pi/2]
-        # theta = np.arcsin(np.linalg.norm(np.cross(xhat, xhat_prime)) / (np.linalg.norm(xhat) * np.linalg.norm(xhat_prime)))
-
         # find angle between xhat and xhat_prime with fixed normal vector (axis of rotation), range theta = [-pi, pi]
-        det = np.dot(normal, np.cross(xhat, xhat_prime))
-        dot = np.dot(xhat, xhat_prime)
+        # determinant, i.e. volume of parallelepiped
+        det = np.dot(normal, np.cross(xhat, self.xhat_prime))
+        dot = np.dot(xhat, self.xhat_prime)
         theta = np.arctan2(det, dot)
 
         # print("the angle between ",
         #       xhat, 
         #       " and ",
-        #       xhat_prime, 
+        #       self.xhat_prime, 
         #       " is ",
         #       theta)
 
@@ -222,7 +210,7 @@ class Line(Box2dCentered):
                              [0,              0,             0, 1]])
 
         # scaling
-        vx = np.linalg.norm(xhat_prime)
+        vx = np.linalg.norm(self.xhat_prime)
         vy = 1.
         vz = 1.
         scaling = np.array([[vx,  0,  0, 0],
@@ -230,11 +218,11 @@ class Line(Box2dCentered):
                             [0,   0, vz, 0], 
                             [0,   0,  0, 1]])
 
-        rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
+        self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
         scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-        trafo = scaling_forrowvecs * rotation_forrowvecs  # first the scaling, then the rotation, remember the row vector stands on the left
+        trafo = scaling_forrowvecs * self.rotation_forrowvecs  # first the scaling, then the rotation, remember the row vector stands on the left
 
-        self.nodePath.setMat(self.nodePath.getMat() * trafo)  # reverse order multiplication for row vectors
+        self.nodePath.setMat(self.nodePath.getMat() * trafo)  # again: reverse order multiplication for row vectors
 
         self.nodePath.setRenderModeWireframe()
         
@@ -274,13 +262,12 @@ class ParallelLines:
             line.nodePath.setScale(line.nodePath, 1., 1., 1.)
             line.nodePath.setPos(0., 0, idx * self.spacing)
 
-class ArrowHead(Box2d):
+class ArrowHead(Box2dCentered):
     equilateral_length = Line.width * 4.
     scale = .1
 
     def __init__(self):
-        Box2d.__init__(self)
-
+        super(ArrowHead, self).__init__()
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
@@ -289,8 +276,95 @@ class ArrowHead(Box2d):
     def makeObject(self):
         """it's not just a scaled quad, so it needs different Geometry"""
         self.node = custom_geometry.createColoredArrowGeomNode(
-            color_vec4=Vec4(1., 1., 1., 1.))
+            color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
         self.nodePath = render.attachNewNode(self.node)
+
+        
+class Vector:
+    """Documentation for Vector
+       combines an arrowhead and a line and applys transformations to them so that it 
+       it looks like a properly drawn vector
+    """
+    def __init__(self, tip_point):
+        self.line = Line()
+        self.line.setTipPoint(tip_point)
+
+        self.arrowhead = ArrowHead()
+
+        self.joinArrowHeadAndLine()
+        
+    def joinArrowHeadAndLine(self):
+        def adjustArrowHead(): 
+            # apply the same rotation as to the line (already computed)
+            # then a translation to the desired point
+
+            # translation
+            bx = self.line.xhat_prime[0]
+            by = self.line.xhat_prime[1]
+            bz = self.line.xhat_prime[2]
+            translation_to_xhat = np.array([[1, 0, 0, bx],
+                                            [0, 1, 0, by],
+                                            [0, 0, 1, bz], 
+                                            [0, 0, 0,  1]])
+
+            arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
+            arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
+
+            b_tilde = arrowhead_length * arrowhead_direction
+            b_tilde_x = b_tilde[0]
+            b_tilde_y = b_tilde[1]
+            b_tilde_z = b_tilde[2]
+
+            translation_to_match_point = np.array([[1, 0, 0, b_tilde_x],
+                                                   [0, 1, 0, b_tilde_y],
+                                                   [0, 0, 1, b_tilde_z], 
+                                                   [0, 0, 0,         1]])
+
+            self.translation_to_xhat_forrowvecs = (
+                Mat4(*tuple(np.transpose(translation_to_xhat).flatten())))
+            self.translation_to_match_point_forrowvecs = (
+                Mat4(*tuple(np.transpose(translation_to_match_point).flatten())))
+
+            self.translation_forrowvecs = (
+                self.translation_to_xhat_forrowvecs * self.translation_to_match_point_forrowvecs)
+
+            # self.translation_forrowvecs = (
+            #      self.translation_to_xhat_forrowvecs)
+
+            # self.translation_forrowvecs = Mat4()
+
+            trafo = self.line.rotation_forrowvecs * self.translation_forrowvecs
+
+            self.arrowhead.nodePath.setMat(self.arrowhead.nodePath.getMat() * trafo)  # again: reverse order multiplication for row vectors
+
+            self.arrowhead.nodePath.setRenderModeWireframe()
+
+        def adjustLine():
+            l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
+            arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
+
+            l_line_0 = np.linalg.norm(self.line.xhat_prime)
+
+            c_scaling =  l_line_0 / (l_line_0 - l_arrow)
+
+            # scaling
+            vx = c_scaling
+            vy = c_scaling
+            vz = c_scaling
+            scaling = np.array([[vx,  0,  0, 0],
+                                [0,  vy,  0, 0],
+                                [0,   0, vz, 0], 
+                                [0,   0,  0, 1]])
+
+            scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+
+            trafo = scaling_forrowvecs
+
+            self.line.nodePath.setMat(self.line.nodePath.getMat() * trafo)  # again: reverse order multiplication for row vectors
+
+        adjustArrowHead()
+        adjustLine()
+
 
 class GroupNode(Animator):
     """Documentation for GroupNode
