@@ -35,12 +35,6 @@ class Animator:
             self.updateRotation, duration=duration, extraArgs=extraArgs)
         Sequence(Wait(delay), self.p3d_interval).start()
 
-    # def initiateScalingMovement(self, s_x=0., s_z=0., duration=0., delay=0.):
-    #     extraArgs = [duration, s_x, s_z]
-    #     self.p3d_interval = LerpFunc(
-    #         self.updatePosition, duration=duration, extraArgs=extraArgs)
-    #     Sequence(Wait(delay), self.p3d_interval).start()
-
     # interval update functions
     def updatePosition(self, t, duration, v_x, v_z):
         self.nodePath.setPos(v_x * (t / duration), 1., v_z * (t / duration))
@@ -48,10 +42,6 @@ class Animator:
     def updateRotation(self, t, duration, h, p, r):
         self.nodePath.setHpr(h * (t / duration), p *
                              (t / duration), r * (t / duration))
-
-    # def updateScaling(self, t, duration, s_x, s_z):
-    #     self.nodePath.setPos(s_x*(t/duration), 1., s_z*(t/duration))
-
 
 class Polygon2d(Animator):
     def __init__(self, point_cloud):
@@ -76,7 +66,6 @@ class Polygon2dTestTriangles(Animator):
         # self.node = custom_geometry.create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries)
 
         self.nodePath = render.attachNewNode(self.node)
-        
         # self.nodePath.setRenderModeWireframe()
 
 class Polygon2dTestLineStrips(Animator):
@@ -204,14 +193,11 @@ class Line(Box2dCentered):
                 self.nodePath.setMat(scaling_unitcircle_forrowvecs)
 
                 self.has_zero_length_is_circle = True
-
                 self.nodePath.setRenderModeWireframe()
-
                 return
                 
             else: 
                 xhat = np.array([1, 0, 0])
-
                 normal = np.array([0, 1, 0])  # yhat
 
                 # find angle between xhat and xhat_prime with fixed normal vector (axis of rotation), range theta = [-pi, pi]
@@ -219,14 +205,6 @@ class Line(Box2dCentered):
                 det = np.dot(normal, np.cross(xhat, self.xhat_prime))
                 dot = np.dot(xhat, self.xhat_prime)
                 theta = np.arctan2(det, dot)
-
-                # print("the angle between ",
-                #       xhat, 
-                #       " and ",
-                #       self.xhat_prime, 
-                #       " is ",
-                #       theta)
-
                 rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
                                     [0,              1,             0, 0],
                                     [-np.sin(theta), 0, np.cos(theta), 0], 
@@ -235,7 +213,6 @@ class Line(Box2dCentered):
                 vx = np.linalg.norm(self.xhat_prime)
                 vy = 1.
                 vz = 1.
-
                 scaling = np.array([[vx,  0,  0, 0],
                                     [0,  vy,  0, 0],
                                     [0,   0, vz, 0], 
@@ -243,12 +220,11 @@ class Line(Box2dCentered):
 
                 self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
                 scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-                trafo = scaling_forrowvecs * self.rotation_forrowvecs  # first the scaling, then the rotation, remember the row vector stands on the left
+                # first the scaling, then the rotation, remember the row vector stands on the left
+                trafo = scaling_forrowvecs * self.rotation_forrowvecs  
 
-                self.nodePath.setMat(self.nodePath.getMat() * trafo)  # again: reverse order multiplication for row vectors
-
+                self.nodePath.setMat(self.nodePath.getMat() * trafo)
                 self.nodePath.setRenderModeWireframe()
-
                 return
 
         print("WARNING: a line with 0 length will not be transformed back to finite length yet")
@@ -274,9 +250,6 @@ class ParallelLines:
         self.spacing = .25
         self.number_of_lines = 15
 
-        # self.numoflines = int(self.length_in_segments - 1)
-
-
         # transform the lines
         # - stretch the unit length lines to the specified size
         # - position them in order, evenly spaced
@@ -286,6 +259,7 @@ class ParallelLines:
             line.nodePath.setScale(line.nodePath, 1., 1., 1.)
             line.nodePath.setPos(0., 0, idx * self.spacing)
 
+            
 class ArrowHead(Box2dCentered):
     equilateral_length = Line.width * 4.
     scale = .1
@@ -315,76 +289,75 @@ class Vector:
 
         self.arrowhead = ArrowHead()
 
-        self.joinArrowHeadAndLine()
+        # join ArrowHead and Line
+        self._adjustArrowHead()
+        self._adjustLine()
         
-    def joinArrowHeadAndLine(self):
-        def adjustArrowHead(): 
-            # apply the same rotation as to the line (already computed)
-            # then a translation to the desired point
+    def _adjustArrowHead(self): 
+        # apply the same rotation as to the line
+        # and then a translation to the tip of the vector
 
-            # translation
-            bx = self.line.xhat_prime[0]
-            by = self.line.xhat_prime[1]
-            bz = self.line.xhat_prime[2]
-            translation_to_xhat = np.array([[1, 0, 0, bx],
-                                            [0, 1, 0, by],
-                                            [0, 0, 1, bz], 
-                                            [0, 0, 0,  1]])
+        # rotation: already computed (same as line)
+        # translation
+        bx = self.line.xhat_prime[0]
+        by = self.line.xhat_prime[1]
+        bz = self.line.xhat_prime[2]
+        translation_to_xhat = np.array([[1, 0, 0, bx],
+                                        [0, 1, 0, by],
+                                        [0, 0, 1, bz], 
+                                        [0, 0, 0,  1]])
 
-            arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
-            arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
+        arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
+        arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
 
-            b_tilde = arrowhead_length * arrowhead_direction
-            b_tilde_x = b_tilde[0]
-            b_tilde_y = b_tilde[1]
-            b_tilde_z = b_tilde[2]
+        b_tilde = arrowhead_length * arrowhead_direction
+        b_tilde_x = b_tilde[0]
+        b_tilde_y = b_tilde[1]
+        b_tilde_z = b_tilde[2]
 
-            translation_to_match_point = np.array([[1, 0, 0, b_tilde_x],
-                                                   [0, 1, 0, b_tilde_y],
-                                                   [0, 0, 1, b_tilde_z], 
-                                                   [0, 0, 0,         1]])
+        translation_to_match_point = np.array([[1, 0, 0, b_tilde_x],
+                                                [0, 1, 0, b_tilde_y],
+                                                [0, 0, 1, b_tilde_z], 
+                                                [0, 0, 0,         1]])
 
-            self.translation_to_xhat_forrowvecs = (
-                Mat4(*tuple(np.transpose(translation_to_xhat).flatten())))
-            self.translation_to_match_point_forrowvecs = (
-                Mat4(*tuple(np.transpose(translation_to_match_point).flatten())))
+        self.translation_to_xhat_forrowvecs = (
+            Mat4(*tuple(np.transpose(translation_to_xhat).flatten())))
+        self.translation_to_match_point_forrowvecs = (
+            Mat4(*tuple(np.transpose(translation_to_match_point).flatten())))
 
-            self.translation_forrowvecs = (
-                self.translation_to_xhat_forrowvecs * self.translation_to_match_point_forrowvecs)
+        self.translation_forrowvecs = (
+            self.translation_to_xhat_forrowvecs * self.translation_to_match_point_forrowvecs)
 
-            trafo = self.line.rotation_forrowvecs * self.translation_forrowvecs
+        trafo = self.line.rotation_forrowvecs * self.translation_forrowvecs
 
-            self.arrowhead.nodePath.setMat(self.arrowhead.nodePath.getMat() * trafo)
+        self.arrowhead.nodePath.setMat(self.arrowhead.nodePath.getMat() * trafo)
 
-            self.arrowhead.nodePath.setRenderModeWireframe()
+        self.arrowhead.nodePath.setRenderModeWireframe()
 
-        def adjustLine():
-            l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
-            arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
+    def _adjustLine(self):
+        l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
+        arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
 
-            l_line_0 = np.linalg.norm(self.line.xhat_prime)
+        l_line_0 = np.linalg.norm(self.line.xhat_prime)
 
-            c_scaling =  l_line_0 / (l_line_0 - l_arrow)
+        c_scaling =  l_line_0 / (l_line_0 - l_arrow)
 
-            # scaling
-            vx = c_scaling
-            vy = c_scaling
-            vz = c_scaling
-            scaling = np.array([[vx,  0,  0, 0],
-                                [0,  vy,  0, 0],
-                                [0,   0, vz, 0], 
-                                [0,   0,  0, 1]])
+        # scaling
+        vx = c_scaling
+        vy = c_scaling
+        vz = c_scaling
+        scaling = np.array([[vx,  0,  0, 0],
+                            [0,  vy,  0, 0],
+                            [0,   0, vz, 0], 
+                            [0,   0,  0, 1]])
 
-            scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
 
-            trafo = scaling_forrowvecs
+        trafo = scaling_forrowvecs
 
-            self.line.nodePath.setMat(self.line.nodePath.getMat() * trafo)  # again: reverse order multiplication for row vectors
+        self.line.nodePath.setMat(self.line.nodePath.getMat() * trafo)
 
-        adjustArrowHead()
-        adjustLine()
-
-
+        
 class GroupNode(Animator):
     """Documentation for GroupNode
 
