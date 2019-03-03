@@ -162,6 +162,7 @@ class LatexTextureObject(Box2d):
         
 class Line(Box2dCentered):
     width = 0.05
+    initial_length = 1.
 
     def __init__(self):
         super(Line, self).__init__()
@@ -172,62 +173,85 @@ class Line(Box2dCentered):
         self.axis_spawning_preparation_trafo = self.nodePath.getMat()
         self.nodePath.setPos(0.5, 0, 0)
         self.to_xhat_trafo = self.nodePath.getMat()
+        self.length = self.initial_length
+        self.has_zero_length_is_circle = False
 
     def setTipPoint(self, tip_point):
-        # tip_point is a Vec3
-        # create a transformation matrix (for column vectors, as usual)
-        # trafo_mat4_forcolvecs = np.array([[1, 0, 0, 0],
-        #                                   [0, 1, 0, 0],
-        #                                   [.5, 0, 1, 0], 
-        #                                   [0, 0, 0, 1]])
-
-        xhat = np.array([1, 0, 0])
-
-        # tip_point = Vec3(-2., 0, 2.)
-
         # where I want to move it
         self.xhat_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
+        self.rotation_forrowvecs = Mat4()
 
-        normal = np.array([0, 1, 0])  # yhat
-        
-        # find angle between xhat and xhat_prime with fixed normal vector (axis of rotation), range theta = [-pi, pi]
-        # determinant, i.e. volume of parallelepiped
-        det = np.dot(normal, np.cross(xhat, self.xhat_prime))
-        dot = np.dot(xhat, self.xhat_prime)
-        theta = np.arctan2(det, dot)
+        if self.has_zero_length_is_circle is False: 
+            # in case it should become a zero length line (circle)
+            if (    tip_point[0] == 0. 
+                and tip_point[1] == 0. 
+                and tip_point[2] == 0. ):
+                # change geometry to visualize a line of length zero (let that be a small circle)
+                self.node.removeAllGeoms()
+                new_geom = custom_geometry.createColoredUnitCircle()
+                self.node.addGeom(new_geom)
 
-        # print("the angle between ",
-        #       xhat, 
-        #       " and ",
-        #       self.xhat_prime, 
-        #       " is ",
-        #       theta)
+                # scale the unit circle to have a line's width
+                vx = np.linalg.norm(self.width/2)
+                vy = np.linalg.norm(self.width/2)
+                vz = np.linalg.norm(self.width/2)
+                scaling_unitcircle = np.array([[vx,  0,  0, 0],
+                                               [0,  vy,  0, 0],
+                                               [0,   0, vz, 0], 
+                                               [0,   0,  0, 1]])
 
-        # rotation
-        rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
-                             [0,              1,             0, 0],
-                             [-np.sin(theta), 0, np.cos(theta), 0], 
-                             [0,              0,             0, 1]])
+                scaling_unitcircle_forrowvecs = Mat4(*tuple(np.transpose(scaling_unitcircle).flatten()))
+                self.nodePath.setMat(scaling_unitcircle_forrowvecs)
 
-        # scaling
-        vx = np.linalg.norm(self.xhat_prime)
-        vy = 1.
-        vz = 1.
-        scaling = np.array([[vx,  0,  0, 0],
-                            [0,  vy,  0, 0],
-                            [0,   0, vz, 0], 
-                            [0,   0,  0, 1]])
+                self.has_zero_length_is_circle = True
 
-        self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
-        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-        trafo = scaling_forrowvecs * self.rotation_forrowvecs  # first the scaling, then the rotation, remember the row vector stands on the left
+                self.nodePath.setRenderModeWireframe()
 
-        self.nodePath.setMat(self.nodePath.getMat() * trafo)  # again: reverse order multiplication for row vectors
+                return
+                
+            else: 
+                xhat = np.array([1, 0, 0])
 
-        self.nodePath.setRenderModeWireframe()
-        
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT<C-c>
-        # print("end")
+                normal = np.array([0, 1, 0])  # yhat
+
+                # find angle between xhat and xhat_prime with fixed normal vector (axis of rotation), range theta = [-pi, pi]
+                # determinant, i.e. volume of parallelepiped
+                det = np.dot(normal, np.cross(xhat, self.xhat_prime))
+                dot = np.dot(xhat, self.xhat_prime)
+                theta = np.arctan2(det, dot)
+
+                # print("the angle between ",
+                #       xhat, 
+                #       " and ",
+                #       self.xhat_prime, 
+                #       " is ",
+                #       theta)
+
+                rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
+                                    [0,              1,             0, 0],
+                                    [-np.sin(theta), 0, np.cos(theta), 0], 
+                                    [0,              0,             0, 1]])
+                # scaling
+                vx = np.linalg.norm(self.xhat_prime)
+                vy = 1.
+                vz = 1.
+
+                scaling = np.array([[vx,  0,  0, 0],
+                                    [0,  vy,  0, 0],
+                                    [0,   0, vz, 0], 
+                                    [0,   0,  0, 1]])
+
+                self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
+                scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+                trafo = scaling_forrowvecs * self.rotation_forrowvecs  # first the scaling, then the rotation, remember the row vector stands on the left
+
+                self.nodePath.setMat(self.nodePath.getMat() * trafo)  # again: reverse order multiplication for row vectors
+
+                self.nodePath.setRenderModeWireframe()
+
+                return
+
+        print("WARNING: a line with 0 length will not be transformed back to finite length yet")
 
 
 class Point(Box2dCentered):
@@ -328,14 +352,9 @@ class Vector:
             self.translation_forrowvecs = (
                 self.translation_to_xhat_forrowvecs * self.translation_to_match_point_forrowvecs)
 
-            # self.translation_forrowvecs = (
-            #      self.translation_to_xhat_forrowvecs)
-
-            # self.translation_forrowvecs = Mat4()
-
             trafo = self.line.rotation_forrowvecs * self.translation_forrowvecs
 
-            self.arrowhead.nodePath.setMat(self.arrowhead.nodePath.getMat() * trafo)  # again: reverse order multiplication for row vectors
+            self.arrowhead.nodePath.setMat(self.arrowhead.nodePath.getMat() * trafo)
 
             self.arrowhead.nodePath.setRenderModeWireframe()
 
@@ -378,4 +397,3 @@ class GroupNode(Animator):
     def addChildNodePaths(self, NodePaths):
         for np in NodePaths:
             np.reparentTo(self.nodePath)
-        

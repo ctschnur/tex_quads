@@ -73,6 +73,9 @@ class MyApp(ShowBase):
                     vector.line.nodePath.setColor(gradient_color, gradient_color2, 1., 1.)
                     vector.arrowhead.nodePath.setColor(gradient_color, gradient_color2, 1., 1.)
 
+        line = Line()
+        line.setTipPoint(Vec3(0, 0, 0))
+
         children = render.get_children()
         for child in children: 
             child.setRenderModeFilled()

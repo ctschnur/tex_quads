@@ -60,10 +60,10 @@ def createTexturedUnitQuadGeomNode():
 
     # now put quadGeom in a GeomNode. You can now position your geometry
     # in the scene graph.
-    quadGN = GeomNode("quad")
-    quadGN.addGeom(quadGeom)
+    quadGeomNode = GeomNode("quad")
+    quadGeomNode.addGeom(quadGeom)
 
-    return quadGN
+    return quadGeomNode
 
 
 def createColoredUnitQuadGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=False):
@@ -113,10 +113,10 @@ def createColoredUnitQuadGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=Fal
 
     # now put quadGeom in a GeomNode. You can now position your geometry
     # in the scene graph.
-    quadGN = GeomNode("colored_quad_node")
-    quadGN.addGeom(quadGeom)
+    quadGeomNode = GeomNode("colored_quad_node")
+    quadGeomNode.addGeom(quadGeom)
 
-    return quadGN
+    return quadGeomNode
 
 
 def createColoredArrowGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=False):
@@ -157,12 +157,11 @@ def createColoredArrowGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=False)
     quadGeom = Geom(vdata)
     quadGeom.addPrimitive(tris)
 
-    # now put quadGeom in a GeomNode. You can now position your geometry
-    # in the scene graph.
-    quadGN = GeomNode("colored_quad_node")
-    quadGN.addGeom(quadGeom)
+    # add the Geom object to a GeomNode
+    geomNode = GeomNode("colored_arrowhead_node")
+    geomNode.addGeom(quadGeom)
 
-    return quadGN
+    return geomNode
 
 
 def create_colored_polygon2d_GeomNode_from_point_cloud(point_cloud, color_vec4=Vec4(0., 0., 1., 1.)):
@@ -306,15 +305,14 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
     tris.closePrimitive()
 
     # make a Geom object to hold the primitives
-    polygonGeom = Geom(vdata)  # vdata contains the vertex position/color/... buffers
-    polygonGeom.addPrimitive(tris)  # tris contains the index buffer
+    geom = Geom(vdata)  # vdata contains the vertex position/color/... buffers
+    geom.addPrimitive(tris)  # tris contains the index buffer
 
-    # now put quadGeom in a GeomNode. You can now position your geometry
-    # in the scene graph.
-    polygonGN = GeomNode("colored_polygon_node")
-    polygonGN.addGeom(polygonGeom)
+    # now put geom in a GeomNode
+    geom_node = GeomNode("colored_polygon_node")
+    geom_node.addGeom(geom)
 
-    return polygonGN
+    return geom_node
 
 def create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries):
     color_vec4 = Vec4(1., 1., 1., 1.)
@@ -394,10 +392,10 @@ def create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries):
 
     # now put quadGeom in a GeomNode. You can now position your geometry
     # in the scene graph.
-    polygonGN = GeomNode("colored_polygon_node")
-    polygonGN.addGeom(polygonGeom)
+    polygonGeomNode = GeomNode("colored_polygon_node")
+    polygonGeomNode.addGeom(polygonGeom)
 
-    return polygonGN
+    return polygonGeomNode
 
 
 def create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries):
@@ -468,7 +466,64 @@ def create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries):
 
     # now put quadGeom in a GeomNode. You can now position your geometry
     # in the scene graph.
-    polygonGN = GeomNode("colored_polygon_node")
-    polygonGN.addGeom(polygonGeom)
+    polygonGeomNode = GeomNode("colored_polygon_node")
+    polygonGeomNode.addGeom(polygonGeom)
 
-    return polygonGN
+    return polygonGeomNode
+
+
+def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.), return_geom_instead_of_geom_node=True):
+    # Own Geometry
+    # format = GeomVertexFormat.getV3c4t2()
+    format = GeomVertexFormat.getV3c4()
+    vdata = GeomVertexData("colored_circle", format, Geom.UHStatic)
+    vdata.setNumRows(4)
+
+    vertexPosWriter = GeomVertexWriter(vdata, "vertex")
+
+    num_of_verts = 10
+
+    phi = 0.
+    r = 1.
+
+    origin_point_x = 0.
+    origin_point_z = 0.
+    vertexPosWriter.addData3f(origin_point_x, 0, origin_point_z)
+
+    for i in range(num_of_verts):
+        phi += 2. * np.pi / num_of_verts
+        x = r * np.cos(phi)
+        z = r * np.sin(phi)
+        vertexPosWriter.addData3f(x, 0, z)
+
+
+    # let's also add color to each vertex
+    colorWriter = GeomVertexWriter(vdata, "color")
+
+    colorWriter.addData4f(color_vec4)  # origin point
+
+    for i in range(num_of_verts):
+        colorWriter.addData4f(color_vec4)
+
+    # make primitives and assign vertices to them (primitives and primitive
+    # groups can be made independently from vdata, and are later assigned
+    # to vdata)
+    tris = GeomTrifans(Geom.UHStatic)  # the first vertex is a vertex that all triangles share
+
+    tris.add_consecutive_vertices(0, num_of_verts+1)
+    tris.addVertex(1)
+
+    tris.closePrimitive()  # the 1st primitive is finished
+
+    # make a Geom object to hold the primitives
+    geom = Geom(vdata)
+    geom.addPrimitive(tris)
+
+    if return_geom_instead_of_geom_node is True:
+        return geom
+
+    else: 
+        geom_node = GeomNode("colored_circle_node")
+        geom_node.addGeom(geom)
+
+        return geom_node
