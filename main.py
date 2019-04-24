@@ -12,7 +12,7 @@ class MyApp(ShowBase):
         ShowBase.__init__(self)
 
         # make self-defined camera control possible
-        self.disableMouse()  
+        self.disableMouse()
 
         conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention()
 
@@ -46,7 +46,7 @@ class MyApp(ShowBase):
         # # draw vector to origin of altered line train
         # origvec = Line()
         # origvec.setTipPoint(Vec3(0.5, 0., 0.))
-        # 
+        #
         # # letter from path
         # symbol_geometries = tests.svgpathtodat.main.get_test_symbol_geometries()
         # polygontest = Polygon2dTestTriangles(symbol_geometries)
@@ -59,11 +59,11 @@ class MyApp(ShowBase):
         for i in irange:
             for j in jrange:
                 point = Point()
-                point.nodePath.setPos(i, 100, j)
+                point.nodePath.setPos(i, 0, j)
                 # color the origin
                 if i == 0 and j == 0:
                     point.nodePath.setColor(0., 1., 0., 1.)
-                else: 
+                else:
                     vector = Vector(Vec3(i, 0, j))
                     # gradient_color = len(irange)/(min(irange)+i+0.001)
                     gradient_color = 1. - np.abs((min(irange)+i)/float(len(irange)))
@@ -77,16 +77,16 @@ class MyApp(ShowBase):
         line.setTipPoint(Vec3(0, 0, 0))
 
         children = render.get_children()
-        for child in children: 
+        for child in children:
             child.setRenderModeFilled()
 
         targetpoint = Point()
         targetpoint.nodePath.setPos(1, 0, 1)
         targetpoint.nodePath.setColor(0., 0., 0., 1.)
 
-        point = Point()
-        point.nodePath.setPos(1, 0, 0)
-        point.nodePath.setColor(1., 0., 0., 1.)
+        # point = Point()
+        # point.nodePath.setPos(1, 0, 0)
+        # point.nodePath.setColor(1., 0., 0., 1.)
 
         # line = Line()
         # line.setTipPoint(Vec3(1, 0, 1.5))

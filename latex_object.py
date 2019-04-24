@@ -7,9 +7,9 @@ from latex_expression_manager import LatexImageManager, LatexImage
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
-    Vec3, 
+    Vec3,
     Vec4,
-    TransparencyAttrib, 
+    TransparencyAttrib,
     AntialiasAttrib,
     NodePath,
     Mat4,
@@ -51,7 +51,7 @@ class Polygon2d(Animator):
 
     def makeObject(self, point_cloud):
         self.node = custom_geometry.create_colored_polygon2d_GeomNode_from_point_cloud(
-            point_cloud, 
+            point_cloud,
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
 
@@ -148,7 +148,7 @@ class LatexTextureObject(Box2d):
 
         applyImageAndTexture()
 
-        
+
 class Line(Box2dCentered):
     width = 0.05
     initial_length = 1.
@@ -170,10 +170,10 @@ class Line(Box2dCentered):
         self.xhat_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
         self.rotation_forrowvecs = Mat4()
 
-        if self.has_zero_length_is_circle is False: 
+        if self.has_zero_length_is_circle is False:
             # in case it should become a zero length line (circle)
-            if (    tip_point[0] == 0. 
-                and tip_point[1] == 0. 
+            if (    tip_point[0] == 0.
+                and tip_point[1] == 0.
                 and tip_point[2] == 0. ):
                 # change geometry to visualize a line of length zero (let that be a small circle)
                 self.node.removeAllGeoms()
@@ -186,7 +186,7 @@ class Line(Box2dCentered):
                 vz = np.linalg.norm(self.width/2)
                 scaling_unitcircle = np.array([[vx,  0,  0, 0],
                                                [0,  vy,  0, 0],
-                                               [0,   0, vz, 0], 
+                                               [0,   0, vz, 0],
                                                [0,   0,  0, 1]])
 
                 scaling_unitcircle_forrowvecs = Mat4(*tuple(np.transpose(scaling_unitcircle).flatten()))
@@ -195,8 +195,8 @@ class Line(Box2dCentered):
                 self.has_zero_length_is_circle = True
                 self.nodePath.setRenderModeWireframe()
                 return
-                
-            else: 
+
+            else:
                 xhat = np.array([1, 0, 0])
                 normal = np.array([0, 1, 0])  # yhat
 
@@ -207,7 +207,7 @@ class Line(Box2dCentered):
                 theta = np.arctan2(det, dot)
                 rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
                                     [0,              1,             0, 0],
-                                    [-np.sin(theta), 0, np.cos(theta), 0], 
+                                    [-np.sin(theta), 0, np.cos(theta), 0],
                                     [0,              0,             0, 1]])
                 # scaling
                 vx = np.linalg.norm(self.xhat_prime)
@@ -215,13 +215,13 @@ class Line(Box2dCentered):
                 vz = 1.
                 scaling = np.array([[vx,  0,  0, 0],
                                     [0,  vy,  0, 0],
-                                    [0,   0, vz, 0], 
+                                    [0,   0, vz, 0],
                                     [0,   0,  0, 1]])
 
                 self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
                 scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
                 # first the scaling, then the rotation, remember the row vector stands on the left
-                trafo = scaling_forrowvecs * self.rotation_forrowvecs  
+                trafo = scaling_forrowvecs * self.rotation_forrowvecs
 
                 self.nodePath.setMat(self.nodePath.getMat() * trafo)
                 self.nodePath.setRenderModeWireframe()
@@ -241,7 +241,7 @@ class Point(Box2dCentered):
     def doInitialSetupTransformation(self):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
 
-    
+
 class ParallelLines:
     """ Draw Parallel Lines
 
@@ -255,11 +255,11 @@ class ParallelLines:
         # - position them in order, evenly spaced
 
         self.lines = [Line() for i in range(self.number_of_lines)]
-        for idx, line in enumerate(self.lines): 
+        for idx, line in enumerate(self.lines):
             line.nodePath.setScale(line.nodePath, 1., 1., 1.)
             line.nodePath.setPos(0., 0, idx * self.spacing)
 
-            
+
 class ArrowHead(Box2dCentered):
     equilateral_length = Line.width * 4.
     scale = .1
@@ -277,10 +277,10 @@ class ArrowHead(Box2dCentered):
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
         self.nodePath = render.attachNewNode(self.node)
 
-        
+
 class Vector:
     """Documentation for Vector
-       combines an arrowhead and a line and applys transformations to them so that it 
+       combines an arrowhead and a line and applys transformations to them so that it
        it looks like a properly drawn vector
     """
     def __init__(self, tip_point):
@@ -292,8 +292,8 @@ class Vector:
         # join ArrowHead and Line
         self._adjustArrowHead()
         self._adjustLine()
-        
-    def _adjustArrowHead(self): 
+
+    def _adjustArrowHead(self):
         # apply the same rotation as to the line
         # and then a translation to the tip of the vector
 
@@ -304,7 +304,7 @@ class Vector:
         bz = self.line.xhat_prime[2]
         translation_to_xhat = np.array([[1, 0, 0, bx],
                                         [0, 1, 0, by],
-                                        [0, 0, 1, bz], 
+                                        [0, 0, 1, bz],
                                         [0, 0, 0,  1]])
 
         arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
@@ -317,7 +317,7 @@ class Vector:
 
         translation_to_match_point = np.array([[1, 0, 0, b_tilde_x],
                                                 [0, 1, 0, b_tilde_y],
-                                                [0, 0, 1, b_tilde_z], 
+                                                [0, 0, 1, b_tilde_z],
                                                 [0, 0, 0,         1]])
 
         self.translation_to_xhat_forrowvecs = (
@@ -348,7 +348,7 @@ class Vector:
         vz = c_scaling
         scaling = np.array([[vx,  0,  0, 0],
                             [0,  vy,  0, 0],
-                            [0,   0, vz, 0], 
+                            [0,   0, vz, 0],
                             [0,   0,  0, 1]])
 
         scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
@@ -357,7 +357,7 @@ class Vector:
 
         self.line.nodePath.setMat(self.line.nodePath.getMat() * trafo)
 
-        
+
 class GroupNode(Animator):
     """Documentation for GroupNode
 
