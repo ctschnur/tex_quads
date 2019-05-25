@@ -43,6 +43,7 @@ class Animator:
         self.nodePath.setHpr(h * (t / duration), p *
                              (t / duration), r * (t / duration))
 
+
 class Polygon2d(Animator):
     def __init__(self, point_cloud):
         Animator.__init__(self)
@@ -54,6 +55,7 @@ class Polygon2d(Animator):
             point_cloud,
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
+
 
 class Polygon2dTestTriangles(Animator):
     def __init__(self, symbol_geometries):
@@ -68,6 +70,7 @@ class Polygon2dTestTriangles(Animator):
         self.nodePath = render.attachNewNode(self.node)
         # self.nodePath.setRenderModeWireframe()
 
+
 class Polygon2dTestLineStrips(Animator):
     def __init__(self, symbol_geometries):
         Animator.__init__(self)
@@ -79,6 +82,7 @@ class Polygon2dTestLineStrips(Animator):
 
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setRenderModeWireframe()
+
 
 class Box2d(Animator):
 
@@ -93,6 +97,7 @@ class Box2d(Animator):
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setTwoSided(True)  # enable backface-culling for all Animators
 
+
 class Box2dCentered(Box2d):
 
     def __init__(self):
@@ -102,6 +107,7 @@ class Box2dCentered(Box2d):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
         self.nodePath = render.attachNewNode(self.node)
+
 
 class LatexTextureObject(Box2d):
     def __init__(self, tex_expression):
@@ -161,73 +167,76 @@ class Line(Box2dCentered):
         self.nodePath.setScale(1., 1., self.width)
         self.axis_spawning_preparation_trafo = self.nodePath.getMat()
         self.nodePath.setPos(0.5, 0, 0)
-        self.to_xhat_trafo = self.nodePath.getMat()
         self.length = self.initial_length
-        self.has_zero_length_is_circle = False
+        # self.has_zero_length_is_circle = False
+        self.initialTrafoMat = self.nodePath.getMat()
 
-    def setTipPoint(self, tip_point):
+    def setTipPoint(self, tip_point, transition=False):
+        # this function makes a transformation
+        # save the matrix before the transformation
         # where I want to move it
         self.xhat_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
         self.rotation_forrowvecs = Mat4()
 
-        if self.has_zero_length_is_circle is False:
-            # in case it should become a zero length line (circle)
-            if (    tip_point[0] == 0.
-                and tip_point[1] == 0.
-                and tip_point[2] == 0. ):
-                # change geometry to visualize a line of length zero (let that be a small circle)
-                self.node.removeAllGeoms()
-                new_geom = custom_geometry.createColoredUnitCircle()
-                self.node.addGeom(new_geom)
+        # optional: make the 0-length line a point
+        # if (    tip_point[0] == 0.
+        #     and tip_point[1] == 0.
+        #     and tip_point[2] == 0. ):
+        #     # change geometry to visualize a line of length zero (let that be a small circle)
+        #     self.node.removeAllGeoms()
+        #     new_geom = custom_geometry.createColoredUnitCircle()
+        #     self.node.addGeom(new_geom)
 
-                # scale the unit circle to have a line's width
-                vx = np.linalg.norm(self.width/2)
-                vy = np.linalg.norm(self.width/2)
-                vz = np.linalg.norm(self.width/2)
-                scaling_unitcircle = np.array([[vx,  0,  0, 0],
-                                               [0,  vy,  0, 0],
-                                               [0,   0, vz, 0],
-                                               [0,   0,  0, 1]])
+        #     # scale the unit circle to have a line's width
+        #     vx = np.linalg.norm(self.width/2)
+        #     vy = np.linalg.norm(self.width/2)
+        #     vz = np.linalg.norm(self.width/2)
+        #     scaling_unitcircle = np.array([[vx,  0,  0, 0],
+        #                                    [0,  vy,  0, 0],
+        #                                    [0,   0, vz, 0],
+        #                                    [0,   0,  0, 1]])
 
-                scaling_unitcircle_forrowvecs = Mat4(*tuple(np.transpose(scaling_unitcircle).flatten()))
-                self.nodePath.setMat(scaling_unitcircle_forrowvecs)
+        #     scaling_unitcircle_forrowvecs = Mat4(*tuple(np.transpose(scaling_unitcircle).flatten()))
+        #     self.nodePath.setMat(scaling_unitcircle_forrowvecs)
 
-                self.has_zero_length_is_circle = True
-                self.nodePath.setRenderModeWireframe()
-                return
+        #     self.has_zero_length_is_circle = True
+        #     self.nodePath.setRenderModeWireframe()
+        #     return
 
-            else:
-                xhat = np.array([1, 0, 0])
-                normal = np.array([0, 1, 0])  # yhat
 
-                # find angle between xhat and xhat_prime with fixed normal vector (axis of rotation), range theta = [-pi, pi]
-                # determinant, i.e. volume of parallelepiped
-                det = np.dot(normal, np.cross(xhat, self.xhat_prime))
-                dot = np.dot(xhat, self.xhat_prime)
-                theta = np.arctan2(det, dot)
-                rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
-                                    [0,              1,             0, 0],
-                                    [-np.sin(theta), 0, np.cos(theta), 0],
-                                    [0,              0,             0, 1]])
-                # scaling
-                vx = np.linalg.norm(self.xhat_prime)
-                vy = 1.
-                vz = 1.
-                scaling = np.array([[vx,  0,  0, 0],
-                                    [0,  vy,  0, 0],
-                                    [0,   0, vz, 0],
-                                    [0,   0,  0, 1]])
+        # rotation (determine rotation matrix for xhat)
+        xhat = np.array([1, 0, 0])
+        normal = np.array([0, 1, 0])  # yhat
+        # find angle \theta (\in [-pi, pi]) between \hat{x} and \hat{x}'
+        # using the arctan2 of a determinant and a dot product
+        det = np.dot(normal, np.cross(xhat, self.xhat_prime))
+        theta = np.arctan2(det, np.dot(xhat, self.xhat_prime))
+        rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
+                            [0,               1,             0, 0],
+                            [-np.sin(theta),  0, np.cos(theta), 0],
+                            [0,               0,             0, 1]])
 
-                self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
-                scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-                # first the scaling, then the rotation, remember the row vector stands on the left
-                trafo = scaling_forrowvecs * self.rotation_forrowvecs
+        # scaling (determine scaling matrix for xhat)
+        vx = np.linalg.norm(self.xhat_prime) # length
+        vy = 1.
+        vz = 1.
+        scaling = np.array([[vx,  0,  0, 0],
+                            [0,  vy,  0, 0],
+                            [0,   0, vz, 0],
+                            [0,   0,  0, 1]])
 
-                self.nodePath.setMat(self.nodePath.getMat() * trafo)
-                self.nodePath.setRenderModeWireframe()
-                return
+        # net transform
+        self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
+        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+        # first the scaling, then the rotation
+        # remember, the row vector stands on the left in p3d multiplication
+        # so the order is reversed
+        trafo = scaling_forrowvecs * self.rotation_forrowvecs
 
-        print("WARNING: a line with 0 length will not be transformed back to finite length yet")
+        # self.nodePath.setMat(self.nodePath.getMat() * trafo)
+
+        self.nodePath.setMat(self.initialTrafoMat * trafo)
+        self.nodePath.setRenderModeWireframe()
 
 
 class Point(Box2dCentered):
