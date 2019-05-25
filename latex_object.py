@@ -170,6 +170,8 @@ class Line(Box2dCentered):
         self.length = self.initial_length
         # self.has_zero_length_is_circle = False
         self.initialTrafoMat = self.nodePath.getMat()
+        self.nodePath.setRenderModeWireframe()
+        self.setTipPoint(Vec3(1., 0., 0.))
 
     def setTipPoint(self, tip_point, transition=False):
         # this function makes a transformation
@@ -236,7 +238,6 @@ class Line(Box2dCentered):
         # self.nodePath.setMat(self.nodePath.getMat() * trafo)
 
         self.nodePath.setMat(self.initialTrafoMat * trafo)
-        self.nodePath.setRenderModeWireframe()
 
 
 class Point(Box2dCentered):
@@ -292,11 +293,16 @@ class Vector:
        combines an arrowhead and a line and applys transformations to them so that it
        it looks like a properly drawn vector
     """
-    def __init__(self, tip_point):
+    def __init__(self, tip_point=None):
         self.line = Line()
-        self.line.setTipPoint(tip_point)
+
+        if tip_point is not None:
+            self.line.setTipPoint(tip_point)
 
         self.arrowhead = ArrowHead()
+
+        self.groupNode = GroupNode()
+        self.groupNode.addChildNodePaths([self.line.nodePath, self.arrowhead.nodePath])
 
         # join ArrowHead and Line
         self._adjustArrowHead()

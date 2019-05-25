@@ -2,9 +2,13 @@ import conventions
 import tests.svgpathtodat.main
 
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4
 import numpy as np
 from latex_object import LatexTextureObject, Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips, ParallelLines, GroupNode, Line, Point, ArrowHead, Vector
+
+from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
+from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
+
 
 def draw_letter_from_path():
     # letter from path
@@ -61,12 +65,40 @@ def create_line_groups():
     groupNode.nodePath.setPos(groupNode.nodePath, -1., 0, 0.)
     groupNode.nodePath.setHpr(0, 0, -90)
 
+def spinning_around_independently():
+    blueline = Line()
+    blueline.nodePath.setColor(0, 0, 1, 1)
+
+    gn = GroupNode()
+    gn.addChildNodePaths([blueline.nodePath])
+
+    def circlearound(t):
+        r = 1.
+        x = r * np.cos(t)
+        z = r * np.sin(t)
+        gn.nodePath.setPos(x, 0, z)
+
+    seq = Sequence(
+        Parallel(
+            LerpFunc(
+                circlearound,
+                fromData=0,
+                toData=2*3.1415,
+                duration=1.),
+            LerpHprInterval(
+                blueline.nodePath,
+                1.,
+                Vec3(0,0,360))
+            )
+    ).loop(playRate=1)
+
 
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         # make self-defined camera control possible
         self.disableMouse()
+        render.setAntialias(AntialiasAttrib.MAuto)
         conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention()
 
         # earlier experiments
@@ -74,14 +106,13 @@ class MyApp(ShowBase):
         # create_line_groups()
         # draw_letter_from_path()
         # create_point_grid()
+        # spinning_around_independently()
 
         # children = render.get_children()
         # for child in children:
         #     child.setRenderModeFilled()
-        render.setAntialias(AntialiasAttrib.MAuto)
 
         # current experiment
-
         greenpoint = Point()
         greenpoint.nodePath.setPos(1, 0, 1)
         greenpoint.nodePath.setColor(0., 1., 0., 1.)
@@ -91,97 +122,48 @@ class MyApp(ShowBase):
         redpoint.nodePath.setColor(1., 0., 0., 1.)
 
         line = Line()
-        line.setTipPoint(Vec3(1, 0, 1))
+        line.nodePath.setColor(1,1,0,1)
+        # line.setTipPoint(Vec3(1, 0, 1))
 
-        blueline = Line()
-        blueline.nodePath.setColor(0, 0, 1, 1)
+        vec = Vector()
 
-        gn = GroupNode()
-        gn.addChildNodePaths([blueline.nodePath])
+        # def myMatTrafo(t, nodePath):
+        #     # scaling (determine scaling matrix for xhat)
+        #     vx = 1.
+        #     vy = 1.
+        #     vz = 1.
+        #     scaling = np.array([[vx,  0,  0, 0],
+        #                         [0,  vy,  0, 0],
+        #                         [0,   0, vz, 0],
+        #                         [0,   0,  0, 1]])
+        #     scaling *= t
 
-        from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
-        from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval
+        #     scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+        #     trafo = scaling_forrowvecs
 
-
-        def circlearound(t):
-            r = 1.
-            x = r * np.cos(t)
-            z = r * np.sin(t)
-            gn.nodePath.setPos(x, 0, z)
+        #     nodePath.setMat(trafo)
 
         seq = Sequence(
             Parallel(
-                LerpFunc(
-                    circlearound,
-                    fromData=0,
-                    toData=2*3.1415,
-                    duration=1.),
                 LerpHprInterval(
-                    blueline.nodePath,
+                    vec.groupNode.nodePath,
                     1.,
-                    Vec3(0,0,360))
-                )
-        ).loop(playRate=.25)
+                    Vec3(0, 0, 360)
+                ),
+                LerpPosInterval(
+                    vec.groupNode.nodePath,
+                    1.,
+                    Point3(0., 0, 1.)
+                ),
+                # LerpScaleInterval(
+                #     vec.groupNode.nodePath,
+                #     1.,
+                #     .2
+                # )
+            )
+        ).start(playRate=0.5)
 
-        def myfunction(node, myvec):
-            node.setTipPoint(myvec)
-
-        # seq.append(Func(myfunction, blueline, Vec3(-1., 0, 1.)))
-        # seq.append(Wait(.5))
-        # seq.append(Func(myfunction, blueline, Vec3(-2., 0, 1.)))
-        # seq.append(Wait(.5))
-        # seq.append(LerpPosInterval(gn.nodePath, .5, Point3(-.5, 0., 0.)))
-        # seq.append(Wait(.5))
-
-        # print("duration: ", seq.duration)
-
-        # def parametrization_of_rotation(t, t_f, h_f, p_f, r_f):
-        #     h = h_f * (t / t_f)
-        #     p = p_f * (t / t_f)
-        #     r = r_f * (t / t_f)
-        #     return (h, p, r)
-
-        # def update_function(t, nodepath, t_f, h_f, p_f, r_f):
-        #     h, p, r = parametrization_of_rotation(t, t_f, h_f, p_f, r_f)
-        #     nodepath.setHpr(h, p, r)
-
-        # nodepath = blueline.nodePath
-        # t_0 = 0.
-        # t_f = 2.  # seconds, only actual seconds if panda syncs it up correctly
-        # h_f = 0.  # degrees
-        # p_f = 0.  # degrees
-        # r_f = 90. # degrees
-
-        # params = [nodepath, t_f, h_f, p_f, r_f]  # constants for the parametrization
-        # # create an 'Interval', i.e. an object performing the transition, scaling up time
-        # p3d_interval = LerpFunc(
-        #     update_function,     # pointer to function updating the nodepath's properties
-        #     fromData=t_0,
-        #     toData=t_f,
-        #     duration=(t_f-t_0),  # duration (maybe to skip the animation, if sth. goes bad)
-        #     extraArgs=params)
-
-        # delay = 1.
-        # # create a 'Sequence', i.e. a sequence of 'Intervals'
-        # Sequence(Wait(delay),   # just a waiting (do nothing) type of 'Interval'
-        #          p3d_interval   # my custom 'Interval'
-        # ).start()  # start the animation
-
-        # symbol_geometries = tests.svgpathtodat.main.get_test_symbol_geometries()
-        # polygontest = Polygon2dTestTriangles(symbol_geometries)
-        # polygontest.initiateTranslationMovement(v_x=1., duration=1.)
-
-
-        # time_total = 5
-        # step_size = 1
-        # steps = 10
-        # r = 1
-        # for t in np.linspace(0, time_total, num=steps):
-        #     Sequence(Wait(.5))
-        #     phi = 2 * 3.1415 * t/time_total
-        #     x = r * np.cos(phi)
-        #     z = r * np.sin(phi)
-        #     blueline.setTipPoint(Vec3(x, 0, z))
+        # vec = Vector(tip_point=Vec3(-1, 0, 1))
 
         # print logs
         childs = render.getChildren()
