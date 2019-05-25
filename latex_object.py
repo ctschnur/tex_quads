@@ -295,14 +295,16 @@ class Vector:
     """
     def __init__(self, tip_point=None):
         self.line = Line()
-
-        if tip_point is not None:
-            self.line.setTipPoint(tip_point)
-
         self.arrowhead = ArrowHead()
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths([self.line.nodePath, self.arrowhead.nodePath])
+
+        self.setVectorTipPoint(tip_point)
+
+    def setVectorTipPoint(self, tip_point):
+        if tip_point is not None:
+            self.line.setTipPoint(tip_point)
 
         # join ArrowHead and Line
         self._adjustArrowHead()

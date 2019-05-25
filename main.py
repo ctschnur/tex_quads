@@ -143,27 +143,55 @@ class MyApp(ShowBase):
 
         #     nodePath.setMat(trafo)
 
-        seq = Sequence(
-            Parallel(
-                LerpHprInterval(
-                    vec.groupNode.nodePath,
-                    1.,
-                    Vec3(0, 0, 360)
-                ),
-                LerpPosInterval(
-                    vec.groupNode.nodePath,
-                    1.,
-                    Point3(0., 0, 1.)
-                ),
-                # LerpScaleInterval(
-                #     vec.groupNode.nodePath,
-                #     1.,
-                #     .2
-                # )
-            )
-        ).start(playRate=0.5)
+        # seq = Sequence(
+        #     Parallel(
+        #         LerpHprInterval(
+        #             vec.groupNode.nodePath,
+        #             1.,
+        #             Vec3(0, 0, 360)
+        #         ),
+        #         LerpPosInterval(
+        #             vec.groupNode.nodePath,
+        #             1.,
+        #             Point3(0., 0, 1.)
+        #         ),
+        #         LerpScaleInterval(
+        #             vec.groupNode.nodePath,
+        #             1.,
+        #             .2
+        #         )
+        #     )
+        # ).start(playRate=0.5)
 
-        # vec = Vector(tip_point=Vec3(-1, 0, 1))
+        gn = vec.groupNode
+
+        # def myfunc(t, gn):
+        #     gn.nodePath.setPos(t, 0, t)
+
+        # t_0 = 0.5
+        # t_f = 1.
+
+        # seq = Sequence(
+        #     Parallel(
+        #         LerpFunc(
+        #             myfunc,
+        #             fromData=t_0,
+        #             duration=t_f,
+        #             extraArgs=[vec.groupNode]
+        #         )
+        #     )
+        # ).loop(playRate=1)
+
+        vec2 = Vector(tip_point=Vec3(-1, 0, 1))
+
+        vec2.setVectorTipPoint(Vec3(-2, 0, 1))
+        # Sequence(
+        #     Wait(.5),
+        #     Func(vec2.line.setTipPoint, Vec3(-1, 0, 1)),
+        #     Wait(.5),
+        #     Func(vec2.line.setTipPoint, Vec3(-2, 0, 1)),
+        #     Wait(.5)
+        # ).start()
 
         # print logs
         childs = render.getChildren()
