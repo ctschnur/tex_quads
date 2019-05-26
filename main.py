@@ -113,19 +113,19 @@ class MyApp(ShowBase):
         #     child.setRenderModeFilled()
 
         # current experiment
-        greenpoint = Point()
-        greenpoint.nodePath.setPos(1, 0, 1)
-        greenpoint.nodePath.setColor(0., 1., 0., 1.)
+        # greenpoint = Point()
+        # greenpoint.nodePath.setPos(1, 0, 1)
+        # greenpoint.nodePath.setColor(0., 1., 0., 1.)
 
-        redpoint = Point()
-        redpoint.nodePath.setPos(1, 0, 0)
-        redpoint.nodePath.setColor(1., 0., 0., 1.)
+        # redpoint = Point()
+        # redpoint.nodePath.setPos(1, 0, 0)
+        # redpoint.nodePath.setColor(1., 0., 0., 1.)
 
-        line = Line()
-        line.nodePath.setColor(1,1,0,1)
-        # line.setTipPoint(Vec3(1, 0, 1))
+        # line = Line()
+        # line.nodePath.setColor(1,1,0,1)
 
-        vec = Vector()
+
+        # vec = Vector()
 
         # def myMatTrafo(t, nodePath):
         #     # scaling (determine scaling matrix for xhat)
@@ -163,9 +163,9 @@ class MyApp(ShowBase):
         #     )
         # ).start(playRate=0.5)
 
-        gn = vec.groupNode
+        # gn = vec.groupNode
 
-        # def myfunc(t, gn):
+       # def myfunc(t, gn):
         #     gn.nodePath.setPos(t, 0, t)
 
         # t_0 = 0.5
@@ -183,15 +183,42 @@ class MyApp(ShowBase):
         # ).loop(playRate=1)
 
         vec2 = Vector(tip_point=Vec3(-1, 0, 1))
+        vec2.groupNode.nodePath.setColor(1, 0, 0, 1)
 
-        vec2.setVectorTipPoint(Vec3(-2, 0, 1))
         # Sequence(
         #     Wait(.5),
-        #     Func(vec2.line.setTipPoint, Vec3(-1, 0, 1)),
+        #     Func(vec2.setVectorTipPoint, Vec3(-2, 0, -0.1)),
         #     Wait(.5),
-        #     Func(vec2.line.setTipPoint, Vec3(-2, 0, 1)),
+        #     Func(vec2.setVectorTipPoint, Vec3(0, 0, -0.5)),
         #     Wait(.5)
-        # ).start()
+        # ).start(playRate=.5)
+
+
+        myline = Line()
+        myline.nodePath.setColor(1, 0, 1, 1)
+
+        def f1():
+            myline.setTipPoint(Vec3(-2, 0, 0.1))
+
+        def f2():
+            myline.setTipPoint(Vec3(0, 0, 1.))
+
+        def f3():
+            myline.setTipPoint(Vec3(-2, 0, 0.1))
+
+        f1()
+        f2()
+        f3()
+
+        # Sequence(
+        #     Wait(.5),
+        #     Func(f1),
+        #     Wait(.5),
+        #     Func(f2),
+        #     Wait(.5),
+        #     Func(f3),
+        #     Wait(.5),
+        # ).start(playRate=.25)
 
         # print logs
         childs = render.getChildren()

@@ -173,42 +173,12 @@ class Line(Box2dCentered):
         self.nodePath.setRenderModeWireframe()
         self.setTipPoint(Vec3(1., 0., 0.))
 
-    def setTipPoint(self, tip_point, transition=False):
-        # this function makes a transformation
-        # save the matrix before the transformation
-        # where I want to move it
+    def setTipPoint(self, tip_point):
         self.xhat_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
-        self.rotation_forrowvecs = Mat4()
 
-        # optional: make the 0-length line a point
-        # if (    tip_point[0] == 0.
-        #     and tip_point[1] == 0.
-        #     and tip_point[2] == 0. ):
-        #     # change geometry to visualize a line of length zero (let that be a small circle)
-        #     self.node.removeAllGeoms()
-        #     new_geom = custom_geometry.createColoredUnitCircle()
-        #     self.node.addGeom(new_geom)
-
-        #     # scale the unit circle to have a line's width
-        #     vx = np.linalg.norm(self.width/2)
-        #     vy = np.linalg.norm(self.width/2)
-        #     vz = np.linalg.norm(self.width/2)
-        #     scaling_unitcircle = np.array([[vx,  0,  0, 0],
-        #                                    [0,  vy,  0, 0],
-        #                                    [0,   0, vz, 0],
-        #                                    [0,   0,  0, 1]])
-
-        #     scaling_unitcircle_forrowvecs = Mat4(*tuple(np.transpose(scaling_unitcircle).flatten()))
-        #     self.nodePath.setMat(scaling_unitcircle_forrowvecs)
-
-        #     self.has_zero_length_is_circle = True
-        #     self.nodePath.setRenderModeWireframe()
-        #     return
-
-
-        # rotation (determine rotation matrix for xhat)
+        # rotation matrix for xhat
         xhat = np.array([1, 0, 0])
-        normal = np.array([0, 1, 0])  # yhat
+        normal = np.array([0, 1, 0])  # panda3d out of screen: yhat
         # find angle \theta (\in [-pi, pi]) between \hat{x} and \hat{x}'
         # using the arctan2 of a determinant and a dot product
         det = np.dot(normal, np.cross(xhat, self.xhat_prime))
@@ -217,25 +187,24 @@ class Line(Box2dCentered):
                             [0,               1,             0, 0],
                             [-np.sin(theta),  0, np.cos(theta), 0],
                             [0,               0,             0, 1]])
+        self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
 
-        # scaling (determine scaling matrix for xhat)
-        vx = np.linalg.norm(self.xhat_prime) # length
+        # scaling matrix for xhat
+        vx = np.linalg.norm(self.xhat_prime)  # length
         vy = 1.
         vz = 1.
         scaling = np.array([[vx,  0,  0, 0],
                             [0,  vy,  0, 0],
                             [0,   0, vz, 0],
                             [0,   0,  0, 1]])
-
-        # net transform
-        self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
         scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+
+
+        # apply the net transformation
         # first the scaling, then the rotation
         # remember, the row vector stands on the left in p3d multiplication
         # so the order is reversed
         trafo = scaling_forrowvecs * self.rotation_forrowvecs
-
-        # self.nodePath.setMat(self.nodePath.getMat() * trafo)
 
         self.nodePath.setMat(self.initialTrafoMat * trafo)
 
@@ -296,6 +265,7 @@ class Vector:
     def __init__(self, tip_point=None):
         self.line = Line()
         self.arrowhead = ArrowHead()
+        self.arrowhead.nodePath.setRenderModeWireframe()
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths([self.line.nodePath, self.arrowhead.nodePath])
@@ -314,52 +284,65 @@ class Vector:
         # apply the same rotation as to the line
         # and then a translation to the tip of the vector
 
-        # rotation: already computed (same as line)
-        # translation
+        # first do a rotation: already computed (same as line)
+
+        # two translations:
+        # first translate arrowhead to the tip of the line
         bx = self.line.xhat_prime[0]
         by = self.line.xhat_prime[1]
         bz = self.line.xhat_prime[2]
-        translation_to_xhat = np.array([[1, 0, 0, bx],
-                                        [0, 1, 0, by],
-                                        [0, 0, 1, bz],
-                                        [0, 0, 0,  1]])
+        translation_to_xhat = np.array(
+            [[1, 0, 0, bx],
+             [0, 1, 0, by],
+             [0, 0, 1, bz],
+             [0, 0, 0,  1]])
+        self.translation_to_xhat_forrowvecs = (
+            Mat4(*tuple(np.transpose(translation_to_xhat).flatten())))
 
+        # then translate arrowhead back to the scaled back line's tip
         arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
         arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
-
         b_tilde = arrowhead_length * arrowhead_direction
         b_tilde_x = b_tilde[0]
         b_tilde_y = b_tilde[1]
         b_tilde_z = b_tilde[2]
-
         translation_to_match_point = np.array([[1, 0, 0, b_tilde_x],
-                                                [0, 1, 0, b_tilde_y],
-                                                [0, 0, 1, b_tilde_z],
-                                                [0, 0, 0,         1]])
-
-        self.translation_to_xhat_forrowvecs = (
-            Mat4(*tuple(np.transpose(translation_to_xhat).flatten())))
+                                               [0, 1, 0, b_tilde_y],
+                                               [0, 0, 1, b_tilde_z],
+                                               [0, 0, 0,         1]])
         self.translation_to_match_point_forrowvecs = (
             Mat4(*tuple(np.transpose(translation_to_match_point).flatten())))
 
+        # compose the two translations
         self.translation_forrowvecs = (
             self.translation_to_xhat_forrowvecs * self.translation_to_match_point_forrowvecs)
 
-        trafo = self.line.rotation_forrowvecs * self.translation_forrowvecs
+        # scale the arrowhead to the line thickness
+        vx = ArrowHead.scale
+        vy = ArrowHead.scale
+        vz = ArrowHead.scale
+        scaling = np.array([[vx,  0,  0, 0],
+                            [0,  vy,  0, 0],
+                            [0,   0, vz, 0],
+                            [0,   0,  0, 1]])
+        self.scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
 
-        self.arrowhead.nodePath.setMat(self.arrowhead.nodePath.getMat() * trafo)
+        # apply the scaling
+        # apply the same rotation as for the line
+        # and then the translation
+        self.arrowhead.nodePath.setMat(
+            self.scaling_forrowvecs * self.line.rotation_forrowvecs * self.translation_forrowvecs)
 
-        self.arrowhead.nodePath.setRenderModeWireframe()
 
     def _adjustLine(self):
+        # figure out the factor by which to scale back the line
+        # based on the size of the arrow tip
         l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
         arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
-
         l_line_0 = np.linalg.norm(self.line.xhat_prime)
-
         c_scaling =  l_line_0 / (l_line_0 - l_arrow)
 
-        # scaling
+        # apply the scaling
         vx = c_scaling
         vy = c_scaling
         vz = c_scaling
@@ -368,11 +351,9 @@ class Vector:
                             [0,   0, vz, 0],
                             [0,   0,  0, 1]])
 
-        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+        self.scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
 
-        trafo = scaling_forrowvecs
-
-        self.line.nodePath.setMat(self.line.nodePath.getMat() * trafo)
+        self.line.nodePath.setMat(self.line.nodePath.getMat() * self.scaling_forrowvecs)
 
 
 class GroupNode(Animator):
