@@ -109,7 +109,7 @@ def get_test_symbol_geometries():
     if len(sys.argv) is 2: 
         file = sys.argv[1]
     else: 
-        file = "main_simplified__customcleaned_only_one.svg"
+        file = "svgs/main_simplified__customcleaned_only_one.svg"
 
     # only need paths
     svg_paths, _ = svgpathtools.svg2paths(file)

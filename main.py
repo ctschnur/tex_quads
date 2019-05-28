@@ -1,14 +1,18 @@
-import conventions
-import tests.svgpathtodat.main
+from conventions import conventions
+from latex_objects.latex_texture_object import LatexTextureObject
+from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector
+from simple_objects.simple_objects import Line, Point, ArrowHead
+
+
+import numpy as np
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4
-import numpy as np
-from latex_object import LatexTextureObject, Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips, ParallelLines, GroupNode, Line, Point, ArrowHead, Vector
-
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
+import tests.svgpathtodat.main
 
 def draw_letter_from_path():
     # letter from path
@@ -210,6 +214,8 @@ class MyApp(ShowBase):
         f2()
         f3()
 
+
+        # in a Sequence, the matrix's nodes are being continually transformed
         # Sequence(
         #     Wait(.5),
         #     Func(f1),
