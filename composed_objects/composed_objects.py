@@ -1,6 +1,6 @@
 from conventions import conventions
 from simple_objects import custom_geometry
-from utils import texture_utils
+from utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from simple_objects.animator import Animator
 from simple_objects.simple_objects import Line, ArrowHead
@@ -69,44 +69,30 @@ class Vector:
 
         # two translations:
         # first translate arrowhead to the tip of the line
-        bx = self.line.xhat_prime[0]
-        by = self.line.xhat_prime[1]
-        bz = self.line.xhat_prime[2]
-        translation_to_xhat = np.array(
-            [[1, 0, 0, bx],
-             [0, 1, 0, by],
-             [0, 0, 1, bz],
-             [0, 0, 0,  1]])
-        self.translation_to_xhat_forrowvecs = (
-            Mat4(*tuple(np.transpose(translation_to_xhat).flatten())))
+
+        self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+            self.line.xhat_prime[0],
+            self.line.xhat_prime[1],
+            self.line.xhat_prime[2])
 
         # then translate arrowhead back to the scaled back line's tip
         arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
         arrowhead_direction = self.line.xhat_prime / np.linalg.norm(self.line.xhat_prime)
         b_tilde = arrowhead_length * arrowhead_direction
-        b_tilde_x = b_tilde[0]
-        b_tilde_y = b_tilde[1]
-        b_tilde_z = b_tilde[2]
-        translation_to_match_point = np.array([[1, 0, 0, b_tilde_x],
-                                               [0, 1, 0, b_tilde_y],
-                                               [0, 0, 1, b_tilde_z],
-                                               [0, 0, 0,         1]])
-        self.translation_to_match_point_forrowvecs = (
-            Mat4(*tuple(np.transpose(translation_to_match_point).flatten())))
+        self.translation_to_match_point_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+            b_tilde[0],
+            b_tilde[1],
+            b_tilde[2])
 
         # compose the two translations
         self.translation_forrowvecs = (
             self.translation_to_xhat_forrowvecs * self.translation_to_match_point_forrowvecs)
 
         # scale the arrowhead to the line thickness
-        vx = ArrowHead.scale
-        vy = ArrowHead.scale
-        vz = ArrowHead.scale
-        scaling = np.array([[vx,  0,  0, 0],
-                            [0,  vy,  0, 0],
-                            [0,   0, vz, 0],
-                            [0,   0,  0, 1]])
-        self.scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+        self.scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
+            ArrowHead.scale,
+            ArrowHead.scale,
+            ArrowHead.scale)
 
         # apply the scaling
         # apply the same rotation as for the line
@@ -123,17 +109,10 @@ class Vector:
         l_line_0 = np.linalg.norm(self.line.xhat_prime)
         c_scaling =  l_line_0 / (l_line_0 - l_arrow)
 
-        # apply the scaling
-        vx = c_scaling
-        vy = c_scaling
-        vz = c_scaling
-        scaling = np.array([[vx,  0,  0, 0],
-                            [0,  vy,  0, 0],
-                            [0,   0, vz, 0],
-                            [0,   0,  0, 1]])
-
-        self.scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-
+        self.scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
+            c_scaling,
+            c_scaling,
+            c_scaling)
         self.line.nodePath.setMat(self.line.nodePath.getMat() * self.scaling_forrowvecs)
 
 

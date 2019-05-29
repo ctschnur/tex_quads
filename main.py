@@ -4,7 +4,6 @@ from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dT
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector
 from simple_objects.simple_objects import Line, Point, ArrowHead
 
-
 import numpy as np
 
 from direct.showbase.ShowBase import ShowBase
@@ -13,6 +12,7 @@ from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
 import tests.svgpathtodat.main
+
 
 def draw_letter_from_path():
     # letter from path
@@ -96,10 +96,176 @@ def spinning_around_independently():
             )
     ).loop(playRate=1)
 
+def miscexperiments():
+    children = render.get_children()
+    for child in children:
+        child.setRenderModeFilled()
+
+    # current experiment
+    greenpoint = Point()
+    greenpoint.nodePath.setPos(1, 0, 1)
+    greenpoint.nodePath.setColor(0., 1., 0., 1.)
+
+    redpoint = Point()
+    redpoint.nodePath.setPos(1, 0, 0)
+    redpoint.nodePath.setColor(1., 0., 0., 1.)
+
+    line = Line()
+    line.nodePath.setColor(1,1,0,1)
+
+
+    vec = Vector()
+
+    def myMatTrafo(t, nodePath):
+        # scaling (determine scaling matrix for xhat)
+        vx = 1.
+        vy = 1.
+        vz = 1.
+        scaling = np.array([[vx,  0,  0, 0],
+                            [0,  vy,  0, 0],
+                            [0,   0, vz, 0],
+                            [0,   0,  0, 1]])
+        scaling *= t
+
+        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
+        trafo = scaling_forrowvecs
+
+        nodePath.setMat(trafo)
+
+    seq = Sequence(
+        Parallel(
+            LerpHprInterval(
+                vec.groupNode.nodePath,
+                1.,
+                Vec3(0, 0, 360)
+            ),
+            LerpPosInterval(
+                vec.groupNode.nodePath,
+                1.,
+                Point3(0., 0, 1.)
+            ),
+            LerpScaleInterval(
+                vec.groupNode.nodePath,
+                1.,
+                .2
+            )
+        )
+    ).start(playRate=0.5)
+
+    gn = vec.groupNode
+
+    def myfunc(t, gn):
+        gn.nodePath.setPos(t, 0, t)
+
+    t_0 = 0.5
+    t_f = 1.
+
+    seq = Sequence(
+        Parallel(
+            LerpFunc(
+                myfunc,
+                fromData=t_0,
+                duration=t_f,
+                extraArgs=[vec.groupNode]
+            )
+        )
+    ).loop(playRate=1)
+
+
+def vectoranimation(switchontwitchinglines=False):
+    if switchontwitchinglines: 
+        vec2 = Vector()
+        vec2.groupNode.nodePath.setColor(1, 0, 0, 1)
+
+        Sequence(
+            Wait(.5),
+            Func(vec2.setVectorTipPoint, Vec3(-2, 0, -0.1)),
+            Wait(.5),
+            Func(vec2.setVectorTipPoint, Vec3(0, 0, -0.5)),
+            Wait(.5)
+        ).loop(playRate=.5)
+
+
+        myline = Line()
+        myline.nodePath.setColor(1, 0, 1, 1)
+        myline.setTipPoint(Vec3(1, 0, 0.1))
+
+        def f1():
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT<C-c>
+            myline.setTipPoint(Vec3(-1, 0, 0))
+
+        def f2():
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT<C-c>
+            myline.setTipPoint(Vec3(0, 0, 1.))
+
+        def f3():
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT<C-c>
+            myline.setTipPoint(Vec3(-2, 0, 0.1))
+
+        f1()
+        f2()
+
+        # print logs
+        childs = render.getChildren()
+        print(len(childs))
+
+        # in a Sequence, the matrix's nodes are being continually transformed
+        Sequence(
+            Wait(.5),
+            Func(f1),
+            Wait(.5),
+            Func(f2),
+        ).loop(playRate=1)
+
+    vec3 = Vector()
+    vec3.groupNode.nodePath.setColor(1, 0, 0, 1)
+
+    twvec = Vector()
+    twvec.groupNode.nodePath.setColor(0, 1, 0, 1)
+
+    g = GroupNode()
+    g.addChildNodePaths([vec3.groupNode.nodePath])
+
+    from utils import math_utils
+
+    p = Point()
+
+    def heymyfunc(t, vec, g, twirlingvec):
+        r = 1.
+        x = r * np.cos(t)
+        z = r * np.sin(t)
+        x_fast = r * np.cos(t*2)
+        z_fast = r * np.sin(t*2)
+        vec.setVectorTipPoint(Vec3(-x, 0, -z)*0.5)
+        twirlingvec.setVectorTipPoint(Vec3(x_fast, 0, z_fast)*0.2)
+
+        g.nodePath.setMat(math_utils.getTranslationMatrix3d_forrowvecs(x, 0, z))
+        twirlingvec.groupNode.nodePath.setMat(math_utils.getTranslationMatrix3d_forrowvecs(x, 0, z))
+
+    t_0 = 0.
+    t_f = 2*3.1415
+
+    seq = Sequence(
+        Parallel(
+            LerpFunc(
+                heymyfunc,
+                fromData=0,
+                toData=t_f,
+                duration=1,
+                extraArgs=[vec3, g, twvec]
+            )
+        )
+    ).loop(playRate=.25)
+
 
 class MyApp(ShowBase):
     def __init__(self):
+
+
         ShowBase.__init__(self)
+
+        base.setFrameRateMeter(True)
+
         # make self-defined camera control possible
         self.disableMouse()
         render.setAntialias(AntialiasAttrib.MAuto)
@@ -111,124 +277,8 @@ class MyApp(ShowBase):
         # draw_letter_from_path()
         # create_point_grid()
         # spinning_around_independently()
-
-        # children = render.get_children()
-        # for child in children:
-        #     child.setRenderModeFilled()
-
-        # current experiment
-        # greenpoint = Point()
-        # greenpoint.nodePath.setPos(1, 0, 1)
-        # greenpoint.nodePath.setColor(0., 1., 0., 1.)
-
-        # redpoint = Point()
-        # redpoint.nodePath.setPos(1, 0, 0)
-        # redpoint.nodePath.setColor(1., 0., 0., 1.)
-
-        # line = Line()
-        # line.nodePath.setColor(1,1,0,1)
-
-
-        # vec = Vector()
-
-        # def myMatTrafo(t, nodePath):
-        #     # scaling (determine scaling matrix for xhat)
-        #     vx = 1.
-        #     vy = 1.
-        #     vz = 1.
-        #     scaling = np.array([[vx,  0,  0, 0],
-        #                         [0,  vy,  0, 0],
-        #                         [0,   0, vz, 0],
-        #                         [0,   0,  0, 1]])
-        #     scaling *= t
-
-        #     scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-        #     trafo = scaling_forrowvecs
-
-        #     nodePath.setMat(trafo)
-
-        # seq = Sequence(
-        #     Parallel(
-        #         LerpHprInterval(
-        #             vec.groupNode.nodePath,
-        #             1.,
-        #             Vec3(0, 0, 360)
-        #         ),
-        #         LerpPosInterval(
-        #             vec.groupNode.nodePath,
-        #             1.,
-        #             Point3(0., 0, 1.)
-        #         ),
-        #         LerpScaleInterval(
-        #             vec.groupNode.nodePath,
-        #             1.,
-        #             .2
-        #         )
-        #     )
-        # ).start(playRate=0.5)
-
-        # gn = vec.groupNode
-
-       # def myfunc(t, gn):
-        #     gn.nodePath.setPos(t, 0, t)
-
-        # t_0 = 0.5
-        # t_f = 1.
-
-        # seq = Sequence(
-        #     Parallel(
-        #         LerpFunc(
-        #             myfunc,
-        #             fromData=t_0,
-        #             duration=t_f,
-        #             extraArgs=[vec.groupNode]
-        #         )
-        #     )
-        # ).loop(playRate=1)
-
-        vec2 = Vector(tip_point=Vec3(-1, 0, 1))
-        vec2.groupNode.nodePath.setColor(1, 0, 0, 1)
-
-        # Sequence(
-        #     Wait(.5),
-        #     Func(vec2.setVectorTipPoint, Vec3(-2, 0, -0.1)),
-        #     Wait(.5),
-        #     Func(vec2.setVectorTipPoint, Vec3(0, 0, -0.5)),
-        #     Wait(.5)
-        # ).start(playRate=.5)
-
-
-        myline = Line()
-        myline.nodePath.setColor(1, 0, 1, 1)
-
-        def f1():
-            myline.setTipPoint(Vec3(-2, 0, 0.1))
-
-        def f2():
-            myline.setTipPoint(Vec3(0, 0, 1.))
-
-        def f3():
-            myline.setTipPoint(Vec3(-2, 0, 0.1))
-
-        f1()
-        f2()
-        f3()
-
-
-        # in a Sequence, the matrix's nodes are being continually transformed
-        # Sequence(
-        #     Wait(.5),
-        #     Func(f1),
-        #     Wait(.5),
-        #     Func(f2),
-        #     Wait(.5),
-        #     Func(f3),
-        #     Wait(.5),
-        # ).start(playRate=.25)
-
-        # print logs
-        childs = render.getChildren()
-        print(len(childs))
+        # miscexperiments()
+        vectoranimation()
 
 app = MyApp()
 app.run()

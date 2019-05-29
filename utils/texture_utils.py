@@ -1,6 +1,6 @@
 from panda3d.core import (PNMImage, Filename, Texture)
 
-
+import numpy as np
 def getImageFromFile(filename="sample.png"):
     image = PNMImage()
     image.read(Filename(filename))

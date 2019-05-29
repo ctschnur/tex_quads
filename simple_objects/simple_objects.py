@@ -2,8 +2,7 @@ from conventions import conventions
 
 from simple_objects import custom_geometry
 
-from utils import texture_utils
-
+from utils import math_utils
 from simple_objects.box import Box2d, Box2dCentered
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
@@ -32,12 +31,15 @@ class Line(Box2dCentered):
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
-        self.nodePath.setScale(1., 1., self.width)
-        self.axis_spawning_preparation_trafo = self.nodePath.getMat()
-        self.nodePath.setPos(0.5, 0, 0)
+        scaling = math_utils.getScalingMatrix3d_forrowvecs(1., 1., self.width)
         self.length = self.initial_length
-        # self.has_zero_length_is_circle = False
-        self.initialTrafoMat = self.nodePath.getMat()
+        self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(0.5, 0, 0)
+
+        # self.initialTrafoMat = Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.05, 0, 0.5, 0, 0, 1)
+        self.initialTrafoMat = scaling * self.translation_to_xhat_forrowvecs
+        self.nodePath.setMat(self.initialTrafoMat)
+
+        # self.initialTrafoMat = self.nodePath.getMat()
         self.nodePath.setRenderModeWireframe()
         self.setTipPoint(Vec3(1., 0., 0.))
 
@@ -73,7 +75,6 @@ class Line(Box2dCentered):
         # remember, the row vector stands on the left in p3d multiplication
         # so the order is reversed
         trafo = scaling_forrowvecs * self.rotation_forrowvecs
-        self.nodePath.setMat
         self.nodePath.setMat(self.initialTrafoMat * trafo)
 
 
