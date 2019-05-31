@@ -21,3 +21,6 @@ def getTranslationMatrix3d_forrowvecs(bx, by, bz):
          [0, 0, 0,  1]])
     translation_forrowvecs = Mat4(*tuple(np.transpose(translation_to_xhat).flatten()))
     return translation_forrowvecs
+
+def getNormFromP3dVector(p3dvec3):
+    return np.linalg.norm([p3dvec3.getX(), p3dvec3.getY(), p3dvec3.getZ()])

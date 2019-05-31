@@ -3,6 +3,7 @@ from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector
 from simple_objects.simple_objects import Line, Point, ArrowHead
+from utils import math_utils
 
 import numpy as np
 
@@ -171,7 +172,6 @@ def miscexperiments():
         )
     ).loop(playRate=1)
 
-
 def vectoranimation(switchontwitchinglines=False):
     if switchontwitchinglines: 
         vec2 = Vector()
@@ -226,8 +226,6 @@ def vectoranimation(switchontwitchinglines=False):
     g = GroupNode()
     g.addChildNodePaths([vec3.groupNode.nodePath])
 
-    from utils import math_utils
-
     p = Point()
 
     def heymyfunc(t, vec, g, twirlingvec):
@@ -257,6 +255,54 @@ def vectoranimation(switchontwitchinglines=False):
         )
     ).loop(playRate=.25)
 
+def buildcoordinatesystem():
+    def makeAxis(tip_point, ticksperunitlength=1, highlightticksatunitlengths=True):
+        axis_vector = Vector(tip_point=tip_point)
+        ticks = []
+
+        axis_length = math_utils.getNormFromP3dVector(tip_point)
+        howmanyticks = ticksperunitlength * axis_length
+
+        ticks_groupNode = GroupNode()
+        for i in np.arange(0, axis_length, step=1./ticksperunitlength):
+            trafo_nodePath = NodePath("trafo_nodePath")
+            trafo_nodePath.reparentTo(ticks_groupNode.nodePath)
+            tick_line = Line()
+            tick_line.nodePath.reparentTo(trafo_nodePath)
+
+            tick_length = 0.2
+            translation = Vec3(i, 0, -0.25 * tick_length)
+            end_point_across = Vec3(0, 0, tick_length)
+            tick_line.setTipPoint(end_point_across)
+            trafo_nodePath.setPos(translation[0], translation[1], translation[2])
+
+            if float(i).is_integer() and i != 0:
+                tick_line.nodePath.setColor(1, 0, 0, 1)
+            if i == 0:
+                tick_line.nodePath.setColor(1, 1, 1, 0.2)
+
+            if float(i).is_integer() and i != 0:
+                trafo_nodePath.setScale(.5, 1., .5)
+            else:
+                trafo_nodePath.setScale(.5, 1., .5)
+
+            ticks.append(tick_line)
+
+        def _adjust_ticks():
+            # apply rotation to ticks group Node
+            ticks_groupNode.nodePath.setMat(axis_vector.line.rotation_forrowvecs)
+
+        _adjust_ticks()
+        # xticks_transformations = [xt.nodePath.get_parent() for xt in xticks]
+
+        # add everything together to a transform node
+        axis_groupNode = GroupNode()
+        axis_groupNode.addChildNodePaths([axis_vector.groupNode.nodePath, ticks_groupNode.nodePath])
+
+    # x axis
+    makeAxis(Vec3(2.5, 0, 0), ticksperunitlength=3)
+    makeAxis(Vec3(  0, 0, 1.2))
+
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -278,7 +324,18 @@ class MyApp(ShowBase):
         # create_point_grid()
         # spinning_around_independently()
         # miscexperiments()
-        vectoranimation()
+        # vectoranimation()
+
+        buildcoordinatesystem()
+
+
+        def findChildrenAndSetRenderModeRecursively(parentnode):
+            children = parentnode.get_children()
+            for child in children:
+                findChildrenAndSetRenderModeRecursively(child)
+                child.setRenderModeFilled()
+
+        findChildrenAndSetRenderModeRecursively(render)
 
 app = MyApp()
 app.run()
