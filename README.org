@@ -1,5 +1,5 @@
 * tex_quads
-I developed this program with the idea in mind of creating an animation engine similar to the fantastic [[https://github.com/3b1b/manim][manim]], to put my own spin on mathematical visualization. It builds on the powerful panda3d engine, which is a game engine developed in C++, with Python bindings. 
+I started to developed this program with the idea in mind of creating an animation engine similar to the fantastic [[https://github.com/3b1b/manim][manim]], to put my own spin on mathematical visualization. It builds on the [[https://github.com/panda3d/panda3d][panda3d]] engine, which is a game engine developed in C++, with Python bindings. 
 
 So far, this program can do basic things like drawing arrays of vectors, or small animations like this one: 
 [[./screenshots/Peek_2019-05-29_22-03.gif]]
