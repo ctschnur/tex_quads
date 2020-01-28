@@ -1,24 +1,16 @@
 * tex_quads
-  :PROPERTIES:
-  :CUSTOM_ID: tex_quads
-  :END:
+I developed this program with the idea in mind of creating an animation engine similar to the fantastic [[https://github.com/3b1b/manim][manim]], to put my own spin on mathematical visualization. It builds on the powerful panda3d engine, which is a game engine developed in C++, with Python bindings. 
 
-This program can do some basic animations, leveraging the power of the panda3d engine.  
+So far, this program can do basic things like drawing arrays of vectors, or small animations like this one: 
+[[./screenshots/Peek_2019-05-29_22-03.gif]]
 
 It can also convert a string in python to a LaTeX formula to a pdf to an svg file, then reads that in and renders it as polygons (supports right now only very basic shapes, i.e. letters with one hole).
 
-Have a look at the (not regularly updated) [[file:./screenshots][screenshots]] folder to see some still demo shots. 
+* Notes
+Tue Sep 4 00:07:19 CEST 2018: Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.
 
-Misc. notes:
-Tue Sep 4 00:07:19 CEST 2018: Probe, at what complexity the p3d
-triangulation breaks. To decrease the complexity (geometry
-simplification) and check for intersections of hole polygon with
-boundary polygon, use the shapely library.
-
-Installation: 
-
+* Installation
 - Clone this repository
-
 - Create a =virtualenv= (e.g. named =venv=) with =python3=, (e.g. in your current folder =.=, the project's root folder): 
 #+BEGIN_SRC sh
 python3 -m venv .
@@ -29,75 +21,7 @@ python3 -m venv .
 source ./bin/activate
 #+END_SRC
 
-- install the dependencies listed in =requirements.txt=, which results from me running 
-#+BEGIN_SRC sh
-pip freeze > requirements.txt
-cat requirements.txt
-#+END_SRC
-
-#+RESULTS:
-| appdirs==1.4.3            |
-| attrs==18.2.0             |
-| autopep8==1.4.3           |
-| backcall==0.1.0           |
-| black==18.9b0             |
-| bleach==3.1.0             |
-| Click==7.0                |
-| decorator==4.3.2          |
-| defusedxml==0.5.0         |
-| entrypoints==0.3          |
-| ipdb==0.11                |
-| ipykernel==5.1.0          |
-| ipython==7.3.0            |
-| ipython-genutils==0.2.0   |
-| ipywidgets==7.4.2         |
-| jedi==0.13.3              |
-| Jinja2==2.10              |
-| jsonschema==3.0.0         |
-| jupyter==1.0.0            |
-| jupyter-client==5.2.4     |
-| jupyter-console==6.0.0    |
-| jupyter-core==4.4.0       |
-| MarkupSafe==1.1.1         |
-| mistune==0.8.4            |
-| nbconvert==5.4.1          |
-| nbformat==4.4.0           |
-| notebook==5.7.4           |
-| numpy==1.16.1             |
-| panda3d==1.10.1           |
-| pandocfilters==1.4.2      |
-| parso==0.3.4              |
-| pexpect==4.6.0            |
-| pickleshare==0.7.5        |
-| pkg-resources==0.0.0      |
-| prometheus-client==0.6.0  |
-| prompt-toolkit==2.0.9     |
-| ptyprocess==0.6.0         |
-| pycodestyle==2.5.0        |
-| Pygments==2.3.1           |
-| pyparsing==2.3.1          |
-| pyrsistent==0.14.11       |
-| python-dateutil==2.8.0    |
-| pyzmq==18.0.0             |
-| qtconsole==4.4.3          |
-| scipy==1.2.1              |
-| Send2Trash==1.5.0         |
-| six==1.12.0               |
-| svgpathtools==1.3.3       |
-| svgwrite==1.2.1           |
-| terminado==0.8.1          |
-| testpath==0.4.2           |
-| toml==0.10.0              |
-| tornado==5.1.1            |
-| traitlets==4.3.2          |
-| wcwidth==0.1.7            |
-| webencodings==0.5.1       |
-| widgetsnbextension==3.4.2 |
-| yapf==0.26.0              |
-
-within my active virtual environment: 
+- install the dependencies listed in =requirements.txt=
 #+BEGIN_SRC sh
 pip install -r ./requirements.txt
 #+END_SRC
-
-Now, if I have kept the =requirements.txt= up-to-date, it may run. 
