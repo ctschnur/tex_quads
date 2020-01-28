@@ -29,7 +29,7 @@ dnspython==1.15.0
 docutils==0.14
 entrypoints==0.2.3.post1
 enum34==1.1.6
-Flask==0.12.2
+Flask==1.0
 Flask-AutoIndex==0.6
 Flask-Babel==0.11.2
 Flask-OldSessions==0.10
