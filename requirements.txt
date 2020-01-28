@@ -104,7 +104,7 @@ python-gnutls==3.0.0
 python-openid==2.2.5
 pytz==2018.3
 pyxdg==0.25
-PyYAML==3.12
+PyYAML==5.1
 pyzmq==16.0.2
 recaptcha-client==1.0.6
 requests==2.18.4
