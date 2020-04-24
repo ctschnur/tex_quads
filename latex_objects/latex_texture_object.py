@@ -1,6 +1,6 @@
 from simple_objects import custom_geometry
 from simple_objects.box import Box2d
-from utils import texture_utils
+from local_utils import texture_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from conventions import conventions
 from simple_objects.animator import Animator

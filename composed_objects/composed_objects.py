@@ -1,9 +1,9 @@
 from conventions import conventions
 from simple_objects import custom_geometry
-from utils import texture_utils, math_utils
+from local_utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from simple_objects.animator import Animator
-from simple_objects.simple_objects import Line, ArrowHead
+from simple_objects.simple_objects import Line, ArrowHead, Point
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
@@ -128,3 +128,99 @@ class GroupNode(Animator):
     def addChildNodePaths(self, NodePaths):
         for np in NodePaths:
             np.reparentTo(self.nodePath)
+
+
+class Axis:
+    """ An axis is a vector with ticks
+    TODO: add rendering of numbers
+    TODO: prevent drawing of ticks in the axis' arrow head
+    """
+    def __init__(self, tip_point, ticksperunitlength=4, highlightticksatunitlengths=True):
+        self.axis_vector = Vector(tip_point=tip_point)
+        self.ticks = []
+
+        self.axis_length = math_utils.getNormFromP3dVector(tip_point)
+        self.howmanyticks = ticksperunitlength * self.axis_length
+
+        self.ticks_groupNode = GroupNode()
+
+        for i in np.arange(0, self.axis_length, step=1./ticksperunitlength):
+            trafo_nodePath = NodePath("trafo_nodePath")
+            trafo_nodePath.reparentTo(self.ticks_groupNode.nodePath)
+            tick_line = Line()
+            tick_line.nodePath.reparentTo(trafo_nodePath)
+
+            tick_length = 0.2
+            # translation = Vec3(i, 0, -0.25 * tick_length)
+            tick_line.setTipPoint(Vec3(0, 0, tick_length))
+            translation = Vec3(i, 0, -0.25 * tick_length)
+            trafo_nodePath.setPos(translation[0], translation[1], translation[2])
+
+            if float(i).is_integer() and i != 0:
+                tick_line.nodePath.setColor(1, 0, 0, 1)
+            if i == 0:
+                tick_line.nodePath.setColor(1, 1, 1, 0.2)
+
+            if float(i).is_integer() and i != 0:
+                trafo_nodePath.setScale(.5, 1., .5)
+            else:
+                trafo_nodePath.setScale(.5, 1., .5)
+
+            self.ticks.append(tick_line)
+
+        self._adjust_ticks()
+        # xticks_transformations = [xt.nodePath.get_parent() for xt in xticks]
+
+        # add everything together to a transform node
+        self.groupNode = GroupNode()
+        self.groupNode.addChildNodePaths([self.axis_vector.groupNode.nodePath,
+                                          self.ticks_groupNode.nodePath])
+
+    def _adjust_ticks(self):
+        # apply rotation to ticks group Node
+        self.ticks_groupNode.nodePath.setMat(self.axis_vector.line.rotation_forrowvecs)
+
+
+class CoordinateSystem:
+    """ A coordinate system is a set of Axis objects
+    """
+
+    def __init__(self, axes=None):
+        self.ax1 = Axis(Vec3(1., 0, 0))
+        self.ax2 = Axis(Vec3(0, 0, 1.))
+
+        self.groupNode = GroupNode()
+        self.groupNode.addChildNodePaths([self.ax1.groupNode.nodePath,
+                                          self.ax2.groupNode.nodePath])
+
+
+class Scatter:
+    """ a scatter is a set of points at coordinates
+    """
+
+    def __init__(self, x, y, **kwargs):
+        if 'color' in kwargs:
+            self.color = kwargs.get('color')
+
+        self.x = x
+        self.y = y
+
+        assert(len(x) == len(y))
+
+        if 'z' in kwargs:
+            self.z = kwargs.get('z')
+            assert(len(self.x) == len(self.z))
+
+        self.points = []
+        # create the points
+        for cur_x, cur_y, cur_z in zip(x, y, z):
+            cur_point = Point()
+            # FIXME: for 3d plots, this has to change
+            cur_point.nodePath.setPos(x, 0, y)
+            cur_point.nodePath.setColor(0., 1., 0., 1.)
+
+            self.points.append(Point())
+
+        self.groupNode = GroupNode()
+        self.groupNode.addChildNodePaths([self.ax1.groupNode.nodePath,
+                                          self.ax2.groupNode.nodePath])

@@ -1,7 +1,7 @@
 from conventions import conventions
 
 from simple_objects import custom_geometry
-from utils import texture_utils
+from local_utils import texture_utils
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
@@ -50,7 +50,7 @@ class Polygon2dTestTriangles(Animator):
         # self.nodePath.setRenderModeWireframe()
 
 
-class Polygon2dTestLineStrips(Animator):
+class Pollygon2dTestLineStrips(Animator):
     def __init__(self, symbol_geometries):
         Animator.__init__(self)
 

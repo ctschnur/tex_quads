@@ -1,9 +1,9 @@
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
-from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector
+from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2dTestLineStrips
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem
 from simple_objects.simple_objects import Line, Point, ArrowHead
-from utils import math_utils
+from local_utils import math_utils
 
 import numpy as np
 
@@ -12,12 +12,11 @@ from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
-import tests.svgpathtodat.main
-
+import local_tests.svgpathtodat.main
 
 def draw_letter_from_path():
     # letter from path
-    symbol_geometries = tests.svgpathtodat.main.get_test_symbol_geometries()
+    symbol_geometries = local_tests.svgpathtodat.main.get_test_symbol_geometries()
     polygontest = Polygon2dTestTriangles(symbol_geometries)
     polygontest.initiateTranslationMovement(v_x=1., duration=1.)
 
@@ -173,7 +172,7 @@ def miscexperiments():
     ).loop(playRate=1)
 
 def vectoranimation(switchontwitchinglines=False):
-    if switchontwitchinglines: 
+    if switchontwitchinglines:
         vec2 = Vector()
         vec2.groupNode.nodePath.setColor(1, 0, 0, 1)
 
@@ -255,66 +254,16 @@ def vectoranimation(switchontwitchinglines=False):
         )
     ).loop(playRate=.25)
 
-def buildcoordinatesystem():
-    def makeAxis(tip_point, ticksperunitlength=1, highlightticksatunitlengths=True):
-        axis_vector = Vector(tip_point=tip_point)
-        ticks = []
-
-        axis_length = math_utils.getNormFromP3dVector(tip_point)
-        howmanyticks = ticksperunitlength * axis_length
-
-        ticks_groupNode = GroupNode()
-        for i in np.arange(0, axis_length, step=1./ticksperunitlength):
-            trafo_nodePath = NodePath("trafo_nodePath")
-            trafo_nodePath.reparentTo(ticks_groupNode.nodePath)
-            tick_line = Line()
-            tick_line.nodePath.reparentTo(trafo_nodePath)
-
-            tick_length = 0.2
-            translation = Vec3(i, 0, -0.25 * tick_length)
-            end_point_across = Vec3(0, 0, tick_length)
-            tick_line.setTipPoint(end_point_across)
-            trafo_nodePath.setPos(translation[0], translation[1], translation[2])
-
-            if float(i).is_integer() and i != 0:
-                tick_line.nodePath.setColor(1, 0, 0, 1)
-            if i == 0:
-                tick_line.nodePath.setColor(1, 1, 1, 0.2)
-
-            if float(i).is_integer() and i != 0:
-                trafo_nodePath.setScale(.5, 1., .5)
-            else:
-                trafo_nodePath.setScale(.5, 1., .5)
-
-            ticks.append(tick_line)
-
-        def _adjust_ticks():
-            # apply rotation to ticks group Node
-            ticks_groupNode.nodePath.setMat(axis_vector.line.rotation_forrowvecs)
-
-        _adjust_ticks()
-        # xticks_transformations = [xt.nodePath.get_parent() for xt in xticks]
-
-        # add everything together to a transform node
-        axis_groupNode = GroupNode()
-        axis_groupNode.addChildNodePaths([axis_vector.groupNode.nodePath, ticks_groupNode.nodePath])
-
-    # x axis
-    makeAxis(Vec3(2.5, 0, 0), ticksperunitlength=3)
-    makeAxis(Vec3(  0, 0, 1.2))
-
 
 class MyApp(ShowBase):
     def __init__(self):
-
-
         ShowBase.__init__(self)
-
         base.setFrameRateMeter(True)
 
         # make self-defined camera control possible
-        self.disableMouse()
-        render.setAntialias(AntialiasAttrib.MAuto)
+        # self.disableMouse()
+        # render.setAntialias(AntialiasAttrib.MAuto)
+        render.set_two_sided(True);
         conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention()
 
         # earlier experiments
@@ -326,8 +275,12 @@ class MyApp(ShowBase):
         # miscexperiments()
         # vectoranimation()
 
-        buildcoordinatesystem()
+        CoordinateSystem()
 
+        # current experiment
+        greenpoint = Point()
+        greenpoint.nodePath.setPos(1, 0, 1)
+        greenpoint.nodePath.setColor(0., 1., 0., 1.)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()

@@ -2,8 +2,8 @@ from conventions import conventions
 
 from simple_objects import custom_geometry
 
-from utils import math_utils
-from simple_objects.box import Box2d, Box2dCentered
+from local_utils import math_utils
+from .box import Box2d, Box2dCentered
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
@@ -22,15 +22,31 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 
-class Line(Box2dCentered):
-    width = 0.05
-    initial_length = 1.
+
+class Point(Box2dCentered):
+    scale_z = .05
+    scale_x = .05
 
     def __init__(self):
-        super(Line, self).__init__()
+        super(Point, self).__init__()
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
+        self.nodePath.setScale(self.scale_x, 1., self.scale_z)
+
+
+class Line(Box2dCentered):
+    width = 0.025
+    initial_length = 1.
+
+    def __init__(self, **kwargs):
+        super(Line, self).__init__()
+        self.doInitialSetupTransformation(**kwargs)
+
+    def doInitialSetupTransformation(self, **kwargs):
+        if 'width' in kwargs:
+            self.width = kwargs.get('width')
+
         scaling = math_utils.getScalingMatrix3d_forrowvecs(1., 1., self.width)
         self.length = self.initial_length
         self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(0.5, 0, 0)
@@ -76,18 +92,6 @@ class Line(Box2dCentered):
         # so the order is reversed
         trafo = scaling_forrowvecs * self.rotation_forrowvecs
         self.nodePath.setMat(self.initialTrafoMat * trafo)
-
-
-class Point(Box2dCentered):
-    scale_z = .05
-    scale_x = .05
-
-    def __init__(self):
-        super(Point, self).__init__()
-        self.doInitialSetupTransformation()
-
-    def doInitialSetupTransformation(self):
-        self.nodePath.setScale(self.scale_x, 1., self.scale_z)
 
 
 class ArrowHead(Box2dCentered):

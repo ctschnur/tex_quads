@@ -1,7 +1,7 @@
 from conventions import conventions
 
 from simple_objects import custom_geometry
-from utils import texture_utils
+from local_utils import texture_utils
 from simple_objects.animator import Animator
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
@@ -20,7 +20,6 @@ from direct.interval.LerpInterval import LerpFunc
 
 import hashlib
 import numpy as np
-
 
 class Box2d(Animator):
 

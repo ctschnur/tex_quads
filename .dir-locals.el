@@ -1,1 +1,1 @@
-((nil . ((pyvenv-workon . "tex-quads-venv"))))
+((nil . ((pyvenv-workon . "fortexquads"))))

@@ -1,4 +1,4 @@
-from utils import texture_utils
+from local_utils import texture_utils
 
 from panda3d.core import PNMImage, Filename
 import os
