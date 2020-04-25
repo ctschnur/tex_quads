@@ -1,5 +1,5 @@
 * tex_quads
-I started to developed this program with the idea in mind of creating an animation engine similar to the fantastic [[https://github.com/3b1b/manim][manim]], to put my own spin on mathematical visualization. It builds on the [[https://github.com/panda3d/panda3d][panda3d]] engine, which is a game engine developed in C++, with Python bindings. 
+I started to developed this program with the idea in mind of creating an animation engine similar to the fantastic [[https://github.com/3b1b/manim][manim]], to put my own spin on mathematical visualization. I am using the [[https://github.com/panda3d/panda3d][panda3d]] engine, which is a game engine developed in C++, with Python bindings. 
 
 So far, this program can do basic things like drawing arrays of vectors, or small animations like this one: 
 [[./screenshots/Peek_2019-05-29_22-03.gif]]
@@ -7,7 +7,10 @@ So far, this program can do basic things like drawing arrays of vectors, or smal
 It can also convert a string in python to a LaTeX formula to a pdf to an svg file, then reads that in and renders it as polygons (supports right now only very basic shapes, i.e. letters with one hole).
 
 * Notes
-Tue Sep 4 00:07:19 CEST 2018: Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.
+** TODO Implement a 'scene2d' type class
+- to plot a coordinate system in (and fit inside the viewport)
+** WAITING triangulation of latex characters
+Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.
 
 * Installation
 - Clone this repository
