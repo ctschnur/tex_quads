@@ -51,32 +51,31 @@ class Line(Box2dCentered):
         self.length = self.initial_length
         self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(0.5, 0, 0)
 
-        # self.initialTrafoMat = Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0.05, 0, 0.5, 0, 0, 1)
-        self.initialTrafoMat = scaling * self.translation_to_xhat_forrowvecs
-        self.nodePath.setMat(self.initialTrafoMat)
+        self.form_from_primitive_trafo = scaling * self.translation_to_xhat_forrowvecs
+        self.nodePath.setMat(self.form_from_primitive_trafo)
 
-        # self.initialTrafoMat = self.nodePath.getMat()
+        # self.form_from_primitive_trafo = self.nodePath.getMat()
         self.nodePath.setRenderModeWireframe()
         self.setTipPoint(Vec3(1., 0., 0.))
 
     def setTipPoint(self, tip_point):
-        self.xhat_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
+        self.vec_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
 
         # rotation matrix for xhat
         xhat = np.array([1, 0, 0])
         normal = np.array([0, 1, 0])  # panda3d out of screen: yhat
         # find angle \theta (\in [-pi, pi]) between \hat{x} and \hat{x}'
         # using the arctan2 of a determinant and a dot product
-        det = np.dot(normal, np.cross(xhat, self.xhat_prime))
-        theta = np.arctan2(det, np.dot(xhat, self.xhat_prime))
+        det = np.dot(normal, np.cross(xhat, self.vec_prime))
+        theta = np.arctan2(det, np.dot(xhat, self.vec_prime))
         rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
                             [0,               1,             0, 0],
                             [-np.sin(theta),  0, np.cos(theta), 0],
                             [0,               0,             0, 1]])
-        self.rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
+        self._rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
 
         # scaling matrix for xhat
-        vx = np.linalg.norm(self.xhat_prime)  # length
+        vx = np.linalg.norm(self.vec_prime)  # length
         vy = 1.
         vz = 1.
         scaling = np.array([[vx,  0,  0, 0],
@@ -90,12 +89,17 @@ class Line(Box2dCentered):
         # first the scaling, then the rotation
         # remember, the row vector stands on the left in p3d multiplication
         # so the order is reversed
-        trafo = scaling_forrowvecs * self.rotation_forrowvecs
-        self.nodePath.setMat(self.initialTrafoMat * trafo)
+        trafo = scaling_forrowvecs * self._rotation_forrowvecs
+        self.nodePath.setMat(self.form_from_primitive_trafo * trafo)
 
+    def getRotation(self):
+        """
+        forrowvecs
+        """
+        assert self._rotation_forrowvecs
+        return self._rotation_forrowvecs
 
 class ArrowHead(Box2dCentered):
-    equilateral_length = Line.width * 4.
     scale = .1
 
     def __init__(self):
@@ -103,10 +107,19 @@ class ArrowHead(Box2dCentered):
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
-        self.nodePath.setScale(self.scale, self.scale, self.scale)
+        # self.nodePath.setScale(self.scale, self.scale, self.scale)
+
+        scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
+            ArrowHead.scale,
+            ArrowHead.scale,
+            ArrowHead.scale)
+
+        self.form_from_primitive_trafo = scaling_forrowvecs
 
     def makeObject(self):
-        """it's not just a scaled quad, so it needs different Geometry"""
+        """
+        it's not just a scaled quad, so it needs different Geometry
+        """
         self.node = custom_geometry.createColoredArrowGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
         self.nodePath = render.attachNewNode(self.node)

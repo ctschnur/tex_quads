@@ -1,14 +1,14 @@
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis
 from simple_objects.simple_objects import Line, Point, ArrowHead
 from local_utils import math_utils
 
 import numpy as np
 
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4, Vec4
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
@@ -275,12 +275,30 @@ class MyApp(ShowBase):
         # miscexperiments()
         # vectoranimation()
 
-        CoordinateSystem()
+        cs = CoordinateSystem()
 
         # current experiment
-        greenpoint = Point()
-        greenpoint.nodePath.setPos(1, 0, 1)
-        greenpoint.nodePath.setColor(0., 1., 0., 1.)
+        # greenpoint = Point()
+        # greenpoint.nodePath.setPos(1, 0, 1)
+        # greenpoint.nodePath.setColor(0., 1., 0., 1.)
+
+        scat = Scatter([1,2], [1,2])
+
+        # cs.attachScatter(scat)
+
+        # line = Line()
+        # line.setTipPoint(Vec3(1., 0., 0.))
+
+        # line.setTipPoint(Vec3(1., 0., 1.))
+
+        # ax = Axis(Vec3(1., 0., 1.), 2.)
+
+        cs.attachScatter(scat)
+
+#         import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        scat2 = Scatter([0.5, 0.5], [1, 2], color=Vec4(1, 0, 0, 1))
+
+        cs.attachScatter(scat2)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
