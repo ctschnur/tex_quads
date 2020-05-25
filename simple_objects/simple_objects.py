@@ -84,7 +84,6 @@ class Line(Box2dCentered):
                             [0,   0,  0, 1]])
         scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
 
-
         # apply the net transformation
         # first the scaling, then the rotation
         # remember, the row vector stands on the left in p3d multiplication
@@ -98,6 +97,7 @@ class Line(Box2dCentered):
         """
         assert self._rotation_forrowvecs
         return self._rotation_forrowvecs
+
 
 class ArrowHead(Box2dCentered):
     scale = .1

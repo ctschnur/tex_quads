@@ -1,7 +1,7 @@
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines
 from simple_objects.simple_objects import Line, Point, ArrowHead
 from local_utils import math_utils
 
@@ -275,7 +275,7 @@ class MyApp(ShowBase):
         # miscexperiments()
         # vectoranimation()
 
-        cs = CoordinateSystem()
+        # cs = CoordinateSystem()
 
         # current experiment
         # greenpoint = Point()
@@ -293,12 +293,52 @@ class MyApp(ShowBase):
 
         # ax = Axis(Vec3(1., 0., 1.), 2.)
 
-        cs.attachScatter(scat)
+        # cs.attachScatter(scat)
 
-#         import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        scat2 = Scatter([0.5, 0.5], [1, 2], color=Vec4(1, 0, 0, 1))
+        x = np.linspace(-1, 1, num=10)
+        y = x**2
+        scat2 = Scatter(x, y, color=Vec4(1, 0, 0, 1))
+        # cs.attachScatter(scat2)
 
-        cs.attachScatter(scat2)
+
+        # TODO: find out from screen resolution what it will be in cm
+
+        width = 2.
+        height = 1.
+        x_ll = 0.
+        y_ll = 0.
+
+        # -- bottom
+        line1 = Line()
+        # line1.nodePath.setScale(line1.nodePath, 1., 1., 1.)
+        # line1.nodePath.setPos(x_ll + width, 0., y_ll)
+        line1.setTipPoint(Vec3(width, 0, 0))
+        line1.nodePath.setPos(line1.nodePath.getPos() + Vec3(x_ll, 0, y_ll))
+        line1.nodePath.setColor(.6, .6, .6, .6)
+
+        # -- left
+        line2 = Line()
+        # line2.nodePath.setScale(line2.nodePath, 1., 1., 1.)
+        # line2.nodePath.setPos(x_ll + width, 0., y_ll)
+        line2.setTipPoint(Vec3(0, 0., y_ll + height))
+        # line2.nodePath.setPos(line1.nodePath.getPos() + Vec3(x_ll, 0, y_ll))
+        line2.nodePath.setColor(.6, .6, .6, .6)
+
+        # -- top
+        line3 = Line()
+        # line3.nodePath.setScale(line3.nodePath, 1., 1., 1.)
+        # line3.nodePath.setPos(x_ll + width, 0., y_ll)
+        line3.setTipPoint(Vec3(width, 0.,0.))
+        line3.nodePath.setPos(line3.nodePath.getPos() + Vec3(0, 0, height))
+        line3.nodePath.setColor(.6, .6, .6, .6)
+
+        # -- right
+        line4 = Line()
+        # line4.nodePath.setScale(line4.nodePath, 1., 1., 1.)
+        # line4.nodePath.setPos(x_ll + width, 0., y_ll)
+        line4.setTipPoint(Vec3(0, 0., height))
+        line4.nodePath.setPos(line4.nodePath.getPos() + Vec3(width, 0, 0))
+        line4.nodePath.setColor(.6, .6, .6, .6)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()

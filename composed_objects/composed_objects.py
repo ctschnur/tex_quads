@@ -35,31 +35,31 @@ class ParallelLines:
         # - position them in order, evenly spaced
 
         self.lines = [Line() for i in range(self.number_of_lines)]
-        for idx, line in enumerate(self.lines):
-            line.nodePath.setScale(line.nodePath, 1., 1., 1.)
-            line.nodePath.setPos(0., 0, idx * self.spacing)
+        for idx, line1 in enumerate(self.lines):
+            line1.nodePath.setScale(line1.nodePath, 1., 1., 1.)
+            line1.nodePath.setPos(0., 0, idx * self.spacing)
 
 
 class Vector:
     """Documentation for Vector
-       combines an arrowhead and a line and applys transformations to them so that it
+       combines an arrowhead and a line1 and applys transformations to them so that it
        it looks like a properly drawn vector
     """
 
     def __init__(self, tip_point=None):
-        self.line = Line()
+        self.line1 = Line()
         self.arrowhead = ArrowHead()
         self.arrowhead.nodePath.setRenderModeWireframe()
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
-            [self.line.nodePath, self.arrowhead.nodePath])
+            [self.line1.nodePath, self.arrowhead.nodePath])
 
         self.setVectorTipPoint(tip_point)
 
     def setVectorTipPoint(self, tip_point):
         if tip_point is not None:
-            self.line.setTipPoint(tip_point)
+            self.line1.setTipPoint(tip_point)
 
         # join ArrowHead and Line
         self._adjustArrowHead()
@@ -67,19 +67,19 @@ class Vector:
 
     def _adjustArrowHead(self):
         # 0. scale arrowhead (may just be identity)
-        # 1. rotation equal to the line's rotation
-        # 2. translation to the tip of the line
-        #   - translate arrowhead to the tip of the line
-        #   - translate arrowhead back to the scaled back line's tip
+        # 1. rotation equal to the line1's rotation
+        # 2. translation to the tip of the line1
+        #   - translate arrowhead to the tip of the line1
+        #   - translate arrowhead back to the scaled back line1's tip
 
         translation_to_tip_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
-            self.line.vec_prime[0],
-            self.line.vec_prime[1],
-            self.line.vec_prime[2])
+            self.line1.vec_prime[0],
+            self.line1.vec_prime[1],
+            self.line1.vec_prime[2])
 
         arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
-        arrowhead_direction = self.line.vec_prime / \
-            np.linalg.norm(self.line.vec_prime)
+        arrowhead_direction = self.line1.vec_prime / \
+            np.linalg.norm(self.line1.vec_prime)
         b_tilde = arrowhead_length * arrowhead_direction
         translation_to_match_point_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
             b_tilde[0],
@@ -90,23 +90,23 @@ class Vector:
             translation_to_tip_forrowvecs * translation_to_match_point_forrowvecs)
 
         self.arrowhead.nodePath.setMat(
-            self.arrowhead.form_from_primitive_trafo * self.line.getRotation() * translation_forrowvecs)
+            self.arrowhead.form_from_primitive_trafo * self.line1.getRotation() * translation_forrowvecs)
 
     def _adjustLine(self):
-        # figure out the factor by which to scale back the line
+        # figure out the factor by which to scale back the line1
         # based on the size of the arrow tip
         l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
-        arrowhead_direction = self.line.vec_prime / \
-            np.linalg.norm(self.line.vec_prime)
-        l_line_0 = np.linalg.norm(self.line.vec_prime)
+        arrowhead_direction = self.line1.vec_prime / \
+            np.linalg.norm(self.line1.vec_prime)
+        l_line_0 = np.linalg.norm(self.line1.vec_prime)
         c_scaling = l_line_0 / (l_line_0 - l_arrow)
 
         scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
             c_scaling,
             c_scaling,
             c_scaling)
-        self.line.nodePath.setMat(
-            self.line.nodePath.getMat() * scaling_forrowvecs)
+        self.line1.nodePath.setMat(
+            self.line1.nodePath.getMat() * scaling_forrowvecs)
 
 
 class GroupNode(Animator):
@@ -206,7 +206,7 @@ class Axis:
 
         # apply rotation to ticks group Node
         self.ticks_groupNode.nodePath.setMat(
-            self.axis_vector.line.getRotation())
+            self.axis_vector.line1.getRotation())
 
         self.groupNode.addChildNodePaths([self.ticks_groupNode.nodePath])
 
@@ -307,3 +307,36 @@ class Scatter:
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
             [point.nodePath for point in self.points])
+
+
+class Box2dOfLines:
+    """ a box composed of lines
+    """
+    def __init__(self, x, y, **kwargs):
+        if 'color' in kwargs:
+            self.color = kwargs.get('color')
+        else:
+            self.color = Vec4(.5, .5, .5, .5)
+
+        self.x_lowerleft = x_lowerleft
+        self.y_lowerleft = y_lowerleft
+
+        self.box_height = box_height
+        self.box_width = box_width
+
+        self.scale = 1.
+
+        line1 = Line()
+        line1.nodePath.setScale(line1.nodePath, 1., 1., 1.)
+        line1.nodePath.setPos(0., 0, idx * self.spacing)
+
+        tick_length = 0.2
+        # translation = Vec3(i, 0, -0.25 * tick_length)
+        tick_line.setTipPoint(Vec3(0, 0, tick_length))
+        translation = Vec3(i, 0, -0.25 * tick_length)
+        trafo_nodePath.setPos(
+            translation[0], translation[1], translation[2])
+
+        self.groupNode = GroupNode()
+        self.groupNode.addChildNodePaths(
+            [lines.nodePath for lines in self.lines])
