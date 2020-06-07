@@ -312,16 +312,17 @@ class Scatter:
 class Box2dOfLines:
     """ a box composed of lines
     """
-    def __init__(self, x, y, width, height, **kwargs):
-        if 'color' in kwargs:
-            self.color = kwargs.get('color')
-        else:
-            self.color = Vec4(.5, .5, .5, .5)
+    def __init__(self, x, y, **kwargs):
+        # if 'color' in kwargs:
+        #     self.color = kwargs.get('color')
+        # else:
+        #     self.color = Vec4(.5, .5, .5, .5)
 
         self.scale = 1.
         
-        self.width = width
-        self.height = height
+        
+        self.width = 2.
+        self.height = 1.
         self.x_ll = x
         self.y_ll = y
 
@@ -329,27 +330,27 @@ class Box2dOfLines:
         self.line1 = Line()
         self.line1.setTipPoint(Vec3(self.width, 0, 0))
         self.line1.nodePath.setPos(self.line1.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
-        self.line1.nodePath.setColor(self.color)
+        self.line1.nodePath.setColor(.6, .6, .6, .6)
 
         # -- left
         self.line2 = Line()
         self.line2.setTipPoint(Vec3(0, 0., self.height))
         self.line2.nodePath.setPos(self.line2.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
-        self.line2.nodePath.setColor(self.color)
+        self.line2.nodePath.setColor(.6, .6, .6, .6)
 
         # -- top
         self.line3 = Line()
         self.line3.setTipPoint(Vec3(self.width, 0.,0.))
         self.line3.nodePath.setPos(self.line3.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll) + Vec3(0, 0, self.height))
-        self.line3.nodePath.setColor(self.color)
+        self.line3.nodePath.setColor(.6, .6, .6, .6)
 
         # -- right
         self.line4 = Line()
         self.line4.setTipPoint(Vec3(0, 0., self.height))
         self.line4.nodePath.setPos(self.line4.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll) + Vec3(self.width, 0, 0))
-        self.line4.nodePath.setColor(self.color)
+        self.line4.nodePath.setColor(.6, .6, .6, .6)
 
-        self.lines = [self.line1, self.line2, self.line3, self.line4]
+        self.lines = [self.self.line1, self.line2, self.line3, self.line4]
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(

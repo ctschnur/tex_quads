@@ -5,6 +5,7 @@ from panda3d.core import (
     GeomTriangles,
     GeomTrifans,
     GeomLinestrips,
+    LineSegs,
     GeomNode, 
     Vec4)
 

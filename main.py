@@ -14,11 +14,13 @@ from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInter
 
 import local_tests.svgpathtodat.main
 
+
 def draw_letter_from_path():
     # letter from path
     symbol_geometries = local_tests.svgpathtodat.main.get_test_symbol_geometries()
     polygontest = Polygon2dTestTriangles(symbol_geometries)
     polygontest.initiateTranslationMovement(v_x=1., duration=1.)
+
 
 def create_point_grid():
     # create point grid
@@ -35,32 +37,41 @@ def create_point_grid():
             else:
                 vector = Vector(Vec3(i, 0, j))
                 # gradient_color = len(irange)/(min(irange)+i+0.001)
-                gradient_color = 1. - np.abs((min(irange)+i)/float(len(irange)))
-                gradient_color2 = 1. - np.abs((min(jrange)+j)/float(len(jrange)))
+                gradient_color = 1. - \
+                    np.abs((min(irange)+i)/float(len(irange)))
+                gradient_color2 = 1. - \
+                    np.abs((min(jrange)+j)/float(len(jrange)))
                 # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT<C-c>
                 print(gradient_color)
-                vector.line.nodePath.setColor(gradient_color, gradient_color2, 1., 1.)
-                vector.arrowhead.nodePath.setColor(gradient_color, gradient_color2, 1., 1.)
+                vector.line.nodePath.setColor(
+                    gradient_color, gradient_color2, 1., 1.)
+                vector.arrowhead.nodePath.setColor(
+                    gradient_color, gradient_color2, 1., 1.)
+
 
 def create_latex_texture_object():
     myLatexObject = LatexTextureObject("Obj 1")
+
 
 def create_line_groups():
     # first, unaltered line train
     parallelLines = ParallelLines()
     groupNode1 = GroupNode()
-    groupNode1.addChildNodePaths([line.nodePath for line in parallelLines.lines])
+    groupNode1.addChildNodePaths(
+        [line.nodePath for line in parallelLines.lines])
 
     # second, altered line train
     parallelLines2 = ParallelLines()
     groupNode = GroupNode()
-    groupNode.addChildNodePaths([line.nodePath for line in parallelLines2.lines])
+    groupNode.addChildNodePaths(
+        [line.nodePath for line in parallelLines2.lines])
 
     # color it in
     for idx, np in enumerate(groupNode.nodePath.get_children()):
         greyscale_ratio = idx / len(groupNode.nodePath.get_children())
         color_value_greyscale = 1. - greyscale_ratio
-        np.setColor(color_value_greyscale, color_value_greyscale, color_value_greyscale, 1.0)
+        np.setColor(color_value_greyscale, color_value_greyscale,
+                    color_value_greyscale, 1.0)
 
     # translate it
     length_of_line_train = parallelLines2.number_of_lines * parallelLines2.spacing
@@ -68,6 +79,7 @@ def create_line_groups():
     # groupNode.nodePath.setPos(groupNode.nodePath, -length_of_line_train/2., 0, 0.)
     groupNode.nodePath.setPos(groupNode.nodePath, -1., 0, 0.)
     groupNode.nodePath.setHpr(0, 0, -90)
+
 
 def spinning_around_independently():
     blueline = Line()
@@ -92,9 +104,10 @@ def spinning_around_independently():
             LerpHprInterval(
                 blueline.nodePath,
                 1.,
-                Vec3(0,0,360))
-            )
+                Vec3(0, 0, 360))
+        )
     ).loop(playRate=1)
+
 
 def miscexperiments():
     children = render.get_children()
@@ -111,8 +124,7 @@ def miscexperiments():
     redpoint.nodePath.setColor(1., 0., 0., 1.)
 
     line = Line()
-    line.nodePath.setColor(1,1,0,1)
-
+    line.nodePath.setColor(1, 1, 0, 1)
 
     vec = Vector()
 
@@ -150,14 +162,14 @@ def miscexperiments():
                 .2
             )
         )
-    ).start(playRate=0.5)
+    ).start(playRate=0.6)
 
     gn = vec.groupNode
 
     def myfunc(t, gn):
         gn.nodePath.setPos(t, 0, t)
 
-    t_0 = 0.5
+    t_0 = 0.6
     t_f = 1.
 
     seq = Sequence(
@@ -171,19 +183,19 @@ def miscexperiments():
         )
     ).loop(playRate=1)
 
+
 def vectoranimation(switchontwitchinglines=False):
     if switchontwitchinglines:
         vec2 = Vector()
         vec2.groupNode.nodePath.setColor(1, 0, 0, 1)
 
         Sequence(
-            Wait(.5),
+            Wait(.6),
             Func(vec2.setVectorTipPoint, Vec3(-2, 0, -0.1)),
-            Wait(.5),
-            Func(vec2.setVectorTipPoint, Vec3(0, 0, -0.5)),
-            Wait(.5)
-        ).loop(playRate=.5)
-
+            Wait(.6),
+            Func(vec2.setVectorTipPoint, Vec3(0, 0, -0.6)),
+            Wait(.6)
+        ).loop(playRate=.6)
 
         myline = Line()
         myline.nodePath.setColor(1, 0, 1, 1)
@@ -210,9 +222,9 @@ def vectoranimation(switchontwitchinglines=False):
 
         # in a Sequence, the matrix's nodes are being continually transformed
         Sequence(
-            Wait(.5),
+            Wait(.6),
             Func(f1),
-            Wait(.5),
+            Wait(.6),
             Func(f2),
         ).loop(playRate=1)
 
@@ -233,11 +245,13 @@ def vectoranimation(switchontwitchinglines=False):
         z = r * np.sin(t)
         x_fast = r * np.cos(t*2)
         z_fast = r * np.sin(t*2)
-        vec.setVectorTipPoint(Vec3(-x, 0, -z)*0.5)
+        vec.setVectorTipPoint(Vec3(-x, 0, -z)*0.6)
         twirlingvec.setVectorTipPoint(Vec3(x_fast, 0, z_fast)*0.2)
 
-        g.nodePath.setMat(math_utils.getTranslationMatrix3d_forrowvecs(x, 0, z))
-        twirlingvec.groupNode.nodePath.setMat(math_utils.getTranslationMatrix3d_forrowvecs(x, 0, z))
+        g.nodePath.setMat(
+            math_utils.getTranslationMatrix3d_forrowvecs(x, 0, z))
+        twirlingvec.groupNode.nodePath.setMat(
+            math_utils.getTranslationMatrix3d_forrowvecs(x, 0, z))
 
     t_0 = 0.
     t_f = 2*3.1415
@@ -263,7 +277,7 @@ class MyApp(ShowBase):
         # make self-defined camera control possible
         # self.disableMouse()
         # render.setAntialias(AntialiasAttrib.MAuto)
-        render.set_two_sided(True);
+        render.set_two_sided(True)
         conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention()
 
         # earlier experiments
@@ -282,7 +296,7 @@ class MyApp(ShowBase):
         # greenpoint.nodePath.setPos(1, 0, 1)
         # greenpoint.nodePath.setColor(0., 1., 0., 1.)
 
-        scat = Scatter([1,2], [1,2])
+        scat = Scatter([1, 2], [1, 2])
 
         # cs.attachScatter(scat)
 
@@ -300,45 +314,41 @@ class MyApp(ShowBase):
         scat2 = Scatter(x, y, color=Vec4(1, 0, 0, 1))
         # cs.attachScatter(scat2)
 
+        box2d = Box2dOfLines(0.2, 0.4, 0.5, 2.0,
+                             color=Vec4(0.4, 0.2, 0.5, 0.5))
 
-        # TODO: find out from screen resolution what it will be in cm
+        create_latex_texture_object()
 
-        width = 2.
-        height = 1.
-        x_ll = 0.
-        y_ll = 0.
+        from panda3d.core import LineSegs
 
-        # -- bottom
-        line1 = Line()
-        # line1.nodePath.setScale(line1.nodePath, 1., 1., 1.)
-        # line1.nodePath.setPos(x_ll + width, 0., y_ll)
-        line1.setTipPoint(Vec3(width, 0, 0))
-        line1.nodePath.setPos(line1.nodePath.getPos() + Vec3(x_ll, 0, y_ll))
-        line1.nodePath.setColor(.6, .6, .6, .6)
+        lineThickness = 1.
 
-        # -- left
-        line2 = Line()
-        # line2.nodePath.setScale(line2.nodePath, 1., 1., 1.)
-        # line2.nodePath.setPos(x_ll + width, 0., y_ll)
-        line2.setTipPoint(Vec3(0, 0., y_ll + height))
-        # line2.nodePath.setPos(line1.nodePath.getPos() + Vec3(x_ll, 0, y_ll))
-        line2.nodePath.setColor(.6, .6, .6, .6)
+        ls = LineSegs()
+        ls.setThickness(lineThickness)
 
-        # -- top
-        line3 = Line()
-        # line3.nodePath.setScale(line3.nodePath, 1., 1., 1.)
-        # line3.nodePath.setPos(x_ll + width, 0., y_ll)
-        line3.setTipPoint(Vec3(width, 0.,0.))
-        line3.nodePath.setPos(line3.nodePath.getPos() + Vec3(0, 0, height))
-        line3.nodePath.setColor(.6, .6, .6, .6)
+        # X axis
+        ls.setColor(1.0, 0.0, 0.0, 1.0)
+        ls.moveTo(0.0, 0.0, 0.0)
+        ls.drawTo(1.0, 0.0, 0.0)
 
-        # -- right
-        line4 = Line()
-        # line4.nodePath.setScale(line4.nodePath, 1., 1., 1.)
-        # line4.nodePath.setPos(x_ll + width, 0., y_ll)
-        line4.setTipPoint(Vec3(0, 0., height))
-        line4.nodePath.setPos(line4.nodePath.getPos() + Vec3(width, 0, 0))
-        line4.nodePath.setColor(.6, .6, .6, .6)
+        # Y axis
+        ls.setColor(0.0, 1.0, 0.0, 1.0)
+        ls.moveTo(0.0, 0.0, 0.0)
+        ls.drawTo(0.0, 1.0, 0.0)
+
+        # Z axis
+        ls.setColor(0.0, 0.0, 1.0, 1.0)
+        ls.moveTo(0.0, 0.0, 0.0)
+        ls.drawTo(0.0, 0.0, 1.0)
+
+        node = ls.create()
+
+        mynode = NodePath(node)
+
+        # mynode = NodePath(node)
+
+        g = GroupNode()
+        g.addChildNodePaths([mynode])
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
@@ -347,6 +357,7 @@ class MyApp(ShowBase):
                 child.setRenderModeFilled()
 
         findChildrenAndSetRenderModeRecursively(render)
+
 
 app = MyApp()
 app.run()

@@ -7,7 +7,7 @@ So far, this program can do basic things like drawing arrays of vectors, or smal
 It can also convert a string in python to a LaTeX formula to a pdf to an svg file, then reads that in and renders it as polygons (supports right now only very basic shapes, i.e. letters with one hole).
 
 * Notes
-** TODO Implement a 'scene2d' type class
+** Implement a 'scene2d' type class
 - to plot a coordinate system in (and fit inside the viewport)
 - properties: 
   - default height and width
@@ -15,6 +15,10 @@ It can also convert a string in python to a LaTeX formula to a pdf to an svg fil
   - background color
   - white frame
   - function to fit stuff in it
+*** Make rectangle class
+**** DONE draw a rectangle made of lines
+**** TODO Make it automatically encompass things
+*** TODO Make Line object out of line primitive and test how it looks
 
 ** WAITING triangulation of latex characters
 Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.
