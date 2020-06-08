@@ -44,3 +44,28 @@ class Box2dCentered(Box2d):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
         self.nodePath = render.attachNewNode(self.node)
+
+
+
+# ------ make a line instead of a box (what in OpenGL is called a GL_LINE)
+
+class LinePrimitive(Animator):
+
+    def __init__(self):
+        Animator.__init__(self)
+        self.makeObject()
+
+    def makeObject(self):
+        self.node = custom_geometry.createColoredUnitLineGeomNode()
+        self.nodePath = render.attachNewNode(self.node)
+        # self.nodePath.setTwoSided(True)  # no need for backface culling in the case of a GL_LINE
+
+# class LinePrimitiveCentered(LinePrimitive):
+
+#     def __init__(self):
+#         super(LinePrimitiveCentered, self).__init__()
+
+#     def makeObject(self):
+#         self.node = custom_geometry.createColoredUnitQuadGeomNode(
+#             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
+#         self.nodePath = render.attachNewNode(self.node)

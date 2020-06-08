@@ -528,3 +528,26 @@ def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.), return_geom_instead
         geom_node.addGeom(geom)
 
         return geom_node
+
+
+from panda3d.core import LineSegs
+
+def createColoredUnitLineGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=False):
+    lineThickness = 1.
+
+    ls = LineSegs()
+    ls.setThickness(lineThickness)
+
+    # X axis
+    ls.setColor(1.0, 1.0, 1.0, 1.0)
+    ls.moveTo(0.0, 0.0, 0.0)
+    ls.drawTo(1.0, 0.0, 0.0)
+
+    geomnode = ls.create()
+
+    nodepath = NodePath(geomnode)
+
+    # quadGeomNode = GeomNode("colored_quad_node")
+    # quadGeomNode.addGeom(quadGeom)
+
+    return geomnode

@@ -3,6 +3,7 @@ from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines
 from simple_objects.simple_objects import Line, Point, ArrowHead
+from simple_objects import box
 from local_utils import math_utils
 
 import numpy as np
@@ -326,16 +327,6 @@ class MyApp(ShowBase):
         ls = LineSegs()
         ls.setThickness(lineThickness)
 
-        # X axis
-        ls.setColor(1.0, 0.0, 0.0, 1.0)
-        ls.moveTo(0.0, 0.0, 0.0)
-        ls.drawTo(1.0, 0.0, 0.0)
-
-        # Y axis
-        ls.setColor(0.0, 1.0, 0.0, 1.0)
-        ls.moveTo(0.0, 0.0, 0.0)
-        ls.drawTo(0.0, 1.0, 0.0)
-
         # Z axis
         ls.setColor(0.0, 0.0, 1.0, 1.0)
         ls.moveTo(0.0, 0.0, 0.0)
@@ -349,6 +340,8 @@ class MyApp(ShowBase):
 
         g = GroupNode()
         g.addChildNodePaths([mynode])
+
+        a = box.LinePrimitive()
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
