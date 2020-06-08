@@ -2,7 +2,7 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines
-from simple_objects.simple_objects import Line, Point, ArrowHead
+from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject
 from simple_objects import box
 from local_utils import math_utils
 
@@ -83,7 +83,7 @@ def create_line_groups():
 
 
 def spinning_around_independently():
-    blueline = Line()
+    blueline = Line2dObject()
     blueline.nodePath.setColor(0, 0, 1, 1)
 
     gn = GroupNode()
@@ -124,7 +124,7 @@ def miscexperiments():
     redpoint.nodePath.setPos(1, 0, 0)
     redpoint.nodePath.setColor(1., 0., 0., 1.)
 
-    line = Line()
+    line = Line2dObject()
     line.nodePath.setColor(1, 1, 0, 1)
 
     vec = Vector()
@@ -198,7 +198,7 @@ def vectoranimation(switchontwitchinglines=False):
             Wait(.6)
         ).loop(playRate=.6)
 
-        myline = Line()
+        myline = Line2dObject()
         myline.nodePath.setColor(1, 0, 1, 1)
         myline.setTipPoint(Vec3(1, 0, 0.1))
 
@@ -290,7 +290,7 @@ class MyApp(ShowBase):
         # miscexperiments()
         # vectoranimation()
 
-        # cs = CoordinateSystem()
+        cs = CoordinateSystem()
 
         # current experiment
         # greenpoint = Point()
@@ -301,7 +301,7 @@ class MyApp(ShowBase):
 
         # cs.attachScatter(scat)
 
-        # line = Line()
+        # line = Line2dObject()
         # line.setTipPoint(Vec3(1., 0., 0.))
 
         # line.setTipPoint(Vec3(1., 0., 1.))
@@ -341,7 +341,11 @@ class MyApp(ShowBase):
         g = GroupNode()
         g.addChildNodePaths([mynode])
 
-        a = box.LinePrimitive()
+        # a = box.LinePrimitive()
+
+        a = Line1dObject()
+
+        a.setTipPoint(Vec3(2., 0.6, 0))
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()

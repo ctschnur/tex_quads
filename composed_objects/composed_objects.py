@@ -3,7 +3,7 @@ from simple_objects import custom_geometry
 from local_utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from simple_objects.animator import Animator
-from simple_objects.simple_objects import Line, ArrowHead, Point
+from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dObject
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
@@ -34,7 +34,7 @@ class ParallelLines:
         # - stretch the unit length lines to the specified size
         # - position them in order, evenly spaced
 
-        self.lines = [Line() for i in range(self.number_of_lines)]
+        self.lines = [Line2dObject() for i in range(self.number_of_lines)]
         for idx, line1 in enumerate(self.lines):
             line1.nodePath.setScale(line1.nodePath, 1., 1., 1.)
             line1.nodePath.setPos(0., 0, idx * self.spacing)
@@ -46,8 +46,19 @@ class Vector:
        it looks like a properly drawn vector
     """
 
-    def __init__(self, tip_point=None):
-        self.line1 = Line()
+    def __init__(self, tip_point=None, **kwargs):
+        if 'linetype' in kwargs:
+            self.linetype = kwargs.get('linetype')
+        else:
+            self.linetype = "1d"
+
+        if self.linetype == "1d":
+            self.line1 = Line1dObject()
+        elif self.linetype == "2d":
+            self.line1 = Line2dObject()
+        else:
+            print("Error: linetype " + self.linetype + " is invalid")
+
         self.arrowhead = ArrowHead()
         self.arrowhead.nodePath.setRenderModeWireframe()
 
@@ -182,7 +193,8 @@ class Axis:
         for i in np.arange(0, self.axis_length, step=1./self.ticksperunitlength):
             trafo_nodePath = NodePath("trafo_nodePath")
             trafo_nodePath.reparentTo(self.ticks_groupNode.nodePath)
-            tick_line = Line()
+            # tick_line = Line2dObject()
+            tick_line = Line1dObject()
             tick_line.nodePath.reparentTo(trafo_nodePath)
 
             tick_length = 0.2
@@ -225,8 +237,8 @@ class Axis:
 
 #     def __init__(self):
 #         # logical properties
-#         self.thickness = 0.5 * Line.width
-#         self.length = 4 * Line.width
+#         self.thickness = 0.5 * Line2dObject.width
+#         self.length = 4 * Line2dObject.width
 
 #     def _build_line(self):
 
@@ -326,25 +338,25 @@ class Box2dOfLines:
         self.y_ll = y
 
         # -- bottom
-        self.line1 = Line()
+        self.line1 = Line2dObject()
         self.line1.setTipPoint(Vec3(self.width, 0, 0))
         self.line1.nodePath.setPos(self.line1.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
         self.line1.nodePath.setColor(self.color)
 
         # -- left
-        self.line2 = Line()
+        self.line2 = Line2dObject()
         self.line2.setTipPoint(Vec3(0, 0., self.height))
         self.line2.nodePath.setPos(self.line2.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
         self.line2.nodePath.setColor(self.color)
 
         # -- top
-        self.line3 = Line()
+        self.line3 = Line2dObject()
         self.line3.setTipPoint(Vec3(self.width, 0.,0.))
         self.line3.nodePath.setPos(self.line3.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll) + Vec3(0, 0, self.height))
         self.line3.nodePath.setColor(self.color)
 
         # -- right
-        self.line4 = Line()
+        self.line4 = Line2dObject()
         self.line4.setTipPoint(Vec3(0, 0., self.height))
         self.line4.nodePath.setPos(self.line4.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll) + Vec3(self.width, 0, 0))
         self.line4.nodePath.setColor(self.color)

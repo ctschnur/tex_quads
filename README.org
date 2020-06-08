@@ -18,8 +18,9 @@ It can also convert a string in python to a LaTeX formula to a pdf to an svg fil
 *** Make rectangle class
 **** DONE draw a rectangle made of lines
 **** TODO Make it automatically encompass things
-*** TODO Make Line object out of line primitive and test how it looks
-*** TODO Figure out how to make a Quad keep facing the camera, keeping it's center fixed
+*** DONE Make Line object out of line primitive and test how it looks
+**** TODO Make Thickness setting for the Line1dObject explicit and changeable
+*** MAYBE Figure out how to make a Quad keep facing the camera, keeping it's center fixed
 
 ** WAITING triangulation of latex characters
 Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.

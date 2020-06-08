@@ -20,12 +20,12 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 
-class Line(Box2dCentered):
+class Line2dObject(Box2dCentered):
     width = 0.05
     initial_length = 1.
 
     def __init__(self):
-        super(Line, self).__init__()
+        super(Line2dObject, self).__init__()
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
