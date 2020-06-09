@@ -267,6 +267,7 @@ class Axis:
 class CoordinateSystem:
     """ A coordinate system is a set of Axis objects
     """
+
     cartesian_axes_directions = [
         Vec3(1., 0., 0.),
         Vec3(0., 0., 1.),

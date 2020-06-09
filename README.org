@@ -17,11 +17,12 @@ It can also convert a string in python to a LaTeX formula to a pdf to an svg fil
   - function to fit stuff in it
 *** Make rectangle class
 **** DONE draw a rectangle made of lines
-**** TODO Make it automatically encompass things
+**** DEFERRED Make it automatically encompass things
 *** DONE Make Line object out of line primitive and test how it looks
 **** DONE Make Thickness setting for the Line1dObject explicit
 *** TODO Make 3d coordinate system
-**** TODO make a moving shot orbiting the 3d coordinate system
+**** Draw a vector in 3d
+**** DEFERRED make a moving shot orbiting the 3d coordinate system
 *** MAYBE Figure out how to make a Quad keep facing the camera, keeping it's center fixed
 
 ** WAITING triangulation of latex characters
