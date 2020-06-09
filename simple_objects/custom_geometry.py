@@ -532,11 +532,9 @@ def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.), return_geom_instead
 
 from panda3d.core import LineSegs
 
-def createColoredUnitLineGeomNode(color_vec4=Vec4(0., 0., 1., 1.), center_it=False):
-    lineThickness = 5.
-
+def createColoredUnitLineGeomNode(thickness=1., color_vec4=Vec4(0., 0., 1., 1.), center_it=False):
     ls = LineSegs()
-    ls.setThickness(lineThickness)
+    ls.setThickness(thickness)
 
     # X axis
     ls.setColor(1.0, 1.0, 1.0, 1.0)

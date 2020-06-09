@@ -35,16 +35,17 @@ class Point(Box2dCentered):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
 
 class Line1dObject(LinePrimitive):
-    thickness = 1.  # for GL_LINES, this does not mean it is 1 thick
     initial_length = 1.
 
-    def __init__(self, **kwargs):
-        super(Line1dObject, self).__init__()
+    # thickness is derived from LinePrimitive
+
+    def __init__(self, thickness=2., **kwargs):
+        super(Line1dObject, self).__init__(thickness=thickness)
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):
-        if 'thickness' in kwargs:
-            self.thickness = kwargs.get('thickness')
+        # if 'thickness' in kwargs:
+        #     self.thickness = kwargs.get('thickness')
 
         # scaling = math_utils.getScalingMatrix3d_forrowvecs(1., 1., 1.)
         self.length = self.initial_length
@@ -57,6 +58,10 @@ class Line1dObject(LinePrimitive):
         # self.nodePath.setRenderModeWireframe()
 
         self.setTipPoint(Vec3(1., 0., 0.))
+
+    # def setThickness():
+    #     # for GL_LINES, the geomnode has to be regenerated for this
+
 
     def setTipPoint(self, tip_point):
         self.vec_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])

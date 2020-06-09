@@ -53,7 +53,12 @@ class Vector:
             self.linetype = "1d"
 
         if self.linetype == "1d":
-            self.line1 = Line1dObject()
+            if 'thickness1dline' in kwargs:
+                self.thickness1dline = kwargs.get('thickness1dline')
+            else:
+                self.thickness1dline = 2.
+
+            self.line1 = Line1dObject(thickness=self.thickness1dline)
         elif self.linetype == "2d":
             self.line1 = Line2dObject()
         else:
@@ -145,7 +150,7 @@ class Axis:
     TODO: prevent drawing of ticks in the axis' arrow head
     """
 
-    def __init__(self, direction_vector, axis_length=1., ticksperunitlength=4):
+    def __init__(self, direction_vector, axis_length=1., ticksperunitlength=4, thickness1dline=2.):
         # logical properties
         self.axis_length = axis_length
         self.direction_vector = direction_vector.normalized()
@@ -154,6 +159,8 @@ class Axis:
         # building blocks
         self.axis_vector = None
         self.ticks = None
+
+        self.thickness1dline = thickness1dline
 
         # p3d node
         # TODO: make a class composed_object and have it automatically have a p3d
@@ -174,7 +181,7 @@ class Axis:
         if self.axis_vector:
             self.axis_vector.setVectorTipPoint(tip_point)
         else:
-            self.axis_vector = Vector(tip_point=tip_point)
+            self.axis_vector = Vector(tip_point=tip_point, thickness1dline=self.thickness1dline)
             self.groupNode.addChildNodePaths(
                 [self.axis_vector.groupNode.nodePath])
 
@@ -194,7 +201,7 @@ class Axis:
             trafo_nodePath = NodePath("trafo_nodePath")
             trafo_nodePath.reparentTo(self.ticks_groupNode.nodePath)
             # tick_line = Line2dObject()
-            tick_line = Line1dObject()
+            tick_line = Line1dObject(thickness=self.thickness1dline)
             tick_line.nodePath.reparentTo(trafo_nodePath)
 
             tick_length = 0.2
@@ -250,8 +257,8 @@ class CoordinateSystem:
     def __init__(self, axes=None):
         self.scatters = []
 
-        self.ax1 = Axis(Vec3(1., 0, 0))
-        self.ax2 = Axis(Vec3(0, 0, 1.))
+        self.ax1 = Axis(Vec3(1., 0, 0), thickness1dline=2.5)
+        self.ax2 = Axis(Vec3(0, 0, 1.), thickness1dline=2.5)
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths([self.ax1.groupNode.nodePath,

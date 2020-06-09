@@ -277,8 +277,8 @@ class MyApp(ShowBase):
 
         # make self-defined camera control possible
         # self.disableMouse()
-        # render.setAntialias(AntialiasAttrib.MAuto)
-        render.set_two_sided(True)
+        render.setAntialias(AntialiasAttrib.MAuto)
+        # render.set_two_sided(True)
         conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention()
 
         # earlier experiments
@@ -343,9 +343,9 @@ class MyApp(ShowBase):
 
         # a = box.LinePrimitive()
 
-        a = Line1dObject()
+        a = Line1dObject(thickness=5.0)
 
-        a.setTipPoint(Vec3(2., 0.6, 0))
+        a.setTipPoint(Vec3(2., 0, 0.5))
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
