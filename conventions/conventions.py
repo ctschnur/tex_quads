@@ -83,6 +83,8 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention():
     # matrix includes perspective)
     lens.setFilmSize(lens_view_width_in_world_coords, lens_view_height_in_world_coords)
 
+    lens.setNearFar(0.001, 10.)
+
     # you can also check for the properties of your lens/camera
     print("orthographic: ", lens.isOrthographic())
     # finally, set the just created Lens() to your main camera

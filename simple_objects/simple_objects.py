@@ -192,3 +192,5 @@ class ArrowHead(Box2dCentered):
         self.node = custom_geometry.createColoredArrowGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
         self.nodePath = render.attachNewNode(self.node)
+
+        self.nodePath.setTwoSided(True)
