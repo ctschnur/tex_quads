@@ -58,11 +58,23 @@ class Vector:
             else:
                 self.thickness1dline = 2.
 
-            self.line1 = Line1dObject(thickness=self.thickness1dline)
+            if 'color' in kwargs:
+                self.color = kwargs.get('color')
+            else:
+                self.color = 2.
+
+            self.line1 = Line1dObject(
+                thickness=self.thickness1dline, color=self.color)
+
         elif self.linetype == "2d":
             self.line1 = Line2dObject()
         else:
             print("Error: linetype " + self.linetype + " is invalid")
+
+        if 'color' in kwargs:
+            self.color = kwargs.get('color')
+        else:
+            self.color = Vec4(1., 0., 0., 1.)
 
         self.arrowhead = ArrowHead()
         self.arrowhead.nodePath.setRenderModeWireframe()
@@ -150,7 +162,7 @@ class Axis:
     TODO: prevent drawing of ticks in the axis' arrow head
     """
 
-    def __init__(self, direction_vector, axis_length=1., ticksperunitlength=4, thickness1dline=2.):
+    def __init__(self, direction_vector, axis_length=1., ticksperunitlength=4, thickness1dline=2., color=Vec4(1., 0., 0., 1.)):
         # logical properties
         self.axis_length = axis_length
         self.direction_vector = direction_vector.normalized()
@@ -161,6 +173,7 @@ class Axis:
         self.ticks = None
 
         self.thickness1dline = thickness1dline
+        self.color = color
 
         # p3d node
         # TODO: make a class composed_object and have it automatically have a p3d
@@ -181,7 +194,8 @@ class Axis:
         if self.axis_vector:
             self.axis_vector.setVectorTipPoint(tip_point)
         else:
-            self.axis_vector = Vector(tip_point=tip_point, thickness1dline=self.thickness1dline)
+            self.axis_vector = Vector(
+                tip_point=tip_point, thickness1dline=self.thickness1dline, color=self.color)
             self.groupNode.addChildNodePaths(
                 [self.axis_vector.groupNode.nodePath])
 
@@ -253,16 +267,27 @@ class Axis:
 class CoordinateSystem:
     """ A coordinate system is a set of Axis objects
     """
+    cartesian_axes_directions = [
+        Vec3(1., 0., 0.),
+        Vec3(0., 0., 1.),
+        Vec3(0., 1., 0.)]
 
-    def __init__(self, axes=None):
+    cartesian_axes_colors = [Vec4(1., 0., 0., 1.),  # x-axis : red
+                             Vec4(0., 1., 0., 1.),  # y-axis : green
+                             Vec4(0., 0., 1., 1.)   # z-axis : blue
+                             ]
+
+    def __init__(self, axes=None, dimension=2):
         self.scatters = []
-
-        self.ax1 = Axis(Vec3(1., 0, 0), thickness1dline=2.5)
-        self.ax2 = Axis(Vec3(0, 0, 1.), thickness1dline=2.5)
+        self.dimension = dimension
+        self.axes = []
 
         self.groupNode = GroupNode()
-        self.groupNode.addChildNodePaths([self.ax1.groupNode.nodePath,
-                                          self.ax2.groupNode.nodePath])
+
+        for direction_vec, color_vec in zip(CoordinateSystem.cartesian_axes_directions[:dimension], CoordinateSystem.cartesian_axes_colors[:dimension]):
+            ax = Axis(direction_vec, thickness1dline=2.5, color=color_vec)
+            self.axes.append(ax)
+            self.groupNode.addChildNodePaths([ax.groupNode.nodePath])
 
     def attachScatter(self, scatter):
         self.scatters.append(scatter)
@@ -282,10 +307,10 @@ class CoordinateSystem:
 
         # resize the axes of the coordinate system to encompass the scatter
 
-        self.ax1.setAxisLength(scatters_x_max # - scatter_x_min
-        )
-        self.ax2.setAxisLength(scatters_y_max # - scatter_y_min
-        )
+        self.ax1.setAxisLength(scatters_x_max  # - scatter_x_min
+                               )
+        self.ax2.setAxisLength(scatters_y_max  # - scatter_y_min
+                               )
 
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
@@ -331,6 +356,7 @@ class Scatter:
 class Box2dOfLines:
     """ a box composed of lines
     """
+
     def __init__(self, x, y, width, height, **kwargs):
         if 'color' in kwargs:
             self.color = kwargs.get('color')
@@ -338,7 +364,7 @@ class Box2dOfLines:
             self.color = Vec4(.5, .5, .5, .5)
 
         self.scale = 1.
-        
+
         self.width = width
         self.height = height
         self.x_ll = x
@@ -347,25 +373,29 @@ class Box2dOfLines:
         # -- bottom
         self.line1 = Line2dObject()
         self.line1.setTipPoint(Vec3(self.width, 0, 0))
-        self.line1.nodePath.setPos(self.line1.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
+        self.line1.nodePath.setPos(
+            self.line1.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
         self.line1.nodePath.setColor(self.color)
 
         # -- left
         self.line2 = Line2dObject()
         self.line2.setTipPoint(Vec3(0, 0., self.height))
-        self.line2.nodePath.setPos(self.line2.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
+        self.line2.nodePath.setPos(
+            self.line2.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
         self.line2.nodePath.setColor(self.color)
 
         # -- top
         self.line3 = Line2dObject()
-        self.line3.setTipPoint(Vec3(self.width, 0.,0.))
-        self.line3.nodePath.setPos(self.line3.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll) + Vec3(0, 0, self.height))
+        self.line3.setTipPoint(Vec3(self.width, 0., 0.))
+        self.line3.nodePath.setPos(self.line3.nodePath.getPos(
+        ) + Vec3(self.x_ll, 0, self.y_ll) + Vec3(0, 0, self.height))
         self.line3.nodePath.setColor(self.color)
 
         # -- right
         self.line4 = Line2dObject()
         self.line4.setTipPoint(Vec3(0, 0., self.height))
-        self.line4.nodePath.setPos(self.line4.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll) + Vec3(self.width, 0, 0))
+        self.line4.nodePath.setPos(self.line4.nodePath.getPos(
+        ) + Vec3(self.x_ll, 0, self.y_ll) + Vec3(self.width, 0, 0))
         self.line4.nodePath.setColor(self.color)
 
         self.lines = [self.line1, self.line2, self.line3, self.line4]

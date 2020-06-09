@@ -39,8 +39,8 @@ class Line1dObject(LinePrimitive):
 
     # thickness is derived from LinePrimitive
 
-    def __init__(self, thickness=2., **kwargs):
-        super(Line1dObject, self).__init__(thickness=thickness)
+    def __init__(self, thickness=2., color=Vec4(1.,1.,1.,1.), **kwargs):
+        super(Line1dObject, self).__init__(thickness=thickness, color=color)
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):

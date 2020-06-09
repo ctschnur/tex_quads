@@ -51,13 +51,14 @@ class Box2dCentered(Box2d):
 
 class LinePrimitive(Animator):
 
-    def __init__(self, thickness=1.):
+    def __init__(self, thickness=1., color=Vec4(1.,1.,1.,1.)):
         Animator.__init__(self)
         self.thickness = thickness
-        self.makeObject(thickness)
+        self.color = color
+        self.makeObject(thickness, color)
 
-    def makeObject(self, thickness):
-        self.node = custom_geometry.createColoredUnitLineGeomNode(thickness=thickness)
+    def makeObject(self, thickness, color):
+        self.node = custom_geometry.createColoredUnitLineGeomNode(thickness=thickness, color_vec4=self.color)
         self.nodePath = render.attachNewNode(self.node)
         # self.nodePath.setTwoSided(True)  # no need for backface culling in the case of a GL_LINE
 

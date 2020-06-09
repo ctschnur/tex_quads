@@ -327,19 +327,19 @@ class MyApp(ShowBase):
         ls = LineSegs()
         ls.setThickness(lineThickness)
 
-        # Z axis
-        ls.setColor(0.0, 0.0, 1.0, 1.0)
-        ls.moveTo(0.0, 0.0, 0.0)
-        ls.drawTo(0.0, 0.0, 1.0)
+        # # Z axis
+        # ls.setColor(0.0, 0.0, 1.0, 1.0)
+        # ls.moveTo(0.0, 0.0, 0.0)
+        # ls.drawTo(0.0, 0.0, 1.0)
 
-        node = ls.create()
-
-        mynode = NodePath(node)
+        # node = ls.create()
 
         # mynode = NodePath(node)
 
-        g = GroupNode()
-        g.addChildNodePaths([mynode])
+        # # mynode = NodePath(node)
+
+        # g = GroupNode()
+        # g.addChildNodePaths([mynode])
 
         # a = box.LinePrimitive()
 
