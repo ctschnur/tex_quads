@@ -13,7 +13,8 @@ from panda3d.core import (
     AntialiasAttrib,
     NodePath,
     Mat4,
-    Mat3)
+    Mat3,
+    LineSegs)
 from direct.interval.IntervalGlobal import Wait, Sequence
 from direct.interval.LerpInterval import LerpFunc
 
@@ -404,3 +405,30 @@ class Box2dOfLines:
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
             [lines.nodePath for lines in self.lines])
+
+
+class CoordinateSystemP3dPlain:
+    def __init__(self):
+        ls = LineSegs()
+        ls.setThickness(1)
+
+        # X axis
+        ls.setColor(1.0, 0.0, 0.0, 1.0)
+        ls.moveTo(0.0, 0.0, 0.0)
+        ls.drawTo(1.0, 0.0, 0.0)
+
+        # Y axis
+        ls.setColor(0.0, 1.0, 0.0, 1.0)
+        ls.moveTo(0.0,0.0,0.0)
+        ls.drawTo(0.0, 1.0, 0.0)
+
+        # Z axis
+        ls.setColor(0.0, 0.0, 1.0, 1.0)
+        ls.moveTo(0.0,0.0,0.0)
+        ls.drawTo(0.0, 0.0, 1.0)
+
+        geomnode = ls.create()
+        nodepath = NodePath(geomnode)
+
+        self.groupNode = GroupNode()
+        self.groupNode.addChildNodePaths([nodepath])

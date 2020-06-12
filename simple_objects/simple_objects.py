@@ -34,12 +34,13 @@ class Point(Box2dCentered):
     def doInitialSetupTransformation(self):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
 
+
 class Line1dObject(LinePrimitive):
     initial_length = 1.
 
     # thickness is derived from LinePrimitive
 
-    def __init__(self, thickness=2., color=Vec4(1.,1.,1.,1.), **kwargs):
+    def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
         super(Line1dObject, self).__init__(thickness=thickness, color=color)
         self.doInitialSetupTransformation(**kwargs)
 
@@ -62,31 +63,81 @@ class Line1dObject(LinePrimitive):
     # def setThickness():
     #     # for GL_LINES, the geomnode has to be regenerated for this
 
-
     def setTipPoint(self, tip_point):
-        self.vec_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
+        self.vec_prime = np.array(
+            [tip_point.getX(), tip_point.getY(), tip_point.getZ()])
 
-        # rotation matrix for xhat
-        xhat = np.array([1, 0, 0])
-        normal = np.array([0, 1, 0])  # panda3d out of screen: yhat
-        # find angle \theta (\in [-pi, pi]) between \hat{x} and \hat{x}'
+        # rotate around y axis
+        # rotation matrix to transform xhat (geometry of vector) into vec_prime
+        # first:
+        xhat = np.array([1., 0., 0.], dtype=np.float)
+        # panda3d out of screen: yhat
+        nhat = np.array([0., 1., 0.], dtype=np.float)
+        # find angle theta (in [-pi, pi]) between xhat and vec_prime
         # using the arctan2 of a determinant and a dot product
-        det = np.dot(normal, np.cross(xhat, self.vec_prime))
-        theta = np.arctan2(det, np.dot(xhat, self.vec_prime))
-        rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
-                            [0,               1,             0, 0],
-                            [-np.sin(theta),  0, np.cos(theta), 0],
-                            [0,               0,             0, 1]])
-        self._rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
+        det = np.dot(nhat, np.cross(xhat, self.vec_prime))
+        theta1 = np.arctan2(det, np.dot(xhat, self.vec_prime))
+        rotation1 = np.array(
+            [[np.cos(theta1),  0, np.sin(theta1), 0],
+             [0,               1,              0, 0],
+             [-np.sin(theta1), 0, np.cos(theta1), 0],
+             [0,               0,              0, 1]],
+            dtype=np.float)
 
-        # scaling matrix for xhat
+        rot_unit_vec = np.matmul(rotation1,
+                                 np.transpose(np.array([xhat[0], xhat[1], xhat[2], 1.], dtype=np.float)))
+
+        # resulting unit vector after rotation: (w = 1)
+        # (rotate around y, p3d multiplication is reversed)
+
+        # # now rotate around z axis
+        # defines axis of rotation
+        nhat = np.array([0., 0., 1.], dtype=np.float)
+        # find angle theta (in [-pi, pi]) between xhat and vec_prime
+        # using the arctan2 of a determinant and a dot product
+        det = np.dot(nhat, np.cross(rot_unit_vec[:3], self.vec_prime))
+        theta2 = np.arctan2(det, np.dot(rot_unit_vec[:3], self.vec_prime))
+        # rotation2 = np.array([[1., 0., 0., 0.],
+        #                       [0., np.cos(theta2), -np.sin(theta2), 0.],
+        #                       [0., np.sin(theta2), np.cos(theta2), 0.],
+        #                       [0., 0., 0., 1.]], dtype=np.float)
+
+        rotation2 = np.array([[np.cos(theta2), -np.sin(theta2),  0., 0.],
+                              [np.sin(theta2),  np.cos(theta2),  0., 0.],
+                              [            0.,               0., 1., 0.],
+                              [            0.,               0., 0., 1.]],
+                             dtype=np.float)
+
+        # rot_unit_vec = np.matmul(rotation2,
+        #                          np.transpose(np.array(
+        #                              [rot_unit_vec[0],
+        #                               rot_unit_vec[1],
+        #                               rot_unit_vec[2],
+        #                               1.,
+        #                              ], dtype=np.float)))
+
+        # the order of matrix multiplication is reversed in p3d
+        # rotation = (
+        #     Mat4(*tuple(np.transpose(rotation1).flatten())) *
+        #     Mat4(*tuple(np.transpose(rotation2).flatten())))
+
+
+        rotation = (
+            Mat4(*tuple(np.transpose(rotation2).flatten())) *
+            Mat4(*tuple(np.transpose(rotation1).flatten())))
+
+        # rotation = Mat4(*tuple(np.transpose(rotation1).flatten()))
+        self._rotation_forrowvecs = rotation
+
+        # scaling matrix: scale the vector along xhat when it points in xhat direction
+        # (to prevent skewing if the vector's line is a mesh)
         vx = np.linalg.norm(self.vec_prime)  # length
         vy = 1.
         vz = 1.
         scaling = np.array([[vx,  0,  0, 0],
                             [0,  vy,  0, 0],
                             [0,   0, vz, 0],
-                            [0,   0,  0, 1]])
+                            [0,   0,  0, 1]], dtype=np.float)
         scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
 
         # apply the net transformation
@@ -94,6 +145,10 @@ class Line1dObject(LinePrimitive):
         # remember, the row vector stands on the left in p3d multiplication
         # so the order is reversed
         trafo = scaling_forrowvecs * self._rotation_forrowvecs
+
+        # if tip_point != Vec3(1., 0., 0.):
+        #     import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
         self.nodePath.setMat(self.form_from_primitive_trafo * trafo)
 
     def getRotation(self):
@@ -118,7 +173,8 @@ class Line2dObject(Box2dCentered):
 
         scaling = math_utils.getScalingMatrix3d_forrowvecs(1., 1., self.width)
         self.length = self.initial_length
-        self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(0.5, 0, 0)
+        self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+            0.5, 0, 0)
 
         self.form_from_primitive_trafo = scaling * self.translation_to_xhat_forrowvecs
         self.nodePath.setMat(self.form_from_primitive_trafo)
@@ -128,7 +184,8 @@ class Line2dObject(Box2dCentered):
         self.setTipPoint(Vec3(1., 0., 0.))
 
     def setTipPoint(self, tip_point):
-        self.vec_prime = np.array([tip_point.getX(), tip_point.getY(), tip_point.getZ()])
+        self.vec_prime = np.array(
+            [tip_point.getX(), tip_point.getY(), tip_point.getZ()])
 
         # rotation matrix for xhat
         xhat = np.array([1, 0, 0])
@@ -138,10 +195,11 @@ class Line2dObject(Box2dCentered):
         det = np.dot(normal, np.cross(xhat, self.vec_prime))
         theta = np.arctan2(det, np.dot(xhat, self.vec_prime))
         rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
-                            [0,               1,             0, 0],
-                            [-np.sin(theta),  0, np.cos(theta), 0],
-                            [0,               0,             0, 1]])
-        self._rotation_forrowvecs = Mat4(*tuple(np.transpose(rotation).flatten()))
+                             [0,               1,             0, 0],
+                             [-np.sin(theta),  0, np.cos(theta), 0],
+                             [0,               0,             0, 1]])
+        self._rotation_forrowvecs = Mat4(
+            *tuple(np.transpose(rotation).flatten()))
 
         # scaling matrix for xhat
         vx = np.linalg.norm(self.vec_prime)  # length

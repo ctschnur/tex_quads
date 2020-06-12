@@ -1,7 +1,7 @@
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
 from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject
 from simple_objects import box
 from local_utils import math_utils
@@ -276,7 +276,7 @@ class MyApp(ShowBase):
         base.setFrameRateMeter(True)
 
         # make self-defined camera control possible
-        # self.disableMouse()
+        # disableMouse()
         render.setAntialias(AntialiasAttrib.MAuto)
         # render.set_two_sided(True)
         conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention()
@@ -290,7 +290,7 @@ class MyApp(ShowBase):
         # miscexperiments()
         # vectoranimation()
 
-        cs = CoordinateSystem()
+        # cs = CoordinateSystem()
 
         # current experiment
         # greenpoint = Point()
@@ -310,45 +310,29 @@ class MyApp(ShowBase):
 
         # cs.attachScatter(scat)
 
-        x = np.linspace(-1, 1, num=10)
-        y = x**2
-        scat2 = Scatter(x, y, color=Vec4(1, 0, 0, 1))
+        # x = np.linspace(-1, 1, num=10)
+        # y = x**2
+        # scat2 = Scatter(x, y, color=Vec4(1, 0, 0, 1))
         # cs.attachScatter(scat2)
 
-        box2d = Box2dOfLines(0.2, 0.4, 0.5, 2.0,
-                             color=Vec4(0.4, 0.2, 0.5, 0.5))
+        # box2d = Box2dOfLines(0.2, 0.4, 0.5, 2.0,
+        #                      color=Vec4(0.4, 0.2, 0.5, 0.5))
 
-        create_latex_texture_object()
+        cs3dp = CoordinateSystemP3dPlain()
 
-        from panda3d.core import LineSegs
-
-        lineThickness = 1.
-
-        ls = LineSegs()
-        ls.setThickness(lineThickness)
-
-        # # Z axis
-        # ls.setColor(0.0, 0.0, 1.0, 1.0)
-        # ls.moveTo(0.0, 0.0, 0.0)
-        # ls.drawTo(0.0, 0.0, 1.0)
-
-        # node = ls.create()
-
-        # mynode = NodePath(node)
-
-        # # mynode = NodePath(node)
-
-        # g = GroupNode()
-        # g.addChildNodePaths([mynode])
+        # create_latex_texture_object()
 
         # a = box.LinePrimitive()
 
-        a = Line1dObject(thickness=5.0)
+        # a = Line1dObject(thickness=3.0, color=Vec4(1,0,0,1))
+        # a.setTipPoint(Vec3(1., 0., 0.))
 
-        a.setTipPoint(Vec3(2., 2., 2.))
+        b = Line1dObject(thickness=5.0, color=Vec4(0,1,0,1))
+        # b.setTipPoint(Vec3(0., 0., 1.))
 
+        b.setTipPoint(Vec3(1., 1., 1.))
 
-        # Vector(tip_point=tip_point, thickness1dline=self.thickness1dline, color=self.color)
+        # Vector(tip_point=tip_point, thickness1dline=thickness1dline, color=color)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
