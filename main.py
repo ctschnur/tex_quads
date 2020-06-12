@@ -290,7 +290,7 @@ class MyApp(ShowBase):
         # miscexperiments()
         # vectoranimation()
 
-        # cs = CoordinateSystem()
+        cs = CoordinateSystem()
 
         # current experiment
         # greenpoint = Point()
@@ -318,7 +318,7 @@ class MyApp(ShowBase):
         # box2d = Box2dOfLines(0.2, 0.4, 0.5, 2.0,
         #                      color=Vec4(0.4, 0.2, 0.5, 0.5))
 
-        cs3dp = CoordinateSystemP3dPlain()
+        # cs3dp = CoordinateSystemP3dPlain()
 
         # create_latex_texture_object()
 
@@ -330,7 +330,7 @@ class MyApp(ShowBase):
         b = Line1dObject(thickness=5.0, color=Vec4(0,1,0,1))
         # b.setTipPoint(Vec3(0., 0., 1.))
 
-        b.setTipPoint(Vec3(1., 1., 1.))
+        b.setTipPoint(Vec3(1., 1.2, 0.5))
 
         # Vector(tip_point=tip_point, thickness1dline=thickness1dline, color=color)
 

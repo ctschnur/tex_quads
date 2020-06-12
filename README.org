@@ -21,7 +21,10 @@ It can also convert a string in python to a LaTeX formula to a pdf to an svg fil
 *** DONE Make Line object out of line primitive and test how it looks
 **** DONE Make Thickness setting for the Line1dObject explicit
 *** TODO Make 3d coordinate system
-**** Draw a vector in 3d
+**** TODO Draw a vector in 3d
+***** DONE Use the rodriguez formula to rotate the xhat unit vector onto an arbitrary vector
+https://math.stackexchange.com/questions/293116/rotating-one-3d-vector-to-another
+***** TODO Draw a 2d arrowhead on top of a 3d line
 **** DEFERRED make a moving shot orbiting the 3d coordinate system
 *** MAYBE Figure out how to make a Quad keep facing the camera, keeping it's center fixed
 
