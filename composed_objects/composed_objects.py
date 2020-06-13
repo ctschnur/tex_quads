@@ -270,15 +270,15 @@ class CoordinateSystem:
 
     cartesian_axes_directions = [
         Vec3(1., 0., 0.),
-        Vec3(0., 0., 1.),
-        Vec3(0., 1., 0.)]
+        Vec3(0., 1., 0.),
+        Vec3(0., 0., 1.)]
 
     cartesian_axes_colors = [Vec4(1., 0., 0., 1.),  # x-axis : red
                              Vec4(0., 1., 0., 1.),  # y-axis : green
                              Vec4(0., 0., 1., 1.)   # z-axis : blue
                              ]
 
-    def __init__(self, axes=None, dimension=2):
+    def __init__(self, axes=None, dimension=3):
         self.scatters = []
         self.dimension = dimension
         self.axes = []
