@@ -58,7 +58,6 @@ class Vector:
                 self.thickness1dline = kwargs.get('thickness1dline')
             else:
                 self.thickness1dline = 2.
-
             if 'color' in kwargs:
                 self.color = kwargs.get('color')
             else:

@@ -42,6 +42,9 @@ class Line1dObject(LinePrimitive):
 
     def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
         super(Line1dObject, self).__init__(thickness=thickness, color=color)
+
+        self._rotation_forrowvecs = Mat4()
+
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):
@@ -59,9 +62,6 @@ class Line1dObject(LinePrimitive):
         # self.nodePath.setRenderModeWireframe()
 
         self.setTipPoint(Vec3(1., 0., 0.))
-
-    # def setThickness():
-    #     # for GL_LINES, the geomnode has to be regenerated for this
 
     def setTipPoint(self, tip_point):
         # --- Rodriguez rotation formula ---
@@ -101,6 +101,7 @@ class Line1dObject(LinePrimitive):
         )
 
         rotation = Mat4(*tuple(np.transpose(R_4by4).flatten()))
+
         self._rotation_forrowvecs = rotation
 
         # scaling matrix: scale the vector along xhat when it points in xhat direction
@@ -129,6 +130,7 @@ class Line1dObject(LinePrimitive):
         """
         forrowvecs
         """
+
         assert self._rotation_forrowvecs
         return self._rotation_forrowvecs
 
