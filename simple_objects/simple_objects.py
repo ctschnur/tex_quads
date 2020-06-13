@@ -68,27 +68,52 @@ class Line1dObject(LinePrimitive):
         # apply rodriguez formula to rotate the geometrie's given
         # xhat = [1, 0, 0] vector to the destination vector v
 
-
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         a = np.array([1., 0., 0.], dtype=np.float)
         self.vec_prime = np.array(
             [tip_point.getX(), tip_point.getY(), tip_point.getZ()], dtype=np.float)
         b = self.vec_prime
 
-        if (a==b).all():
+        theta = np.arccos(
+            np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
+
+        R = None
+        epsilon = 0.0000001
+        if theta < epsilon:  # edge case: parallel
             # in this case, you can't divide by zero to get the rotation axis x
-            return
+            R = np.identity(3, dtype=np.float)
+        elif np.pi - theta < epsilon:  # edge case: antiparallel
+            # find a vector orthogonal to a,
+            # for this, e.g. first find the component of least magnitude
+            # of a, then calculate the cross product of the
+            # corresponding standard
+            # unit vector with a, which cannot be zero in magnitude
 
-        x = np.cross(a, b) / np.linalg.norm(np.cross(a, b))
-        theta = np.arccos(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
+            i = min(np.where(a == np.min(a))[0])
 
-        A = np.array([
-            [0.,    -x[2],  x[1]],
-            [x[2],  0.,    -x[0]],
-            [-x[1], x[0],   0.]
-        ], dtype=np.float)
+            # chop up identity matrix to get the standard unit vector
+            e_i = np.identity(3)[i]
 
-        R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
+            x = np.cross(a, e_i) / np.linalg.norm(np.cross(a, e_i))
+
+            A = np.array([
+                [0.,    -x[2],  x[1]],
+                [x[2],  0.,    -x[0]],
+                [-x[1], x[0],   0.]
+            ], dtype=np.float)
+
+            R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
+             + (1. - np.cos(theta)) * np.matmul(A, A))
+        else:
+            x = np.cross(a, b) / np.linalg.norm(np.cross(a, b))
+
+            A = np.array([
+                [0.,    -x[2],  x[1]],
+                [x[2],  0.,    -x[0]],
+                [-x[1], x[0],   0.]
+            ], dtype=np.float)
+
+            R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
              + (1. - np.cos(theta)) * np.matmul(A, A))
 
         R_4by4 = np.array(
@@ -96,7 +121,7 @@ class Line1dObject(LinePrimitive):
                 [R[0][0], R[0][1], R[0][2], 0.],
                 [R[1][0], R[1][1], R[1][2], 0.],
                 [R[2][0], R[2][1], R[2][2], 0.],
-                [0.      , 0.     , 0.    , 1.]
+                [0., 0., 0., 1.]
             ]
         )
 

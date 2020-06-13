@@ -332,7 +332,9 @@ class MyApp(ShowBase):
 
         b.setTipPoint(Vec3(1., 1.2, 0.5))
 
-        # Vector(tip_point=tip_point, thickness1dline=thickness1dline, color=color)
+        v = Vector(tip_point=Vec3(0., 1., 0.),
+                   thickness1dline=4.,
+                   color=Vec4(1.,1.,0,1))
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
