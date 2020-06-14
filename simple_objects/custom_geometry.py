@@ -5,6 +5,7 @@ from panda3d.core import (
     GeomTriangles,
     GeomTrifans,
     GeomLinestrips,
+    GeomLines,
     LineSegs,
     GeomNode, 
     Vec4)
@@ -546,5 +547,83 @@ def createColoredUnitLineGeomNode(thickness=1., color_vec4=Vec4(1., 1., 1., 1.))
 
     # quadGeomNode = GeomNode("colored_quad_node")
     # quadGeomNode.addGeom(quadGeom)
+
+    return geomnode
+
+
+from panda3d.core import LineSegs
+
+def createColoredUnitDashedLineGeomNode(
+        thickness=5., color_vec4=Vec4(1., 1., 1., 1.),
+        howmany_periods=5.):
+    # thickness=5.
+    # color_vec4=Vec4(1., 1., 1., 0.5)
+
+    ls = LineSegs()
+    ls.setThickness(thickness)
+
+    ls.setColor(color_vec4)
+
+    source_point = np.array([0.0, 0.0, 0.0])
+    destination_point = np.array([1.0, 0.0, 0.0])
+    difference_vector = np.array(destination_point - source_point)
+    difference_normal_vector = difference_vector / np.linalg.norm(difference_vector)
+
+    dashed_line_segments = []
+    length = np.abs(np.linalg.norm(source_point - destination_point))
+    # standard_segment_period = 1.0 * 1.0/5.0
+    # howmany_periods = 3.  # e.g. entered by the user
+
+    # a quarter period would draw '--'
+    # a half a period then draws '--  ', which has no visible ending
+    # the in-between number of periods can be 0, but at least
+    # '--  -' is drawn (which is technically a dashed line)
+    assert howmany_periods > 1./2.
+
+    # the dashed line shoud start and end with a visible segment, like this:
+    # --    ----    ----    --
+    # thus, draw the first and last segment seperately
+    # and add offset to in-between segments
+
+    # draw first half-segment
+    ls.moveTo(*tuple(source_point))
+    offset_length = np.linalg.norm((difference_vector/howmany_periods)/4.)
+    # offset_length = 0.
+    ls.drawTo(*tuple(source_point + offset_length*difference_normal_vector))
+    one_period_vector = difference_vector / howmany_periods
+
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    # draw in-between segments
+    howmany_periods_in_between = howmany_periods - 2.
+    length_in_between = length - 2.*np.linalg.norm(one_period_vector)
+    in_between_lengths_arr = np.linspace(0., length_in_between, int(howmany_periods_in_between)+1)
+
+    for dis_length in in_between_lengths_arr:
+        # draw a period: line segment takes half the space
+        ls.moveTo(*tuple(
+            source_point
+            + offset_length * difference_normal_vector
+            + dis_length * difference_normal_vector
+            + 0.5 * one_period_vector))
+        ls.drawTo(*tuple(
+            source_point
+            + offset_length * difference_normal_vector
+            + dis_length * difference_normal_vector
+            + 1.0 * one_period_vector))
+
+    # draw last half-segment, also 1./4. a period long
+    ls.moveTo(*tuple(
+        source_point
+        + offset_length * difference_normal_vector
+        + max(in_between_lengths_arr) * difference_normal_vector
+        + (1. + 0.5) * one_period_vector))
+    ls.drawTo(*tuple(
+        source_point
+        + offset_length * difference_normal_vector
+        + max(in_between_lengths_arr) * difference_normal_vector
+        + (1. + 0.5 + 1./4.) * one_period_vector))
+
+    geomnode = ls.create()
+    # nodepath = NodePath(geomnode)
 
     return geomnode

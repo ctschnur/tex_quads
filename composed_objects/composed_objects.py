@@ -3,7 +3,7 @@ from simple_objects import custom_geometry
 from local_utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from simple_objects.animator import Animator
-from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dObject
+from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dObject, LineDashed1dObject
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
@@ -58,13 +58,32 @@ class Vector:
                 self.thickness1dline = kwargs.get('thickness1dline')
             else:
                 self.thickness1dline = 2.
+
             if 'color' in kwargs:
                 self.color = kwargs.get('color')
             else:
                 self.color = 2.
 
-            self.line1 = Line1dObject(
-                thickness=self.thickness1dline, color=self.color)
+            if 'linestyle' in kwargs:
+                self.linestyle = kwargs.get('linestyle')
+            else:
+                self.linestyle = "-"
+
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+            if self.linestyle == "--":
+                howmany_periods = 5.
+                if 'howmany_periods' in kwargs:
+                    howmany_periods = kwargs.get('howmany_periods')
+
+                self.line1 = LineDashed1dObject(
+                    thickness=self.thickness1dline,
+                    color=self.color,
+                    howmany_periods=howmany_periods)
+            else:
+                self.line1 = Line1dObject(
+                    thickness=self.thickness1dline, color=self.color)
+
 
         elif self.linetype == "2d":
             self.line1 = Line2dObject()

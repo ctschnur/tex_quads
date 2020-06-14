@@ -46,7 +46,6 @@ class Box2dCentered(Box2d):
         self.nodePath = render.attachNewNode(self.node)
 
 
-
 # ------ make a line instead of a box (what in OpenGL is called a GL_LINE)
 
 class LinePrimitive(Animator):
@@ -61,6 +60,22 @@ class LinePrimitive(Animator):
         self.node = custom_geometry.createColoredUnitLineGeomNode(thickness=thickness, color_vec4=self.color)
         self.nodePath = render.attachNewNode(self.node)
         # self.nodePath.setTwoSided(True)  # no need for backface culling in the case of a GL_LINE
+
+class LineDashedPrimitive(Animator):
+
+    def __init__(self, thickness=1., color=Vec4(1.,1.,1.,1.), howmany_periods=5.):
+        Animator.__init__(self)
+        self.thickness = thickness
+        self.color = color
+        self.howmany_periods = howmany_periods
+        self.makeObject(thickness, color, howmany_periods)
+
+    def makeObject(self, thickness, color, howmany_periods):
+        self.node = custom_geometry.createColoredUnitDashedLineGeomNode(
+            thickness=thickness, color_vec4=self.color, howmany_periods=5.)
+        self.nodePath = render.attachNewNode(self.node)
+
+
 
 # class LinePrimitiveCentered(LinePrimitive):
 

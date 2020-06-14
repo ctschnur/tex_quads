@@ -21,6 +21,9 @@ It can also convert a string in python to a LaTeX formula to a pdf to an svg fil
 *** DONE Make Line object out of line primitive and test how it looks
 **** DONE Make Thickness setting for the Line1dObject explicit
 *** TODO Make 3d coordinate system
+**** DONE Draw dashed line
+**** TODO Create triangulated Cone procedurally 
+(see e.g. https://github.com/intel-isl/Open3D/blob/ebaa197c135c7055710503d47d389526eb7ed580/src/Open3D/Geometry/TriangleMeshFactory.cpp)
 **** TODO Draw 3d arrowheads
 white cone, black circle, black dot
 **** TODO Draw 2d arrowheads with GL_LINES sorrounding the contour
