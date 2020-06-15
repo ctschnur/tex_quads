@@ -101,11 +101,12 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention():
     # base.cam.setPos(0.5, -2, 0.5)  # this manipulates the viewing matrix
     # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
 
-    # base.cam.setPos(5, 5, 2.5)  # this manipulates the viewing matrix
-    # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
+
+    base.cam.setPos(5, 5, 2.5)  # this manipulates the viewing matrix
+    base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
 
     # base.cam.setPos(0., -2, 0.)  # this manipulates the viewing matrix
     # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
 
-    base.cam.setPos(0, 0, 2.5)  # this manipulates the viewing matrix
-    base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
+    # base.cam.setPos(0, 0, 2.5)  # this manipulates the viewing matrix
+    # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix

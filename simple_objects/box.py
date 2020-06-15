@@ -75,14 +75,13 @@ class LineDashedPrimitive(Animator):
             thickness=thickness, color_vec4=self.color, howmany_periods=5.)
         self.nodePath = render.attachNewNode(self.node)
 
+class ConePrimitive(Animator):
+    def __init__(self):
+        super(ConePrimitive, self).__init__()
 
+    def makeObject(self):
+        self.node = custom_geometry.create_GeomNode_Cone(
+            color_vec4=Vec4(1., 1., 1., 1.))
 
-# class LinePrimitiveCentered(LinePrimitive):
-
-#     def __init__(self):
-#         super(LinePrimitiveCentered, self).__init__()
-
-#     def makeObject(self):
-#         self.node = custom_geometry.createColoredUnitQuadGeomNode(
-#             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
-#         self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setTwoSided(True)

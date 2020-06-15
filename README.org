@@ -22,10 +22,13 @@ It can also convert a string in python to a LaTeX formula to a pdf to an svg fil
 **** DONE Make Thickness setting for the Line1dObject explicit
 *** TODO Make 3d coordinate system
 **** DONE Draw dashed line
-**** TODO Create triangulated Cone procedurally 
+**** DONE Create triangulated Cone procedurally 
 (see e.g. https://github.com/intel-isl/Open3D/blob/ebaa197c135c7055710503d47d389526eb7ed580/src/Open3D/Geometry/TriangleMeshFactory.cpp)
 **** TODO Draw 3d arrowheads
-white cone, black circle, black dot
+***** TODO Shaded
+For diffuse shading, my cone geom needs additional normals, wich it doesn't currently have. The p3d egg library contains functions to calculate normals. That could be worth a try. Otherwise, I would have to calculate them manually on the processor.
+https://discourse.panda3d.org/t/computing-normals-for-procedural-geometry/12178
+***** TODO white cone, black circle, black dot
 **** TODO Draw 2d arrowheads with GL_LINES sorrounding the contour
 **** DEFERRED make a moving shot orbiting the 3d coordinate system
 *** MAYBE Figure out how to make a Quad keep facing the camera, keeping it's center fixed

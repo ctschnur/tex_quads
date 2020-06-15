@@ -2,14 +2,15 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
-from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject, LineDashed1dObject
+from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone
+# , ArrowHeadCone
 from simple_objects import box
 from local_utils import math_utils
 
 import numpy as np
 
 from direct.showbase.ShowBase import ShowBase
-from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4, Vec4
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
@@ -290,7 +291,7 @@ class MyApp(ShowBase):
         # miscexperiments()
         # vectoranimation()
 
-        # cs = CoordinateSystem()
+        cs = CoordinateSystem()
 
         # current experiment
         # greenpoint = Point()
@@ -318,7 +319,7 @@ class MyApp(ShowBase):
         # box2d = Box2dOfLines(0.2, 0.4, 0.5, 2.0,
         #                      color=Vec4(0.4, 0.2, 0.5, 0.5))
 
-        cs3dp = CoordinateSystemP3dPlain()
+        # cs3dp = CoordinateSystemP3dPlain()
 
         # create_latex_texture_object()
 
@@ -332,8 +333,6 @@ class MyApp(ShowBase):
 
         # b.setTipPoint(Vec3(1., 1.2, 0.5))
 
-
-
         import ctsutils.euler_angles as cse
         from ctsutils.euler_angles import get_R_x, get_R_y, get_R_z
 
@@ -345,28 +344,6 @@ class MyApp(ShowBase):
             tuple(np.array([3.*np.pi/2.-theta, np.pi/2., np.pi/2.])),
             tuple(np.array([np.pi/2.-theta, np.pi/2., 0.])),
             tuple(np.array([np.pi/2.-theta, 0., 0.]))]
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        # zxz_total = np.dot(get_R_x(0.3), get_R_z(0.3))
-
-        # zxz_total = get_R_z(3.*np.pi/2.-theta)
-
-        # zxz_total = get_R_x(np.pi/2.-theta)
-
-        # zxz_total = get_R_z(np.pi/2.-theta)
-
-        # zxz_total = get_R_y(np.pi/2.-theta)
-
-        # zxz_total = np.matmul(get_R_x(0.5), get_R_z(np.pi/2.))
-
-        # zxz_total = np.einsum("ij,jk",
-        #                       np.einsum("ij,jk", get_R_z(np.pi/2.), get_R_x(0.75)),
-        #                       get_R_z(np.pi/2.))
-
-        # zxz_total = np.einsum("ij,jk,kl",
-        #                       get_R_z(3.*np.pi/2.-theta), get_R_x(np.pi/2.), get_R_z(0.))
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
         zxz_total = cse.get_zxz_rot(*alpha_beta_gammas[2])
 
@@ -384,24 +361,25 @@ class MyApp(ShowBase):
             zxz_total,
             np.transpose(np.array([0., 0., 1.])))
 
-        # v1 = Vector(tip_point=Vec3(*tuple(x_c_hat)),
-        #            thickness1dline=10.,
-        #            color=Vec4(1.,0.,0,0.25))
+        v1 = Vector(tip_point=Vec3(*tuple(x_c_hat)),
+                    thickness1dline=10.,
+                    color=Vec4(1.,0.,0,0.25),
+                    linestyle="--")
 
-        # v2 = Vector(tip_point=Vec3(*tuple(y_c_hat)),
-        #            thickness1dline=10.,
-        #            color=Vec4(0.,1.,0,0.25))
+        v2 = Vector(tip_point=Vec3(*tuple(y_c_hat)),
+                    thickness1dline=10.,
+                    color=Vec4(0.,1.,0,0.25),
+                    linestyle="--")
 
-        # v3 = Vector(tip_point=Vec3(*tuple(z_c_hat)),
-        #            thickness1dline=10.,
-        #            color=Vec4(0.,0.,1.,0.25))
+        v3 = Vector(tip_point=Vec3(*tuple(z_c_hat)),
+                    thickness1dline=10.,
+                    color=Vec4(0.,0.,1.,0.25),
+                    linestyle="--")
 
-        # v = Vector()
-
-        # print("// cut ", str(cp))
-        # print("triple x_c_hat=" + str(tuple(np.round(x_c_hat, 3))) + ";")
-        # print("triple y_c_hat=" + str(tuple(np.round(y_c_hat, 3))) + ";")
-        # print("triple z_c_hat=" + str(tuple(np.round(z_c_hat, 3))) + ";")
+        print("// cut ")
+        print("triple x_c_hat=" + str(tuple(np.round(x_c_hat, 3))) + ";")
+        print("triple y_c_hat=" + str(tuple(np.round(y_c_hat, 3))) + ";")
+        print("triple z_c_hat=" + str(tuple(np.round(z_c_hat, 3))) + ";")
 
         # v3 = Vector(tip_point=Vec3(1., 1., 0),
         #            thickness1dline=2.5,
@@ -415,17 +393,56 @@ class MyApp(ShowBase):
 
         # ld = LineDashedPrimitive()
 
-        a = LineDashed1dObject(thickness=10.0, color=Vec4(1,1,0,1), howmany_periods=10.)
-        a.setTipPoint(Vec3(1., 1., 0.))
+        # a = LineDashed1dObject(thickness=10.0, color=Vec4(1,1,0,1), howmany_periods=10.)
+        # a.setTipPoint(Vec3(1., 1., 0.))
 
-        v4 = Vector(tip_point=Vec3(*tuple(x_c_hat + z_c_hat)),
-                    thickness1dline=10.,
-                    color=Vec4(0.75,0.,1,0.25),
-                    linestyle="--")
+        # v4 = Vector(tip_point=Vec3(*tuple(x_c_hat + z_c_hat)),
+        #             thickness1dline=10.,
+        #             color=Vec4(0.75,0.,1,0.25),
+        #             linestyle="--")
 
         # v5 = Vector(tip_point=Vec3(*tuple(x_c_hat + z_c_hat)),
         #            thickness1dline=10.,
         #             color=Vec4(0.75,0.,1,0.25))
+
+        from simple_objects.custom_geometry import create_GeomNode_Cone, createColoredUnitCircle
+
+        # geomNode = create_GeomNode_Cone()
+        # nodePath = render.attachNewNode(geomNode)
+        # nodePath.setTwoSided(True)
+
+
+        # --- setup a directional light
+        # dlight = DirectionalLight('dlight')
+        # dlight.setColor((1., 1., 1., 1))
+        # dlnp = render.attachNewNode(dlight)
+        # dlnp.setHpr(0, 45, 0)
+        # render.setLight(dlnp)
+
+        plight = PointLight('plight')
+        plight.setColor((0.9, 0.9, 0.9, 1))
+        plnp = render.attachNewNode(plight)
+        plnp.setPos(10, 20, 0)
+        render.setLight(plnp)
+
+        # geomNode = createColoredUnitCircle()
+        # nodePath = render.attachNewNode(geomNode)
+        # nodePath.setTwoSided(True)
+
+        
+        # base.wireframeOn()
+
+        ahc = ArrowHeadCone()
+
+        # add shading
+        # step 1: add a material to the nodepath
+        from panda3d.core import Material
+        myMaterial = Material()
+        # myMaterial.setDiffuse((0.5,0.5,0.5,1.))
+        # myMaterial.setShininess(5.0) #Make this material shiny
+        myMaterial.setAmbient((1, 0, 0, 1)) #Make this material blue
+        ahc.nodePath.setMaterial(myMaterial)
+        ahc.nodePath.setMat(ahc.nodePath.getMat() * math_utils.getScalingMatrix3d_forrowvecs(4., 4., 4.))
 
 
         def findChildrenAndSetRenderModeRecursively(parentnode):

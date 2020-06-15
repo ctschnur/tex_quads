@@ -225,7 +225,6 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
     outerpolygon_contour_points = 0.1 * symbol_geometries[0][0]
     inner_hole_contour_points = 0.1 * symbol_geometries[0][1]
 
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
     from itertools import groupby
 
@@ -267,8 +266,6 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
         vi = tr.addVertex(vertex[0], vertex[1])
         tr.addHoleVertex(vi)
 
- 
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
     tr.triangulate()
     
@@ -298,8 +295,6 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
     # groups can be made independently from vdata, and are later assigned
     # to vdata)
     tris = GeomTriangles(Geom.UHStatic) 
-    
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
     for index_triple in indices: 
         tris.addVertices(index_triple[0], index_triple[1], index_triple[2])
@@ -328,7 +323,6 @@ def create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries):
     # inner_hole_contour_points = (
     #     0.5 * np.array([[0, 1], [-1, 0], [0, -1], [1, 0]], dtype=np.float64))
 
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT 
 
     from panda3d.core import Triangulator, LPoint2d
     
@@ -375,8 +369,6 @@ def create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries):
     # groups can be made independently from vdata, and are later assigned
     # to vdata)
     # tris = GeomTriangles(Geom.UHStatic) 
-    
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
     tris = GeomLinestrips(Geom.UHStatic)
 
@@ -455,7 +447,6 @@ def create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries):
     # to vdata)
     tris = GeomTriangles(Geom.UHStatic) 
     
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
     for index_triple in indices: 
         tris.addVertices(index_triple[0], index_triple[1], index_triple[2])
@@ -474,7 +465,7 @@ def create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries):
     return polygonGeomNode
 
 
-def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.), return_geom_instead_of_geom_node=True):
+def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.)):
     # Own Geometry
     # format = GeomVertexFormat.getV3c4t2()
     format = GeomVertexFormat.getV3c4()
@@ -521,14 +512,10 @@ def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.), return_geom_instead
     geom = Geom(vdata)
     geom.addPrimitive(tris)
 
-    if return_geom_instead_of_geom_node is True:
-        return geom
+    geom_node = GeomNode("colored_circle_node")
+    geom_node.addGeom(geom)
 
-    else: 
-        geom_node = GeomNode("colored_circle_node")
-        geom_node.addGeom(geom)
-
-        return geom_node
+    return geom_node
 
 
 from panda3d.core import LineSegs
@@ -592,7 +579,6 @@ def createColoredUnitDashedLineGeomNode(
     ls.drawTo(*tuple(source_point + offset_length*difference_normal_vector))
     one_period_vector = difference_vector / howmany_periods
 
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
     # draw in-between segments
     howmany_periods_in_between = howmany_periods - 2.
     length_in_between = length - 2.*np.linalg.norm(one_period_vector)
@@ -627,3 +613,89 @@ def createColoredUnitDashedLineGeomNode(
     # nodepath = NodePath(geomnode)
 
     return geomnode
+
+
+def get_circle_vertices(num_of_verts=10, radius=0.5):
+    phi = 0.
+    r = radius
+
+    origin_point_x = 0.
+    origin_point_z = 0.
+
+    verts = np.array([])
+    for i in range(num_of_verts):
+        phi += 2. * np.pi / num_of_verts
+        x = r * np.cos(phi)
+        y = r * np.sin(phi)
+        z = 0
+
+        verts = np.append(verts, np.array([x, y, z]))
+
+    return np.reshape(verts, (-1, 3))
+
+
+def create_GeomNode_Cone(color_vec4=Vec4(1., 1., 1., 1.)):
+    # a cone that points into the y direction
+    # and the center of it's base is at the origin
+
+    # ---- step 1: create circle with trifans in the x-y plane and close the primitive
+
+    format = GeomVertexFormat.getV3c4()
+    vdata = GeomVertexData("colored_quad", format, Geom.UHStatic)
+    vdata.setNumRows(4)
+
+    # add color to each vertex
+    colorWriter = GeomVertexWriter(vdata, "color")
+
+    # add a vertex position to each vertex
+    vertexPosWriter = GeomVertexWriter(vdata, "vertex")
+
+    # first the circle vertices
+    num_of_circle_vertices = 10
+    circle_verts = get_circle_vertices(num_of_verts=num_of_circle_vertices)
+
+    # then the origin point vertex
+    vertexPosWriter.addData3f(0., 0., 0.)
+    colorWriter.addData4f(color_vec4)
+
+    for v in circle_verts:
+        vertexPosWriter.addData3f(v[0], v[1], v[2])
+        colorWriter.addData4f(color_vec4)
+
+    # build the primitive (base of cone)
+    tris = GeomTrifans(Geom.UHStatic) # the first vertex is a vertex that all triangles share
+
+    tris.add_consecutive_vertices(0, num_of_circle_vertices+1)  # add all vertices
+
+    # close up the circle (the last triangle involves the first
+    # point of the circle base, i.e. point with index 1)
+    tris.addVertex(1)
+
+    tris.closePrimitive()  # this resets all the data contained in the vertexPosWriter and colorWriter
+
+    # ---- step 2: create tip vertex and make a trifans primitive
+    #      with the vertices of the cone base outer circle
+
+    # first the tip point vertex
+    vertexPosWriter.addData3f(0., 0., cos(pi / 6.))
+    colorWriter.addData4f(color_vec4)
+
+    tris.addVertex(num_of_circle_vertices+1)
+    tris.add_consecutive_vertices(0, num_of_circle_vertices+1)  # add all circle vertices
+
+    # close up the circle (the last triangle involves the first
+    # point of the circle base, i.e. point with index 1)
+    tris.addVertex(0)
+
+    tris.closePrimitive()  # this resets all the data contained in the vertexPosWriter and colorWriter
+
+    # ----- step 3: make a GeomNode out of the Geom (to which the Primitives have been added)
+
+    # make a Geom object to hold the primitives
+    geom = Geom(vdata)
+    geom.addPrimitive(tris)
+
+    geom_node = GeomNode("colored_polygon_node")
+    geom_node.addGeom(geom)
+
+    return geom_node

@@ -3,7 +3,7 @@ from conventions import conventions
 from simple_objects import custom_geometry
 
 from local_utils import math_utils
-from .box import Box2d, Box2dCentered, LinePrimitive, LineDashedPrimitive
+from .box import Box2d, Box2dCentered, LinePrimitive, LineDashedPrimitive, ConePrimitive
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
@@ -379,3 +379,35 @@ class ArrowHead(Box2dCentered):
         self.nodePath = render.attachNewNode(self.node)
 
         self.nodePath.setTwoSided(True)
+
+
+class ArrowHeadCone(Box2dCentered):
+    scale = .1
+
+    def __init__(self):
+        super(ArrowHeadCone, self).__init__()
+        self.doInitialSetupTransformation()
+
+    def doInitialSetupTransformation(self):
+        # self.nodePath.setScale(self.scale, self.scale, self.scale)
+
+        scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
+            ArrowHead.scale,
+            ArrowHead.scale,
+            ArrowHead.scale)
+
+        # also, rotate this one to orient itself in the x direction
+        rotation_forrowvecs = math_utils.get_R_y_forrowvecs(np.pi/2.)
+
+        self.form_from_primitive_trafo = scaling_forrowvecs * rotation_forrowvecs
+
+        self.nodePath.setMat(self.form_from_primitive_trafo)
+
+    def makeObject(self):
+        self.node = custom_geometry.create_GeomNode_Cone(
+            color_vec4=Vec4(1., 1., 1., 1.))
+        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setTwoSided(True)
+
+        # they do get a material, to be shaded
+        from panda3d.core import Material
