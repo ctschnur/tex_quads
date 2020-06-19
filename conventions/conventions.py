@@ -50,7 +50,9 @@ def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution():
                 0, 0, 1./pixel_per_unit, 0,
                 0, 0, 0, 1)
 
-def setupOrthographicProjectionAndViewingAccordingToMyConvention():
+def setupOrthographicProjectionAndViewingAccordingToMyConvention(
+        lookat_orbit_center=Vec3(0,0,0),
+        camera_position=Vec3(5, 5, 2)):
     # setup orthographic projection, make camera fixed and look at origin.
     # In this script, the convention is to have the z axis (z axis is up in
     # p3d) centered horizontally, pointing up, and the 3d world coordinate
@@ -102,9 +104,9 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention():
     # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
 
 
-    base.cam.setPos(5, 5, 2.5)  # this manipulates the viewing matrix
-    base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
+    base.cam.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
 
+    base.cam.lookAt(lookat_orbit_center)  # this manipulates the viewing matrix
     # base.cam.setPos(0., -2, 0.)  # this manipulates the viewing matrix
     # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
 
