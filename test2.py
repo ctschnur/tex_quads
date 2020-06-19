@@ -5,6 +5,8 @@ from direct.showbase.ShowBase import ShowBase
 import pytest
 import gltf
 
+from panda3d.core import Vec4
+
 from cameras.Orbiter import Orbiter
 
 class MyApp(ShowBase):
@@ -25,8 +27,6 @@ class MyApp(ShowBase):
 
         from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
         cs = CoordinateSystem()
-
-        base.cam.setPos(0, -30, 5)
 
         ob = Orbiter()
 
@@ -69,18 +69,16 @@ class MyApp(ShowBase):
         #     + "/models/cube_solo.gltf")
         # base.textureOff()
 
-        # load a gltf file
-        from panda3d.core import Filename
-        self.model = loader.loadModel(
-            Filename.fromOsSpecific(
-                os.path.abspath(sys.path[0])).getFullpath()  # root of project
-            + "/models/unit_cone_triangulated_with_face_normals.gltf")
-        base.textureOff()
+        # # load a gltf file
+        # from panda3d.core import Filename
+        # self.model = loader.loadModel(
+        #     Filename.fromOsSpecific(
+        #         os.path.abspath(sys.path[0])).getFullpath()  # root of project
+        #     + "/models/unit_cone_triangulated_with_face_normals.gltf")
+        # self.model.reparentTo(self.render)
 
-        # self.model = (self.loader.loadModel("models/test"))
-        self.model.reparentTo(self.render)
-        self.model.setPos(0, 0, 0)
-        self.model.setScale(0.5, 0.5, 0.5)
+        # self.model.setColor(Vec4(1, 0, 0, 1))
+
 
         # # toggling between smooth and flat shading (for panda model)
         # type = 1

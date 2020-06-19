@@ -34,7 +34,6 @@ class Box2d(Animator):
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setTwoSided(True)  # enable backface-culling for all Animators
 
-
 class Box2dCentered(Box2d):
 
     def __init__(self):
@@ -45,11 +44,9 @@ class Box2dCentered(Box2d):
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
         self.nodePath = render.attachNewNode(self.node)
 
-
 # ------ make a line instead of a box (what in OpenGL is called a GL_LINE)
 
 class LinePrimitive(Animator):
-
     def __init__(self, thickness=1., color=Vec4(1.,1.,1.,1.)):
         Animator.__init__(self)
         self.thickness = thickness
@@ -60,6 +57,8 @@ class LinePrimitive(Animator):
         self.node = custom_geometry.createColoredUnitLineGeomNode(thickness=thickness, color_vec4=self.color)
         self.nodePath = render.attachNewNode(self.node)
         # self.nodePath.setTwoSided(True)  # no need for backface culling in the case of a GL_LINE
+
+        self.nodePath.setLightOff(1)
 
 class LineDashedPrimitive(Animator):
 
@@ -74,6 +73,8 @@ class LineDashedPrimitive(Animator):
         self.node = custom_geometry.createColoredUnitDashedLineGeomNode(
             thickness=thickness, color_vec4=self.color, howmany_periods=5.)
         self.nodePath = render.attachNewNode(self.node)
+
+        self.nodePath.setLightOff(1)
 
 class ConePrimitive(Animator):
     def __init__(self):

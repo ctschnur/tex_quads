@@ -3,7 +3,7 @@ from simple_objects import custom_geometry
 from local_utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from simple_objects.animator import Animator
-from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dObject, LineDashed1dObject, ArrowHeadCone
+from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
@@ -99,10 +99,13 @@ class Vector:
             self.arrowheadstyle = kwargs.get('arrowheadstyle')
             if self.arrowheadstyle == "ArrowHeadCone":
                 self.arrowhead = ArrowHeadCone()
+            elif self.arrowheadstyle == "ArrowHeadConeShaded":
+                self.arrowhead = ArrowHeadConeShaded(color=self.color)
             elif self.arrowheadstyle == "ArrowHead":
                 self.arrowhead = ArrowHead()
         else:
-            self.arrowhead = ArrowHeadCone()
+            # self.arrowhead = ArrowHeadCone()
+            self.arrowhead = ArrowHeadConeShaded(color=self.color)
 
         self.arrowhead.nodePath.setRenderModeWireframe()
 

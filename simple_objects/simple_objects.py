@@ -21,6 +21,7 @@ from direct.interval.LerpInterval import LerpFunc
 
 import hashlib
 import numpy as np
+import sys, os
 
 
 class Point(Box2dCentered):
@@ -33,6 +34,14 @@ class Point(Box2dCentered):
 
     def doInitialSetupTransformation(self):
         self.nodePath.setScale(self.scale_x, 1., self.scale_z)
+
+    def makeObject(self):
+        self.node = custom_geometry.createColoredUnitQuadGeomNode(
+            color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
+        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setLightOff(1)
+
+        self.nodePath.setTwoSided(True)
 
 
 class Line1dObject(LinePrimitive):
@@ -384,11 +393,11 @@ class ArrowHead(Box2dCentered):
 class ArrowHeadCone(Box2dCentered):
     scale = .1
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super(ArrowHeadCone, self).__init__()
-        self.doInitialSetupTransformation()
+        self.doInitialSetupTransformation(**kwargs)
 
-    def doInitialSetupTransformation(self):
+    def doInitialSetupTransformation(self, **kwargs):
         # self.nodePath.setScale(self.scale, self.scale, self.scale)
 
         scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
@@ -405,9 +414,47 @@ class ArrowHeadCone(Box2dCentered):
 
     def makeObject(self):
         self.node = custom_geometry.create_GeomNode_Cone(
-            color_vec4=Vec4(1., 1., 1., 1.))
+            color_vec4=Vec4(1., 1., 1., 1.)) # the self.'node' is a geomnode
+        # or more generally a PandaNode
+        # typically, if the geometry isn't changed in-place,
+        # only the NodePath is called at later times
+
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setTwoSided(True)
 
-        # they do get a material, to be shaded
-        from panda3d.core import Material
+
+class ArrowHeadConeShaded(Box2dCentered):
+    scale = .1
+
+    def __init__(self, color=Vec4(0., 0., 0., 0.)):
+        self.color=color
+        super(ArrowHeadConeShaded, self).__init__()
+        self.doInitialSetupTransformation()
+
+    def doInitialSetupTransformation(self):
+        # self.nodePath.setScale(self.scale, self.scale, self.scale)
+
+        scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
+            ArrowHead.scale,
+            ArrowHead.scale,
+            ArrowHead.scale)
+
+        # the underlying model is already rotated in the x direction
+        # rotation_forrowvecs = math_utils.get_R_y_forrowvecs(np.pi/2.)
+
+        self.form_from_primitive_trafo = scaling_forrowvecs # * rotation_forrowvecs
+
+        self.nodePath.setMat(self.form_from_primitive_trafo)
+
+    def makeObject(self):
+        # load a gltf file
+        from panda3d.core import Filename
+        self.nodePath = loader.loadModel(
+            Filename.fromOsSpecific(
+                os.path.abspath(sys.path[0])).getFullpath()  # root of project
+            + "/models/unit_cone_triangulated_with_face_normals.gltf")
+        self.nodePath.reparentTo(render)
+        self.node = self.nodePath.node()
+
+        # override the vertex colors of the model
+        self.nodePath.setColor(self.color)

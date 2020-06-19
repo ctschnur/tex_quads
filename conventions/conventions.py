@@ -6,9 +6,10 @@ from panda3d.core import (
     Vec4,
     PandaSystem,
     OrthographicLens,
-    loadPrcFileData)
-print("Panda version:", PandaSystem.getVersionString())
+    loadPrcFileData,
+    AmbientLight)
 
+print("Panda version:", PandaSystem.getVersionString())
 
 svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
 
@@ -103,7 +104,6 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     # base.cam.setPos(0.5, -2, 0.5)  # this manipulates the viewing matrix
     # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
 
-
     base.cam.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
 
     base.cam.lookAt(lookat_orbit_center)  # this manipulates the viewing matrix
@@ -112,3 +112,10 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
 
     # base.cam.setPos(0, 0, 2.5)  # this manipulates the viewing matrix
     # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
+
+    # -- set faint ambient white lighting
+    from panda3d.core import AmbientLight
+    alight = AmbientLight('alight')
+    alnp = render.attachNewNode(alight)
+    alight.setColor((0.35, 0.35, 0.35, 1))
+    render.setLight(alnp)
