@@ -1,10 +1,11 @@
-import os
-import sys
+from conventions import conventions
+import os, sys
 import panda3d.core as p3d
 from direct.showbase.ShowBase import ShowBase
 import pytest
 import gltf
 
+from cameras.Orbiter import Orbiter
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -20,13 +21,30 @@ class MyApp(ShowBase):
         # self.scene.setScale(0.25, 0.25, 0.25)
         # self.scene.setPos(-8, 42, 0)
 
+        conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention()
+
+        from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
+        cs = CoordinateSystem()
+
         base.cam.setPos(0, -30, 5)
 
-        from panda3d.core import DirectionalLight
-        dlight = DirectionalLight('dlight')
-        dlnp = render.attachNewNode(dlight)
-        dlnp.setHpr(30, -60, 0)
-        render.setLight(dlnp)
+        ob = Orbiter()
+
+        # # ambient light
+        # from panda3d.core import AmbientLight
+        # alight = AmbientLight('alight')
+        # alnp = render.attachNewNode(alight)
+        # # alnp.setPos(0, -30, 5)
+        # alight.setColor((0.2, 0.2, 0.2, 1))
+        # render.setLight(alnp)
+
+        # # point light
+        # from panda3d.core import PointLight
+        # plight = PointLight('plight')
+        # plnp = render.attachNewNode(plight)
+        # # dlnp.setHpr(30, -60, 0)
+        # plnp.setPos(0, -30, 5)
+        # render.setLight(plnp)
 
         # # load an egg file model
         # from panda3d.core import Filename
@@ -43,17 +61,25 @@ class MyApp(ShowBase):
         # model.reparentTo(render)
         # base.textureOff()
 
+        # # load a gltf file
+        # from panda3d.core import Filename
+        # self.model = loader.loadModel(
+        #     Filename.fromOsSpecific(
+        #         os.path.abspath(sys.path[0])).getFullpath()  # root of project
+        #     + "/models/cube_solo.gltf")
+        # base.textureOff()
+
         # load a gltf file
         from panda3d.core import Filename
         self.model = loader.loadModel(
             Filename.fromOsSpecific(
                 os.path.abspath(sys.path[0])).getFullpath()  # root of project
-            + "/models/cube_solo.gltf")
+            + "/models/unit_cone_triangulated_with_face_normals.gltf")
         base.textureOff()
 
         # self.model = (self.loader.loadModel("models/test"))
         self.model.reparentTo(self.render)
-        self.model.setPos(0, 0, 3)
+        self.model.setPos(0, 0, 0)
         self.model.setScale(0.5, 0.5, 0.5)
 
         # # toggling between smooth and flat shading (for panda model)

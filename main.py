@@ -16,85 +16,11 @@ from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInter
 
 import local_tests.svgpathtodat.main
 
-class Orbiter:
-    def __init__(self):
-        base.disableMouse()
-        self.orbit_center = Vec3(0., 0., 0.)
-        self.r = 2.
-        self.phi = 0.
-        self.theta = np.pi/3.
+import os, sys
+import pytest
+import gltf
 
-        self.set_camera_pos_spherical_coords()
-
-        from panda3d.core import ModifierButtons
-        base.mouseWatcherNode.setModifierButtons(ModifierButtons())
-
-        from direct.showbase.ShowBase import DirectObject
-        # event handling
-
-        # changing phi
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('wheel_down', self.handle_wheel_down)
-
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('wheel_up', self.handle_wheel_up)
-
-        # changing theta
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('control-wheel_down', self.handle_control_wheel_down)
-
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('control-wheel_up', self.handle_control_wheel_up)
-
-    def set_camera_pos_spherical_coords(self):
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        print("theta = ", self.theta, ", " "phi = ", self.phi)
-
-        # prevent over-the-top flipping
-        # self.theta = self.theta % np.pi
-        if self.theta > np.pi:
-            self.theta = np.pi - 0.0001
-        if self.theta < 0.:
-            self.theta = 0. + 0.0001
-
-        # # keep phi in the range [0, 2*pi]
-        if self.phi < 0. or self.phi > 2.*np.pi:
-            self.phi = self.phi % 2.*np.pi
-
-        if self.phi < 0.:
-            self.phi = self.phi + 2.*np.pi
-        elif self.phi > 2.*np.pi:
-            self.phi = self.phi - 2.*np.pi
-
-        x = self.orbit_center[0] + self.r * np.sin(self.theta) * np.cos(self.phi)
-        y = self.orbit_center[1] + self.r * np.sin(self.theta) * np.sin(self.phi)
-        z = self.orbit_center[2] + self.r * np.cos(self.theta)
-
-        base.cam.setPos(x, y, z)
-        base.cam.lookAt(self.orbit_center)
-
-    def handle_wheel_up(self):
-        self.phi = self.phi + 0.1
-        self.set_camera_pos_spherical_coords()
-
-    def handle_wheel_down(self):
-        self.phi = self.phi - 0.1
-        self.set_camera_pos_spherical_coords()
-
-        # from pandac.PandaModules import KeyboardButton
-        # upArrowIsPressed = base.mouseWatcherNode.isButtonDown(KeyboardButton.up())
-        # wIsPressed = base.mouseWatcherNode.isButtonDown(KeyboardButton.asciiKey("w"))
-
-        # print("wIsPressed: ", wIsPressed)
-
-    def handle_control_wheel_down(self):
-        self.theta = self.theta - 0.1
-        self.set_camera_pos_spherical_coords()
-
-    def handle_control_wheel_up(self):
-        self.theta = self.theta + 0.1
-        self.set_camera_pos_spherical_coords()
-
+from cameras.Orbiter import Orbiter
 
 class MyApp(ShowBase):
     def __init__(self):
