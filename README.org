@@ -18,19 +18,21 @@ It can also convert a string in python to a LaTeX formula to a pdf to an svg fil
 *** Make rectangle class
 **** DONE draw a rectangle made of lines
 **** DEFERRED Make it automatically encompass things
-*** DEFERRED create shaded triangulated Cone procedurally
+** MAYBE create shaded triangulated Cone procedurally
 (see e.g. https://github.com/intel-isl/Open3D/blob/ebaa197c135c7055710503d47d389526eb7ed580/src/Open3D/Geometry/TriangleMeshFactory.cpp)
-**** TODO flat shading of a simple mesh from Blender
-**** DEFERRED calculate surface normals manually for the cone (for flat shading)
-***** Draw 3d arrowheads
-****** Shaded
+*** calculate surface normals manually for the cone (for flat shading)
+** Draw 3d arrowheads
+*** TODO Shaded
 For diffuse shading, my cone geom needs additional normals, wich it doesn't currently have. The p3d egg library contains functions to calculate normals. That could be worth a try. Otherwise, I would have to calculate them manually on the processor.
 https://discourse.panda3d.org/t/computing-normals-for-procedural-geometry/12178
-****** white cone, black circle, black dot
-*** MAYBE Draw a black circle and black dot as part of the Cone tip
-*** MAYBE Figure out how to make a Quad keep facing the camera, keeping it's center fixed
+Actually, since structures like arrowheads should not be zoomed into anyway, it shoudl be enough to just load them as models with normals already created (in a tool like blender for example).
+**** TODO in the Orbiter class, attach a point light to the moving camera
+**** import a cube from blender and make it an arrowhead
 
-** WAITING triangulation of latex characters
+*** MAYBE Draw a black circle and black dot as part of the Cone tip
+*** MAYBE Figure out how to make an object keep facing the camera, keeping it's local origin fixed
+
+** DEFERRED triangulation of latex characters
 Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.
 
 * Installation
