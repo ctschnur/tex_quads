@@ -15,7 +15,9 @@ from panda3d.core import (
     AntialiasAttrib,
     NodePath,
     Mat4,
-    Mat3)
+    Mat3,
+    Point3,
+    Point2)
 from direct.interval.IntervalGlobal import Wait, Sequence
 from direct.interval.LerpInterval import LerpFunc
 
@@ -28,20 +30,30 @@ class Point(Box2dCentered):
     scale_z = .05
     scale_x = .05
 
-    def __init__(self):
+    def __init__(self, point_type="primitive"):
+        self.point_type = point_type
+
         super(Point, self).__init__()
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
-        self.nodePath.setScale(self.scale_x, 1., self.scale_z)
+        if self.point_type != "primitive":
+            self.nodePath.setScale(self.scale_x, 1., self.scale_z)
 
     def makeObject(self):
-        self.node = custom_geometry.createColoredUnitQuadGeomNode(
-            color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
+        if self.point_type == "primitive":
+            self.node = custom_geometry.create_GeomNode_Single_Point(
+                color_vec4=Vec4(1., 1., 1., 1.))
+        else:
+            self.node = custom_geometry.createColoredUnitQuadGeomNode(
+                color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
+            self.nodePath.setTwoSided(True)
+
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setLightOff(1)
 
-        self.nodePath.setTwoSided(True)
+        if self.point_type == "primitive":
+            self.nodePath.setRenderModeThickness(5)
 
 
 class Line1dObject(LinePrimitive):
@@ -458,3 +470,50 @@ class ArrowHeadConeShaded(Box2dCentered):
 
         # override the vertex colors of the model
         self.nodePath.setColor(self.color)
+
+from conventions.conventions import compute2dPosition
+from panda3d.core import TextNode
+
+class Pinned2dLabel:
+    # from direct.gui.OnscreenText import OnscreenText
+    #     textObject = OnscreenText(text='my text string', pos=(-0.5, 0.02), scale=0.07)
+
+    def __init__(self, refpoint3d=Point3(1., 1., 1.), text="pinned?", xshift=0., yshift=0.):
+        self.refpoint3d = refpoint3d
+        self.text = text
+        self.nodeisattachedtoaspect2d = False
+
+        self.xshift = xshift
+        self.yshift = yshift
+
+        self.update()
+
+    def update(self):
+        pos_rel_to_cam = base.cam.get_relative_point(base.render, self.refpoint3d)
+        p2d = Point2()
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        if not base.cam.node().getLens().project(pos_rel_to_cam, p2d):
+            print("Error: project did not work")
+            exit(1)
+
+        if not self.nodeisattachedtoaspect2d:
+            self.textNode = TextNode('myPinned2dLabel')
+            self.textNode.setText(self.text)
+
+            # load a font
+            cmr12 = loader.loadFont('cmr12.egg')
+            self.textNode.setFont(cmr12)
+
+            # set a shadow
+            self.textNode.setShadow(0.05, 0.05)
+            self.textNode.setShadowColor(0, 0, 0, 1)
+
+            self.textNodePath = aspect2d.attachNewNode(self.textNode)
+            self.nodeisattachedtoaspect2d = True
+            self.textNodePath.setScale(0.07)
+
+        # place text in x, z in [-1, 1] boundaries and
+        # the y coordinate gets ignored for the TextNode
+        # parented by aspect2d
+        from conventions.conventions import win_aspect_ratio
+        self.textNodePath.setPos((p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1]+ self.yshift)

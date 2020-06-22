@@ -7,7 +7,8 @@ from panda3d.core import (
     PandaSystem,
     OrthographicLens,
     loadPrcFileData,
-    AmbientLight)
+    AmbientLight,
+    Point3)
 
 print("Panda version:", PandaSystem.getVersionString())
 
@@ -119,3 +120,23 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     alnp = render.attachNewNode(alight)
     alight.setColor((0.35, 0.35, 0.35, 1))
     render.setLight(alnp)
+
+
+def compute2dPosition(nodePath, point = Point3(0, 0, 0)):
+    """ Computes a 3-d point, relative to the indicated node, into a
+    2-d point as seen by the camera.  The range of the returned value
+    is based on the len's current film size and film offset, which is
+    (-1 .. 1) by default. """
+
+    # Convert the point into the camera's coordinate space
+    p3d = base.cam.getRelativePoint(nodePath, point)
+
+    # Ask the lens to project the 3-d point to 2-d.
+    p2d = Point2()
+    if base.camLens.project(p3d, p2d):
+        # Got it!
+        return p2d
+
+    # If project() returns false, it means the point was behind the
+    # lens.
+    return None

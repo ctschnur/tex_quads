@@ -8,7 +8,8 @@ from panda3d.core import (
     GeomLines,
     LineSegs,
     GeomNode, 
-    Vec4)
+    Vec4,
+    GeomPoints)
 
 from panda3d.core import Triangulator, LPoint2d, NodePath
 
@@ -696,6 +697,41 @@ def create_GeomNode_Cone(color_vec4=Vec4(1., 1., 1., 1.)):
     geom.addPrimitive(tris)
 
     geom_node = GeomNode("colored_polygon_node")
+    geom_node.addGeom(geom)
+
+    return geom_node
+
+
+def create_GeomNode_Single_Point(color_vec4=Vec4(1., 1., 1., 1.)):
+    # ---- step 1: create point at (0,0,0) and close the primitive
+
+    format = GeomVertexFormat.getV3c4()
+    vdata = GeomVertexData("colored_point", format, Geom.UHStatic)
+    vdata.setNumRows(4)
+
+    # add color to each vertex
+    colorWriter = GeomVertexWriter(vdata, "color")
+
+    # add a vertex position to each vertex
+    vertexPosWriter = GeomVertexWriter(vdata, "vertex")
+
+    # just one origin point vertex, it gets transformed later
+    # to it's intended position
+    vertexPosWriter.addData3f(0., 0., 0.)
+    colorWriter.addData4f(color_vec4)
+
+    # build the primitive
+    pointsprimitive = GeomPoints(Geom.UHStatic)
+    pointsprimitive.addVertex(0)
+    pointsprimitive.closePrimitive()  # this resets all the data contained in the vertexPosWriter and colorWriter
+
+    # ----- step 3: make a GeomNode out of the Geom (to which the Primitives have been added)
+
+    # make a Geom object to hold the primitives
+    geom = Geom(vdata)
+    geom.addPrimitive(pointsprimitive)
+
+    geom_node = GeomNode("colored_point_node")
     geom_node.addGeom(geom)
 
     return geom_node

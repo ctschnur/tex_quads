@@ -10,7 +10,7 @@ from local_utils import math_utils
 import numpy as np
 
 from direct.showbase.ShowBase import ShowBase, DirectObject
-from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
@@ -38,7 +38,8 @@ class MyApp(ShowBase):
 
         cs = CoordinateSystem()
 
-        scat = Scatter([1, 2], [1, 2])
+        import numpy.random
+        scat = Scatter(numpy.random.rand(5), numpy.random.rand(5), z=numpy.random.rand(5))
 
         import ctsutils.euler_angles as cse
         from ctsutils.euler_angles import get_R_x, get_R_y, get_R_z
@@ -85,7 +86,14 @@ class MyApp(ShowBase):
         print("triple y_c_hat=" + str(tuple(np.round(y_c_hat, 3))) + ";")
         print("triple z_c_hat=" + str(tuple(np.round(z_c_hat, 3))) + ";")
 
-        from simple_objects.custom_geometry import create_GeomNode_Cone, createColoredUnitCircle
+        # from simple_objects.custom_geometry import create_GeomNode_Cone, createColoredUnitCircle
+
+        from simple_objects.simple_objects import Pinned2dLabel
+
+        pos_rel_to_world = Point3(1., 0., 0.)
+
+        myPinnedLabel = Pinned2dLabel(refpoint3d=pos_rel_to_world, text="x", xshift=0.02, yshift=0.02)
+        ob.add_camera_move_hook(myPinnedLabel.update)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
