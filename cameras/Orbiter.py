@@ -1,20 +1,94 @@
+from conventions import conventions
+
 import numpy as np
 
-from direct.showbase.ShowBase import ShowBase, DirectObject
+from direct.showbase.ShowBase import ShowBase, DirectObject, KeyboardButton
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
+from direct.task import Task
+
+from panda3d.core import (
+    Mat4,
+    Vec3,
+    Vec4,
+    PandaSystem,
+    OrthographicLens,
+    loadPrcFileData,
+    AmbientLight,
+    Point3)
+
+class OrbiterLens:
+    """ an Orbiter instance has an OrbiterLens to zoom
+        with orthographic projection (then, the lens has to
+        be modified, i.e. the FilmSize) """
+    def __init__(self,
+                 # lookat_position=Vec3(0,0,0),
+                 # camera_position=Vec3(5, 5, 2)
+    ):
+        self.lens = OrthographicLens()
+
+        self.setOrthoLensRange(None, 5.)  # only initially!
+        # ^ the point is to change this interactively
+
+        self.lens.setNearFar(0.001, 50.)
+
+        # you can also check for the properties of your lens/camera
+        print("OrbiterLens: orthographic: ", self.lens.isOrthographic())
+        # finally, set the just created Lens() to your main camera
+        base.cam.node().setLens(self.lens)
+
+        # Make sure that what you want to display is within the Lenses box
+        # (beware of near and far planes)
+        # Since it's orthogonal projection, letting the camera's position
+        # vary doesn't do anything to the displayed content (except maybe
+        # hiding it beyond the near/far planes)
+
+        # base.cam.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
+
+        # base.cam.lookAt(self.orbit_center)  # this manipulates the viewing matrix
+
+        # self.set_camera_pos_spherical_coords()
+
+    def setOrthoLensRange(self, width, height):
+        """ an orthographic lens' `zoom`
+            is controlled by the film size
+        Parameters:
+        width  -- width of the orthographic lens in world coordinates
+        height -- height ---------------- '' ------------------------
+        """
+
+        if width is None and height:
+            width = height * (conventions.winsizex/conventions.winsizey)
+        elif height is None:
+            print("ERR: height is None")
+            exit(1)
+
+        width = height * (conventions.winsizex/conventions.winsizey)
+        print("Ortho Lens Film: ", "width: ", width, ", height: ", height)
+        # setFilmSize specifies the size of the Lens box
+        # I call it a *viewing box* if the projection matrix produces
+        # orthogonal projection, and *viewing frustum* if the projection
+        # matrix includes perspective)
+        self.lens.setFilmSize(width, height)
+
+        self.width = width
+        self.height = height
+
 
 class Orbiter:
-    def __init__(self):
+    def __init__(self, radius=2.):
         base.disableMouse()
         self.orbit_center = Vec3(0., 0., 0.)
-        self.r = 2.
+        self.r = radius
         self.phi = 0.
         self.theta = np.pi/3.
 
         # --- hooks for camera movement
         self.camera_move_hooks = []  # store function objects
+
+        # --- set the lens
+        self.orbiterLens = OrbiterLens()
 
         # --- initial setting of the position
         self.set_camera_pos_spherical_coords()
@@ -39,24 +113,51 @@ class Orbiter:
         myDirectObject = DirectObject.DirectObject()
         myDirectObject.accept('control-wheel_up', self.handle_control_wheel_up)
 
+        # 'changing r' (although that's not what directly changes the 'zoom' in an ortho lens)
+        myDirectObject = DirectObject.DirectObject()
+        myDirectObject.accept('shift-wheel_up', self.handle_zoom_plus)
 
-        # # -- fix 2 point lights to the camera at opposite positions
-        # --- fix a point light to the camera
+        myDirectObject = DirectObject.DirectObject()
+        myDirectObject.accept('shift-wheel_down', self.handle_zoom_minus)
+
+        # polling for zoom is better than events
+
+        self.plus_button = KeyboardButton.ascii_key('+')
+        self.minus_button = KeyboardButton.ascii_key('-')
+        # taskMgr.add(self.poll_zoom_plus_minus, 'Zoom')
+
+        # --- fix a point light to the side of the camera
         from panda3d.core import PointLight
         self.plight = PointLight('plight')
         self.plnp = render.attachNewNode(self.plight)
         self.set_pointlight_pos_spherical_coords()
         render.setLight(self.plnp)
 
-        # # --- fix a point light to the camera
-        # from panda3d.core import PointLight
-        # self.plight2 = PointLight('plight2')
-        # self.plnp2 = render.attachNewNode(self.plight2)
-        # self.set_pointlight_pos_spherical_coords()
-        # render.setLight(self.plnp2)
+        # -- set faint ambient white lighting
+        from panda3d.core import AmbientLight
+        self.alight = AmbientLight('alight')
+        self.alnp = render.attachNewNode(self.alight)
+        self.alight.setColor((0.35, 0.35, 0.35, 1))
+        render.setLight(self.alnp)
 
-    def get_spherical_coords(self, offset_r=0., offset_theta=0., offset_phi=0., prevent_overtop_flipping=False, fixed_phi=None, fixed_theta=None, fixed_r=None):
-        print("theta = ", self.theta, ", " "phi = ", self.phi)
+    def poll_zoom_plus_minus(self, task):
+        # print("heyi")
+        is_down = base.mouseWatcherNode.is_button_down
+
+        if is_down(self.plus_button):
+            self.handle_zoom_plus()
+
+        if is_down(self.minus_button):
+            self.handle_zoom_minus()
+
+        return task.cont
+
+    def get_spherical_coords(self, offset_r=0., offset_theta=0., offset_phi=0.,
+                             prevent_overtop_flipping=False,
+                             fixed_phi=None, fixed_theta=None, fixed_r=None):
+        print("theta = ", self.theta, ", ",
+              "phi = ", self.phi, ", ",
+              "r = ", self.r)
 
         # prevent over-the-top flipping
         # self.theta = self.theta % np.pi
@@ -66,6 +167,11 @@ class Orbiter:
                 self.theta = np.pi - 0.0001
             if self.theta < 0.:
                 self.theta = 0. + 0.0001
+
+
+        # keep r positive
+        if self.r < 0:
+            self.r = 0.001
 
         # # keep phi in the range [0, 2*pi]
         # if self.phi > 2.*np.pi:
@@ -106,8 +212,8 @@ class Orbiter:
     def set_camera_pos_spherical_coords(self):
         x, y, z = self.get_spherical_coords(prevent_overtop_flipping=True)
         base.cam.setPos(x, y, z)
+        self.orbiterLens.setOrthoLensRange(None, self.r + 0.1)
         base.cam.lookAt(self.orbit_center)
-
         self.run_camera_move_hooks()
 
 
@@ -139,6 +245,24 @@ class Orbiter:
 
     def handle_control_wheel_up(self):
         self.theta = self.theta + 0.1
+        self.set_camera_pos_spherical_coords()
+        self.set_pointlight_pos_spherical_coords()
+
+    def handle_zoom_plus(self):
+        print("plus pressed")
+        # to give an effective zoom effect in orthographic projection
+        # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
+        # to self\.r + r_0
+        self.r = self.r - 0.1
+        self.set_camera_pos_spherical_coords()
+        self.set_pointlight_pos_spherical_coords()
+
+    def handle_zoom_minus(self):
+        print("minus pressed")
+        # to give an effective zoom effect in orthographic projection
+        # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
+        # to self\.r + r_0
+        self.r = self.r + 0.1
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 

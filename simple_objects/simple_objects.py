@@ -491,10 +491,6 @@ class Pinned2dLabel:
     def update(self):
         pos_rel_to_cam = base.cam.get_relative_point(base.render, self.refpoint3d)
         p2d = Point2()
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        if not base.cam.node().getLens().project(pos_rel_to_cam, p2d):
-            print("Error: project did not work")
-            exit(1)
 
         if not self.nodeisattachedtoaspect2d:
             self.textNode = TextNode('myPinned2dLabel')
@@ -511,6 +507,15 @@ class Pinned2dLabel:
             self.textNodePath = aspect2d.attachNewNode(self.textNode)
             self.nodeisattachedtoaspect2d = True
             self.textNodePath.setScale(0.07)
+
+        if not base.cam.node().getLens().project(pos_rel_to_cam, p2d):
+            # outside lense camera
+            # just don't render it then.
+            self.textNodePath.hide()
+        else:
+            self.textNodePath.show()
+            # print("Error: project did not work")
+            # exit(1)
 
         # place text in x, z in [-1, 1] boundaries and
         # the y coordinate gets ignored for the TextNode

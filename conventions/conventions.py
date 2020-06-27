@@ -15,8 +15,12 @@ print("Panda version:", PandaSystem.getVersionString())
 svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
 
 # p3d window
-winsizex = int(480 * 3.5)
-winsizey = int(272 * 3.5)
+winsize_scale_factor = 100
+winsizex = int(16. * winsize_scale_factor)
+winsizey = int(9. * winsize_scale_factor)
+
+print("winsizex = ", winsizex, ", ", "winsizey = ", winsizey)
+
 loadPrcFileData('', 'win-size ' + str(winsizex) + ' ' + str(winsizey))
 
 # utility variable
@@ -28,8 +32,10 @@ loadPrcFileData('', 'win-origin 10 -2')
 
 # let's pretend we know the resolution (of the hardware monitor) in terms of
 # pixels
-screen_res_width = 1920.
-screen_res_height = 1080.
+
+screen_res_scale_factor = 1.
+screen_res_width = 1920. * screen_res_scale_factor
+screen_res_height = 1080. * screen_res_scale_factor
 
 
 def getMat4_scale_unit_quad_to_image_aspect_ratio(image_width_pixels, image_height_pixels):
@@ -46,14 +52,13 @@ def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution():
     # by convention here, the height of what the initial fixed camera
     # displays is exactly 2, i.e. the distance d((0,0,-1), (0,0,1))
     pixel_per_unit = winsizey/2.
-    # scale = (winsizey/screen_res_height)
     return Mat4(1./pixel_per_unit, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1./pixel_per_unit, 0,
                 0, 0, 0, 1)
 
 def setupOrthographicProjectionAndViewingAccordingToMyConvention(
-        lookat_orbit_center=Vec3(0,0,0),
+        lookat_position=Vec3(0,0,0),
         camera_position=Vec3(5, 5, 2)):
     # setup orthographic projection, make camera fixed and look at origin.
     # In this script, the convention is to have the z axis (z axis is up in
@@ -88,8 +93,7 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     # orthogonal projection, and *viewing frustum* if the projection
     # matrix includes perspective)
     lens.setFilmSize(lens_view_width_in_world_coords, lens_view_height_in_world_coords)
-
-    lens.setNearFar(0.001, 10.)
+    lens.setNearFar(0.001, 50.)
 
     # you can also check for the properties of your lens/camera
     print("orthographic: ", lens.isOrthographic())
@@ -107,7 +111,7 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
 
     base.cam.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
 
-    base.cam.lookAt(lookat_orbit_center)  # this manipulates the viewing matrix
+    base.cam.lookAt(lookat_position)  # this manipulates the viewing matrix
     # base.cam.setPos(0., -2, 0.)  # this manipulates the viewing matrix
     # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
 

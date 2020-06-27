@@ -374,7 +374,7 @@ class Scatter:
         for cur_x, cur_y, cur_z in zip(self.x, self.y, self.z):
             cur_point = Point()
             # FIXME: for 3d plots, this has to change
-            cur_point.nodePath.setPos(cur_x, cur_z, cur_y)
+            cur_point.nodePath.setPos(cur_x, cur_y, cur_z)
             cur_point.nodePath.setColor(*self.color)
 
             self.points.append(cur_point)
