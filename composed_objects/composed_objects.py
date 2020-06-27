@@ -8,6 +8,7 @@ from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1d
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
     Vec3,
+    Point3,
     Vec4,
     TransparencyAttrib,
     AntialiasAttrib,
@@ -308,10 +309,16 @@ class CoordinateSystem:
                              Vec4(0., 0., 1., 1.)   # z-axis : blue
                              ]
 
-    def __init__(self, axes=None, dimension=3):
+    def __init__(self, camera, axes=None, dimension=3):
+        """
+        Parameters:
+        camera -- e.g. an Orbiter object, to attach 2d labels properly to the
+                  3d geometry
+        """
         self.scatters = []
         self.dimension = dimension
         self.axes = []
+        self.camera = camera
 
         self.groupNode = GroupNode()
 
@@ -319,6 +326,8 @@ class CoordinateSystem:
             ax = Axis(direction_vec, thickness1dline=2.5, color=color_vec)
             self.axes.append(ax)
             self.groupNode.addChildNodePaths([ax.groupNode.nodePath])
+
+        self.attach_axes_labels()
 
     def attachScatter(self, scatter):
         self.scatters.append(scatter)
@@ -343,7 +352,24 @@ class CoordinateSystem:
         self.ax2.setAxisLength(scatters_y_max  # - scatter_y_min
                                )
 
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    def attach_axes_labels(self):
+        from simple_objects.simple_objects import Pinned2dLabel
+        import cameras
+
+        if isinstance(self.camera, cameras.Orbiter.Orbiter):
+            pos_rel_to_world_x = Point3(1., 0., 0.)
+            myPinnedLabelx = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="x", xshift=0.02, yshift=0.02)
+            self.camera.add_camera_move_hook(myPinnedLabelx.update)
+
+            pos_rel_to_world_y = Point3(0., 1., 0.)
+            myPinnedLabely = Pinned2dLabel(refpoint3d=pos_rel_to_world_y, text="y", xshift=0.02, yshift=0.02)
+            self.camera.add_camera_move_hook(myPinnedLabely.update)
+
+            pos_rel_to_world_z = Point3(0., 0., 1.)
+            myPinnedLabelz = Pinned2dLabel(refpoint3d=pos_rel_to_world_z, text="z", xshift=0.02, yshift=0.02)
+            self.camera.add_camera_move_hook(myPinnedLabelz.update)
+        else:
+            print("ERR: no other camera yet implemented for attaching lablels to CoordinateSystem")
 
 
 class Scatter:

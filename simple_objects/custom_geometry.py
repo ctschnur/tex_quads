@@ -615,6 +615,30 @@ def createColoredUnitDashedLineGeomNode(
 
     return geomnode
 
+def createColoredParametricCurveGeomNode(
+        func=(lambda t: np.array([t, t, t])),
+        param_interv=np.array([0, 1]),
+        thickness=5., color=Vec4(1., 1., 1., 1.),
+        howmany_points=50):
+
+    ls = LineSegs()
+    ls.setThickness(thickness)
+    ls.setColor(color)
+
+    t = np.linspace(param_interv[0], param_interv[1], num=howmany_points, endpoint=True)
+
+    for i, c_t in enumerate(t):
+        xyz_arr = func(c_t)
+        if i > 0:
+            ls.drawTo(*tuple(xyz_arr))
+
+        ls.moveTo(*tuple(xyz_arr))
+
+    geomnode = ls.create()
+    # nodepath = NodePath(geomnode)
+
+    return geomnode
+
 
 def get_circle_vertices(num_of_verts=10, radius=0.5):
     phi = 0.
