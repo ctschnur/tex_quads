@@ -33,7 +33,6 @@ class MyApp(ShowBase):
         ob = Orbiter(radius=3.)
         cs = CoordinateSystem(ob)
 
-
         # -- plot surface using points
         from plot_utils.pointcloud.pointcloud import plot_xy_z
         x = np.linspace(0., 1., num=20, endpoint=True)
@@ -43,7 +42,9 @@ class MyApp(ShowBase):
         # plot_xy_z(x, y, lambda x, y: 0)
 
         from simple_objects.box import ParametricLinePrimitive
-        plp = ParametricLinePrimitive(lambda t: np.array([t, np.arctanh(t), 0]))
+        plp = ParametricLinePrimitive(lambda t: np.array([np.sin(t*(2.*np.pi)*2.),
+                                                          np.cos(t*(2.*np.pi)*2.),
+                                                          t]))
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
