@@ -95,6 +95,29 @@ class ParametricLinePrimitive(Animator):
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setLightOff(1)
 
+class ParametricDashedLinePrimitive(Animator):
+    def __init__(self, func, param_interv=np.array([0, 1]),
+                 thickness=1., color=Vec4(1.,1.,1.,1.), howmany_points=50,
+                 howmany_periods=50):
+        Animator.__init__(self)
+        self.thickness = thickness
+        self.color = color
+        self.howmany_points = howmany_points
+        self.howmany_periods = howmany_periods
+        self.func = func
+        self.makeObject(func, param_interv, thickness, color, howmany_points, howmany_periods)
+
+    def makeObject(self, func, param_interv, thickness, color, howmany_points, howmany_periods):
+        # draw a parametric curve
+        from simple_objects.custom_geometry import createColoredParametricCurveGeomNode
+        self.node = createColoredParametricDashedCurveGeomNode(
+            func=func,
+            param_interv=param_interv, thickness=thickness, color=color, howmany_points=howmany_points,
+            howmany_periods=howmany_periods)
+
+        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setLightOff(1)
+
 class ConePrimitive(Animator):
     def __init__(self):
         super(ConePrimitive, self).__init__()

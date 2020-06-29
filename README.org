@@ -27,9 +27,12 @@ pip install -r ./requirements.txt
 * Notes
 ** Branched Podcast Idea
 *** DONE Plot a parametric curve
-*** TODO Plot a bezier curve
-*** TODO implement coulomb repulsion of particles with strong damping
-*** TODO map an mp3 file along a bezier curve
+**** TODO Plot a dashed parametric curve
+Think about how to plot this in a reasonable way (or compare with how matplotlib does it, it actually bends dashes over the corners of a line going through a point). I could try to extend my createColoredParametricDashedCurveGeomNode, but it seems pretty complicated, and I sunk already too much time into that. 
+**** TODO Plot differently colored parametric curves
+*** Plot a bezier curve
+*** implement coulomb repulsion of particles with strong damping
+*** map an mp3 file along a bezier curve
 ** deferred tasks
 *** DEFERRED Plot the Bloch sphere
 *** DEFERRED triangulation of latex characters
