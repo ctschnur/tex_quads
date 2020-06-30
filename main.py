@@ -50,10 +50,10 @@ class MyApp(ShowBase):
 
         # -- Plot a bloch sphere
         from simple_objects.box import ParametricLinePrimitive
-        plp = ParametricLinePrimitive(lambda t: np.array([np.sin(t*(2.*np.pi)*1.),
-                                                          np.cos(
-                                                              t*(2.*np.pi)*1.),
-                                                          0]))
+        # plp = ParametricLinePrimitive(lambda t: np.array([np.sin(t*(2.*np.pi)*1.),
+        #                                                   np.cos(
+        #                                                       t*(2.*np.pi)*1.),
+        #                                                   0]))
         plp2 = ParametricLinePrimitive(lambda t: np.array([0,
                                                            np.sin(
                                                                t*(2.*np.pi)*1.),
@@ -64,15 +64,24 @@ class MyApp(ShowBase):
         #             0,
         #             np.cos(t*(2.*np.pi)*1.)]))
 
+        # --
+
         from simple_objects.custom_geometry import createColoredParametricDashedCurveGeomNode
 
         gn = createColoredParametricDashedCurveGeomNode(
-                func=(lambda t: np.array([t, t, t])),
-                param_interv=np.array([0, 1]),
-                thickness=5.,
-                color=Vec4(1., 1., 1., 1.),
-                howmany_points=50,
-                howmany_periods=50)
+            func=(lambda t: np.array([np.sin(t*(2.*np.pi)*1.),
+                                                          np.cos(
+                                                              t*(2.*np.pi)*1.),
+                                                          0]))# (lambda t: np.array([0,
+                                      # np.sin(
+                                      #     t*(2.*np.pi)*1.),
+                                      # np.cos(t*(2.*np.pi)*1.)]))
+            # (lambda t: np.array([t, t**2., 0.1]))
+            ,
+            param_interv=np.array([0, 1]),
+            thickness=1.,
+            # color=Vec4(1., 1., 1., 1.)
+        )
 
         nodePath = render.attachNewNode(gn)
         nodePath.setLightOff(1)

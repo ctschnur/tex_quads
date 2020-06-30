@@ -665,99 +665,99 @@ def createColoredParametricCurveGeomNode(
     return geomnode
 
 
-def createColoredParametricDashedCurveGeomNode(
-        func=(lambda t: np.array([t, t, t])),
-        param_interv=np.array([0, 1]),
-        thickness=5., color=Vec4(1., 1., 1., 1.),
-        howmany_points=50,
-        howmany_periods=50):
+# def createColoredParametricDashedCurveGeomNode(
+#         func=(lambda t: np.array([t, t, t])),
+#         param_interv=np.array([0, 1]),
+#         thickness=5., color=Vec4(1., 1., 1., 1.),
+#         howmany_points=50,
+#         howmany_periods=50):
 
-    # FIXME: drawing an arc as a dashed line is more complicated than I thought, especially if the dashes themselves aren't straight.
+#     # FIXME: drawing an arc as a dashed line is more complicated than I thought, especially if the dashes themselves aren't straight.
 
-    ls = LineSegs()
-    ls.setThickness(thickness)
-    ls.setColor(color)
+#     ls = LineSegs()
+#     ls.setThickness(thickness)
+#     ls.setColor(color)
 
-    t = np.linspace(param_interv[0], param_interv[1], num=howmany_points, endpoint=True)
+#     t = np.linspace(param_interv[0], param_interv[1], num=howmany_points, endpoint=True)
 
-    # dash_length = 0.1  # hardcoded for now
+#     # dash_length = 0.1  # hardcoded for now
 
-    # process: if 2. * (the current length) has a rest (floating point modulo) of less than
+#     # process: if 2. * (the current length) has a rest (floating point modulo) of less than
 
-    l_dseg = 0.1
+#     l_dseg = 0.1
 
-    p0 = None
-    p1 = None
-    l = 0.  # accumulated total length
-    l_dseg_acc = 0.  # accumulated partial length after the start of a dseg
+#     p0 = None
+#     p1 = None
+#     l = 0.  # accumulated total length
+#     l_dseg_acc = 0.  # accumulated partial length after the start of a dseg
 
-    for i, c_t in enumerate(t):
-        if i > 0:
-            p1 = func(c_t)
-            delta_l_vec = p1 - p0
-            p0_prime = p0
+#     for i, c_t in enumerate(t):
+#         if i > 0:
+#             p1 = func(c_t)
+#             delta_l_vec = p1 - p0
+#             p0_prime = p0
 
-            while True:  # do while loop, changing p0_prime and delta_l_prime
-                import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-                delta_l_prime_vec = p0_prime - p1
-                delta_l_prime_sign = np.sign(np.dot(delta_l_vec, delta_l_prime_vec))  # delta_l_prime_sign = +-1 : parallel/antiparallel
+#             while True:  # do while loop, changing p0_prime and delta_l_prime
+#                 import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+#                 delta_l_prime_vec = p0_prime - p1
+#                 delta_l_prime_sign = np.sign(np.dot(delta_l_vec, delta_l_prime_vec))  # delta_l_prime_sign = +-1 : parallel/antiparallel
 
-                if ((p0_prime != p1).any() and delta_l_prime_sign < 0):  # antiparallel, i.e. pp_seg has been undershot
-                    # going forward until p1 is reached
+#                 if ((p0_prime != p1).any() and delta_l_prime_sign < 0):  # antiparallel, i.e. pp_seg has been undershot
+#                     # going forward until p1 is reached
 
-                    delta = l_dseg - l_dseg_acc
-                    overshot = np.abs(delta) - np.linalg.norm(delta_l_prime_vec)  # if overshot is > 0, it has overshot
-                    old_overshot  # STUCK: OH MAN, it can have a whole array of overshots! that's too complicated for now. Laying it off ...
-                    if delta < 0 and np.abs(delta) <= np.linalg.norm(delta_l_prime_vec):
-                        # the dseg stops before or exactly at the end of the pp_seg
-                        l_step = np.abs(delta)
-                        l_dseg_acc += l_step  # add the length
-                        p0_prime += l_step * -delta_l_vec/np.linalg.norm(delta_l_vec)  # go forward
-                    elif delta < 0 and np.abs(delta) >= np.linalg.norm(delta_l_prime_vec):
-                        # the dseg overshoots the end of the pp_seg, i.e. goes further than p1
-                        # # so, make it go to p1 only, set p0 to p1, draw, break out of the while loop, continue the for loop
+#                     delta = l_dseg - l_dseg_acc
+#                     overshot = np.abs(delta) - np.linalg.norm(delta_l_prime_vec)  # if overshot is > 0, it has overshot
+#                     old_overshot  # STUCK: OH MAN, it can have a whole array of overshots! that's too complicated for now. Laying it off ...
+#                     if delta < 0 and np.abs(delta) <= np.linalg.norm(delta_l_prime_vec):
+#                         # the dseg stops before or exactly at the end of the pp_seg
+#                         l_step = np.abs(delta)
+#                         l_dseg_acc += l_step  # add the length
+#                         p0_prime += l_step * -delta_l_vec/np.linalg.norm(delta_l_vec)  # go forward
+#                     elif delta < 0 and np.abs(delta) >= np.linalg.norm(delta_l_prime_vec):
+#                         # the dseg overshoots the end of the pp_seg, i.e. goes further than p1
+#                         # # so, make it go to p1 only, set p0 to p1, draw, break out of the while loop, continue the for loop
 
-                        l_step = np.linalg.norm(delta_l_prime_vec)
-                        l_dseg_acc = 0.  # reset, since we arrived at the end of a dseg
-                        p0_prime = p1
-                    print("hey0")
+#                         l_step = np.linalg.norm(delta_l_prime_vec)
+#                         l_dseg_acc = 0.  # reset, since we arrived at the end of a dseg
+#                         p0_prime = p1
+#                     print("hey0")
 
-                elif ((p0_prime != p1).any() and delta_l_prime_sign > 0):  # parallel, i.e. pp_seg has been overshot
-                    # trim it and draw
-                    l_step = np.linalg.norm(p1 - p0_prime)
-                    # it has been overshot, so just say p0_prime = p1
-                    p0_prime = p1
-                    print("hey1")
+#                 elif ((p0_prime != p1).any() and delta_l_prime_sign > 0):  # parallel, i.e. pp_seg has been overshot
+#                     # trim it and draw
+#                     l_step = np.linalg.norm(p1 - p0_prime)
+#                     # it has been overshot, so just say p0_prime = p1
+#                     p0_prime = p1
+#                     print("hey1")
 
-                else:  # this should mean that the two vectors are equal, i.e. p0_prime hits p1 'by accident'
-                    assert (p0_prime == p1).all()
-                    l_step = 0
-                    p0_prime = p1
-                    print("hey2")
+#                 else:  # this should mean that the two vectors are equal, i.e. p0_prime hits p1 'by accident'
+#                     assert (p0_prime == p1).all()
+#                     l_step = 0
+#                     p0_prime = p1
+#                     print("hey2")
 
-                l += l_step
+#                 l += l_step
 
-                if l % (2. * l_dseg) < l_dseg:  # check if we are in a draw segment or in a non-draw segment of the dashing period "--  "
-                    # draw and move
-                    ls.drawTo(*tuple(p0_prime))
-                    ls.moveTo(*tuple(p0_prime))
-                else:
-                    # do not draw, just move
-                    ls.moveTo(*tuple(p0_prime))
+#                 if l % (2. * l_dseg) < l_dseg:  # check if we are in a draw segment or in a non-draw segment of the dashing period "--  "
+#                     # draw and move
+#                     ls.drawTo(*tuple(p0_prime))
+#                     ls.moveTo(*tuple(p0_prime))
+#                 else:
+#                     # do not draw, just move
+#                     ls.moveTo(*tuple(p0_prime))
 
-                if (p0_prime == p1).all():
-                    p0 = p1
-                    print("hey3")
-                    break
+#                 if (p0_prime == p1).all():
+#                     p0 = p1
+#                     print("hey3")
+#                     break
 
-        elif i == 0:  # goes in here first
-            p0 = func(c_t)
-            ls.moveTo(*tuple(p0))
+#         elif i == 0:  # goes in here first
+#             p0 = func(c_t)
+#             ls.moveTo(*tuple(p0))
 
-    geomnode = ls.create()
-    # nodepath = NodePath(geomnode)
+#     geomnode = ls.create()
+#     # nodepath = NodePath(geomnode)
 
-    return geomnode
+#     return geomnode
 
 # def createColoredParametricDashedCurveGeomNode(
 #             func=func,
@@ -884,3 +884,82 @@ def create_GeomNode_Single_Point(color_vec4=Vec4(1., 1., 1., 1.)):
     geom_node.addGeom(geom)
 
     return geom_node
+
+
+
+def draw_dash(ls, draw_state, # from_point,
+              from_point,
+              to_point):
+    """
+    draw_state: 1: draw and move
+                0: just move (don't draw)
+    """
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    if draw_state == 1:
+        if (from_point != to_point).any():
+            ls.moveTo(*tuple(from_point))
+            print("drawing from ", from_point, "to", to_point)
+            ls.drawTo(*tuple(to_point))
+            # ls.moveTo(*tuple(to_point))
+            return to_point
+    elif draw_state == 0:
+        # ls.moveTo(*tuple(from_point))
+        # ls.moveTo(*tuple(to_point))
+        return to_point
+    else:
+        import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        print("ERR in draw_dash: draw_state not defined")
+        exit(1)
+
+def bit_flip(x):
+    assert x == 1 or x == 0
+    return 1 - x
+
+def createColoredParametricDashedCurveGeomNode(
+        func# =(lambda t: np.array([t, t, t]))
+        ,
+        param_interv=np.array([0, 1]),
+        thickness=1., color=Vec4(1., 1., 1., 1.),
+        howmany_points=50,
+        # howmany_periods=50
+):
+
+    ls = LineSegs()
+    ls.setThickness(thickness)
+    ls.setColor(color)
+
+    t = np.linspace(param_interv[0], param_interv[1], num=howmany_points, endpoint=True)
+    points = np.array([func(ti) for ti in t])
+
+    dash_length = 0.25  # hardcoded for now
+    remaining_dash_length = dash_length
+
+    dash_draw_state = 0  # 1: draw, 0: no draw
+
+    # current point indices
+    ip1 = 0
+    ip2 = 1
+
+    remaining_pp_length = np.linalg.norm(points[ip1] - points[ip2])
+
+    draw_from_point = points[ip1]
+
+    while True:
+        remaining_pp_length = np.linalg.norm(points[ip2] - draw_from_point)
+        if remaining_dash_length <= remaining_pp_length:
+            draw_from_point = draw_dash(ls, dash_draw_state, draw_from_point, draw_from_point + remaining_dash_length * (points[ip2] - draw_from_point)/np.linalg.norm(points[ip2] - draw_from_point))
+            dash_draw_state = bit_flip(dash_draw_state)
+            remaining_dash_length = dash_length
+        else:
+            remaining_dash_length -= np.linalg.norm(points[ip2] - draw_from_point)
+            draw_from_point = draw_dash(ls, dash_draw_state, draw_from_point, points[ip2])
+            if ip2 < len(points) - 1:  # i.e. if it's a len(points) == 2 array, then the max index is 1
+                ip1 += 1
+                ip2 += 1
+            else:
+                break
+
+    geomnode = ls.create()
+    # nodepath = NodePath(geomnode)
+
+    return geomnode
