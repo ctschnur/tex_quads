@@ -86,6 +86,57 @@ class MyApp(ShowBase):
         nodePath = render.attachNewNode(gn)
         nodePath.setLightOff(1)
 
+
+        v1 = Vector()
+        v1.groupNode.nodePath.setColor(1, 0, 0, 1)
+
+        v2 = Vector()
+        v2.groupNode.nodePath.setColor(0, 1, 0, 1)
+
+        g = GroupNode()
+        g.addChildNodePaths([v1.groupNode.nodePath])
+
+
+        def heymyfunc(t, vec, g, twirlingvec):
+            r = 1.
+            x = r * np.cos(t)
+            z = r * np.sin(t)
+            x_fast = r * np.cos(t*2)
+            z_fast = r * np.sin(t*2)
+            vec.setVectorTipPoint(Vec3(-x, 0, -z)*0.5)
+            twirlingvec.setVectorTipPoint(Vec3(x_fast, 0, z_fast)*0.2)
+
+            g.nodePath.setMat(math_utils.getTranslationMatrix3d_forrowvecs(x, 0, z))
+            twirlingvec.groupNode.nodePath.setMat(math_utils.getTranslationMatrix3d_forrowvecs(x, 0, z))
+
+        t_0 = 0.
+        t_f = 2*3.1415
+
+        seq = Sequence(
+            Parallel(
+                LerpFunc(
+                    heymyfunc,
+                    fromData=0,
+                    toData=t_f,
+                    duration=1,
+                    extraArgs=[v1, g, v2]
+                )
+            )
+        ).loop(playRate=0.2)
+
+
+
+
+
+        # import cmath
+
+        # def R_x(omega, t):
+        #     """ rotation around the x-axis """
+        #     return np.exp(-1j)
+
+
+        # v3 =
+
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
             for child in children:
