@@ -21,21 +21,20 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 
-class Box2d(Animator):
+from simple_objects.custom_geometry import createColoredParametricDashedCurveGeomNode
 
+class IndicatorPrimitive(Animator):
     def __init__(self):
         Animator.__init__(self)
-
         self.makeObject()
 
     def makeObject(self):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
-        self.nodePath.setTwoSided(True)  # enable backface-culling for all Animators
+        self.nodePath.setTwoSided(True)
 
-class Box2dCentered(Box2d):
-
+class Box2dCentered(IndicatorPrimitive):
     def __init__(self):
         super(Box2dCentered, self).__init__()
 
@@ -44,25 +43,22 @@ class Box2dCentered(Box2d):
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
         self.nodePath = render.attachNewNode(self.node)
 
-# ------ make a line instead of a box (what in OpenGL is called a GL_LINE)
-
 class LinePrimitive(Animator):
-    def __init__(self, thickness=1., color=Vec4(1.,1.,1.,1.)):
+    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.)):
         Animator.__init__(self)
         self.thickness = thickness
         self.color = color
         self.makeObject(thickness, color)
 
     def makeObject(self, thickness, color):
-        self.node = custom_geometry.createColoredUnitLineGeomNode(thickness=thickness, color_vec4=self.color)
+        self.node = custom_geometry.createColoredUnitLineGeomNode(
+            thickness=thickness, color_vec4=self.color)
         self.nodePath = render.attachNewNode(self.node)
-        # self.nodePath.setTwoSided(True)  # no need for backface culling in the case of a GL_LINE
-
         self.nodePath.setLightOff(1)
 
-class LineDashedPrimitive(Animator):
 
-    def __init__(self, thickness=1., color=Vec4(1.,1.,1.,1.), howmany_periods=5.):
+class LineDashedPrimitive(Animator):
+    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.), howmany_periods=5.):
         Animator.__init__(self)
         self.thickness = thickness
         self.color = color
@@ -76,9 +72,10 @@ class LineDashedPrimitive(Animator):
 
         self.nodePath.setLightOff(1)
 
+
 class ParametricLinePrimitive(Animator):
     def __init__(self, func, param_interv=np.array([0, 1]),
-                 thickness=1., color=Vec4(1.,1.,1.,1.), howmany_points=50):
+                 thickness=1., color=Vec4(1., 1., 1., 1.), howmany_points=50):
         Animator.__init__(self)
         self.thickness = thickness
         self.color = color
@@ -96,23 +93,30 @@ class ParametricLinePrimitive(Animator):
         self.nodePath.setLightOff(1)
 
 class ParametricDashedLinePrimitive(Animator):
-    def __init__(self, func, param_interv=np.array([0, 1]),
-                 thickness=1., color=Vec4(1.,1.,1.,1.), howmany_points=50,
+    def __init__(self,
+                 func,
+                 param_interv=np.array([0,
+                 1]),
+                 thickness=1.,
+                 color=Vec4(1., 1., 1., 1.),
+                 howmany_points=50,
                  howmany_periods=50):
         Animator.__init__(self)
-        self.thickness = thickness
-        self.color = color
-        self.howmany_points = howmany_points
-        self.howmany_periods = howmany_periods
-        self.func = func
-        self.makeObject(func, param_interv, thickness, color, howmany_points, howmany_periods)
+        self.makeObject(
+            func,
+            param_interv,
+            thickness,
+            color,
+            howmany_points,
+            howmany_periods)
 
     def makeObject(self, func, param_interv, thickness, color, howmany_points, howmany_periods):
-        # draw a parametric curve
-        from simple_objects.custom_geometry import createColoredParametricCurveGeomNode
         self.node = createColoredParametricDashedCurveGeomNode(
             func=func,
-            param_interv=param_interv, thickness=thickness, color=color, howmany_points=howmany_points,
+            param_interv=param_interv,
+            thickness=thickness,
+            color=color,
+            howmany_points=howmany_points,
             howmany_periods=howmany_periods)
 
         self.nodePath = render.attachNewNode(self.node)

@@ -20,7 +20,6 @@ import numpy as np
 
 
 class Animator:
-    # interval/sequence initiate functions
     def initiateTranslationMovement(self, v_x=0., v_z=0., duration=0., delay=0.):
         extraArgs = [duration, v_x, v_z]
         self.p3d_interval = LerpFunc(

@@ -4,7 +4,7 @@ from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2d
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
 from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
 # , ArrowHeadCone
-from simple_objects import box
+from simple_objects import primitives
 from local_utils import math_utils
 
 import numpy as np

@@ -1,5 +1,5 @@
 from simple_objects import custom_geometry
-from simple_objects.box import Box2d
+from simple_objects.primitives import IndicatorPrimitive
 from local_utils import texture_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from conventions import conventions
@@ -21,7 +21,7 @@ import hashlib
 import numpy as np
 
 
-class LatexTextureObject(Box2d):
+class LatexTextureObject(IndicatorPrimitive):
     def __init__(self, tex_expression):
         Animator.__init__(self)
 

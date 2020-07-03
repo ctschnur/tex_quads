@@ -3,7 +3,7 @@ from conventions import conventions
 from simple_objects import custom_geometry
 
 from local_utils import math_utils
-from .box import Box2d, Box2dCentered, LinePrimitive, LineDashedPrimitive, ConePrimitive
+from primitives import IndicatorPrimitive, Box2dCentered, LinePrimitive, LineDashedPrimitive, ConePrimitive
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
@@ -24,7 +24,6 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 import sys, os
-
 
 class Point(Box2dCentered):
     scale_z = .05
