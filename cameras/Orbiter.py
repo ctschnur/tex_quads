@@ -121,10 +121,24 @@ class Orbiter:
         myDirectObject.accept('shift-wheel_down', self.handle_zoom_minus)
 
         # polling for zoom is better than events
-
         self.plus_button = KeyboardButton.ascii_key('+')
         self.minus_button = KeyboardButton.ascii_key('-')
         # taskMgr.add(self.poll_zoom_plus_minus, 'Zoom')
+
+
+        # pressing 1, 3, 7 makes you look straight at the origin from y, x, z axis
+        myDirectObject = DirectObject.DirectObject()
+        myDirectObject.accept('1', self.set_view_to_xy_plane)
+
+        myDirectObject = DirectObject.DirectObject()
+        myDirectObject.accept('3', self.set_view_to_yz_plane)
+
+        myDirectObject = DirectObject.DirectObject()
+        myDirectObject.accept('7', self.set_view_to_xz_plane)
+
+        # myDirectObject = DirectObject.DirectObject()
+        # myDirectObject.accept('wheel_up', self.handle_wheel_up)
+
 
         # --- fix a point light to the side of the camera
         from panda3d.core import PointLight
@@ -237,6 +251,24 @@ class Orbiter:
         # wIsPressed = base.mouseWatcherNode.isButtonDown(KeyboardButton.asciiKey("w"))
 
         # print("wIsPressed: ", wIsPressed)
+
+    def set_view_to_xy_plane(self):
+        self.phi = -np.pi/2.
+        self.theta = np.pi/2.
+        self.set_camera_pos_spherical_coords()
+        self.set_pointlight_pos_spherical_coords()
+
+    def set_view_to_yz_plane(self):
+        self.phi = 0.
+        self.theta = np.pi/2.
+        self.set_camera_pos_spherical_coords()
+        self.set_pointlight_pos_spherical_coords()
+
+    def set_view_to_xz_plane(self):
+        self.phi = -np.pi/2.
+        self.theta = 0.
+        self.set_camera_pos_spherical_coords()
+        self.set_pointlight_pos_spherical_coords()
 
     def handle_control_wheel_down(self):
         self.theta = self.theta - 0.1

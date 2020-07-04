@@ -1,10 +1,7 @@
 from conventions import conventions
-
 from simple_objects import custom_geometry
-
 from local_utils import math_utils
-from primitives import IndicatorPrimitive, Box2dCentered, LinePrimitive, LineDashedPrimitive, ConePrimitive
-
+from .primitives import IndicatorPrimitive, Box2dCentered, LinePrimitive, LineDashedPrimitive, ConePrimitive
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
 from direct.showbase.ShowBase import ShowBase
@@ -306,8 +303,6 @@ class LineDashed1dObject(LineDashedPrimitive):
         return self._rotation_forrowvecs
 
 
-
-
 class Line2dObject(Box2dCentered):
     width = 0.025
     initial_length = 1.
@@ -471,6 +466,7 @@ class ArrowHeadConeShaded(Box2dCentered):
 
         # override the vertex colors of the model
         self.nodePath.setColor(self.color)
+
 
 from conventions.conventions import compute2dPosition
 from panda3d.core import TextNode

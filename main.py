@@ -1,9 +1,8 @@
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
-from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Pollygon2dTestLineStrips
+from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
 from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
-# , ArrowHeadCone
 from simple_objects import primitives
 from local_utils import math_utils
 
@@ -39,61 +38,59 @@ class MyApp(ShowBase):
         from plot_utils.pointcloud.pointcloud import plot_xy_z
         x = np.linspace(0., 1., num=20, endpoint=True)
         y = np.linspace(0., 1., num=20, endpoint=True)
-        # plot_xy_z(x, y, lambda x, y: x**3. + y**3.)
-        # plot_xy_z(x, y, lambda x, y: 0)
-
-        # from simple_objects.primitives import ParametricLinePrimitive
-        # plp = ParametricLinePrimitive(lambda t: np.array([np.sin(t*(2.*np.pi)*2.),
-        #                                                   np.cos(t*(2.*np.pi)*2.),
-        #                                                   t]))
+        plot_xy_z(x, y, lambda x, y: x**3. + y**3.)
 
         # -- Plot a bloch sphere
         from simple_objects.primitives import ParametricLinePrimitive
-        # plp = ParametricLinePrimitive(lambda t: np.array([np.sin(t*(2.*np.pi)*1.),
-        #                                                   np.cos(
-        #                                                       t*(2.*np.pi)*1.),
-        #                                                   0]))
 
-        plp2 = ParametricLinePrimitive(lambda t: np.array([
-                4./(1.5/t)**2.,
-                np.cos(2*np.pi/t),
-                (t)**2.,
-                # np.sin(t*(2.*np.pi)*1.),
-                # np.cos(t*(2.*np.pi)*1.),
-                # 0
+        plp1 = ParametricLinePrimitive(
+            lambda t: np.array([
+                0,
+                np.cos(t*(2.*np.pi)*1.),
+                np.sin(t*(2.*np.pi)*1.)
             ]), howmany_points=1000)
 
+        from simple_objects.primitives import ParametricDashedLinePrimitive
 
-        # plp2 = ParametricLinePrimitive(lambda t: np.array([0,
-        #                                                    np.sin(
-        #                                                        t*(2.*np.pi)*1.),
-        #                                                    np.cos(t*(2.*np.pi)*1.)]))
+        plp2 = ParametricDashedLinePrimitive(lambda t: np.array([
+            np.sin(t*(2.*np.pi)*1.),
+            np.cos(t*(2.*np.pi)*1.),
+            0
+        ]), howmany_points=1000)
 
-        # plp2 = ParametricLinePrimitive(lambda t: np.array([
-        #             np.sin(t*(2.*np.pi)*1.),
-        #             0,
-        #             np.cos(t*(2.*np.pi)*1.)]))
+        # plot a bezier curve in the yz plane
+        import scipy.special
 
-        # --
+        def BezierCurve(t, P_arr):
+            _sum = 0
+            n = len(P_arr) - 1
 
-        # from simple_objects.custom_geometry import createColoredParametricDashedCurveGeomNode
+            assert len(P_arr) >= 2  # at least a linear bezier curve
+            assert t >= 0. and t <= 1.
 
-        # gn = createColoredParametricDashedCurveGeomNode(
-        #     func=(lambda t: np.array([
-        #         4./t**2.,
-        #         np.cos(np.log(t)),
-        #         (4./t**2.)**np.cos(np.log(t))
-        #         # np.sin(t*(2.*np.pi)*1.),
-        #         # np.cos(t*(2.*np.pi)*1.),
-        #         # 0
-        #     ])),
-        #     param_interv=np.array([0, 1]),
-        #     thickness=1.,
-        #     # color=Vec4(1., 1., 1., 1.)
-        # )
+            for i, P_i in enumerate(P_arr):
+                _sum += (scipy.special.comb(n, i)
+                         * (1. - t)**(n - np.float(i))
+                         * t**np.float(i)
+                         * P_i)
+            return _sum
 
-        # nodePath = render.attachNewNode(gn)
-        # nodePath.setLightOff(1)
+        bez_points = np.array([[0., 0., 0.],
+                               [0., 1., 1.],  # ,
+                               [0., 0, 1.],
+                               [1., 1., 1.]
+                               ])
+
+        beziercurve = ParametricLinePrimitive(
+            lambda t:
+            np.array([
+                BezierCurve(t, bez_points)[0],
+                BezierCurve(t, bez_points)[1],
+                BezierCurve(t, bez_points)[2]
+            ]),
+            param_interv=np.array([0, 1]),
+            thickness=5,
+            color=Vec4(1., 1., 0., 1.))
 
         # v1 = Vector()
         # v1.groupNode.nodePath.setColor(1, 0, 0, 1)
@@ -103,7 +100,6 @@ class MyApp(ShowBase):
 
         # g = GroupNode()
         # g.addChildNodePaths([v1.groupNode.nodePath])
-
 
         # def heymyfunc(t, vec, g, twirlingvec):
         #     r = 1.
@@ -132,13 +128,11 @@ class MyApp(ShowBase):
         #     )
         # ).loop(playRate=0.2)
 
-
         # import cmath
 
         # def R_x(omega, t):
         #     """ rotation around the x-axis """
         #     return np.exp(-1j)
-
 
         # v3 =
 

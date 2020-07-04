@@ -920,9 +920,7 @@ def createColoredParametricDashedCurveGeomNode(
         ,
         param_interv=np.array([0, 1]),
         thickness=1., color=Vec4(1., 1., 1., 1.),
-        howmany_points=50,
-        # howmany_periods=50
-):
+        howmany_points=50):
 
     ls = LineSegs()
     ls.setThickness(thickness)

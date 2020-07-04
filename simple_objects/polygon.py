@@ -50,7 +50,7 @@ class Polygon2dTestTriangles(Animator):
         # self.nodePath.setRenderModeWireframe()
 
 
-class Pollygon2dTestLineStrips(Animator):
+class Polygon2dTestLineStrips(Animator):
     def __init__(self, symbol_geometries):
         Animator.__init__(self)
 

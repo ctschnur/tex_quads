@@ -27,6 +27,8 @@ pip install -r ./requirements.txt
 * Notes
 ** Branched Podcast Idea
 *** DONE Plot a parametric curve
+**** DONE Make blender-like side, top, front view (map to number keys)
+**** TODO Draw 2d bezier curve with handles
 **** TODO Plot a dashed parametric curve
 Think about how to plot this in a reasonable way (or compare with how matplotlib does it, it actually bends dashes over the corners of a line going through a point). I could try to extend my createColoredParametricDashedCurveGeomNode, but it seems pretty complicated, and I sunk already too much time into that. 
 **** TODO Plot differently colored parametric curves
