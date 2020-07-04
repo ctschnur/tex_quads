@@ -26,26 +26,65 @@ class Point(Box2dCentered):
     scale_z = .05
     scale_x = .05
 
-    def __init__(self, point_type="primitive"):
+    highlight_scale_factor = 2.
+
+    highlight_color = Vec4(1., 0., 0., 1.)  # red
+
+    def __init__(self, pos=Vec3(0., 0., 0.), color=Vec4(1., 1., 1., 1.), point_type="primitive", thickness=5.):
         self.point_type = point_type
+        self.pos = pos
+        self.color = color
+        self.usual_color = color
+        self.highlighted = False
+        self.thickness = thickness
 
         super(Point, self).__init__()
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
-        if self.point_type != "primitive":
+        if self.point_type == "quasi2d":
             self.nodePath.setScale(self.scale_x, 1., self.scale_z)
+
+        self.nodePath.setPos(*self.pos)
+        self.nodePath.setColor(*self.color)
+        self.setThickness(self.thickness)
+
+    def setPos(self, pos):
+        """
+        Parameters:
+        -  Vec3 position
+        """
+        self.pos = pos
+        self.nodePath.setPos(*self.pos)
+
+    def setColor(self, color):
+        self.color = color
+        self.nodePath.setColor(*self.color)
+
+    def setThickness(self, thickness):
+        self.thickness = thickness
+
+        if self.point_type == "primitive":
+            self.nodePath.setRenderModeThickness(self.thickness)
+        elif self.point_type == "quasi2d":
+            self.nodePath.setScale(self.scale_x * self.highlight_scale_factor,
+                                   self.scale_x * self.highlight_scale_factor,
+                                   self.scale_x * self.highlight_scale_factor)
+        else:
+            print("Error: setThickness to Point of 2d extension not working yet.")
+            exit(1)
 
     def makeObject(self):
         if self.point_type == "primitive":
             self.node = custom_geometry.create_GeomNode_Single_Point(
                 color_vec4=Vec4(1., 1., 1., 1.))
+            self.nodePath = render.attachNewNode(self.node)
         else:
             self.node = custom_geometry.createColoredUnitQuadGeomNode(
                 color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
+            self.nodePath = render.attachNewNode(self.node)
             self.nodePath.setTwoSided(True)
 
-        self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setLightOff(1)
 
         if self.point_type == "primitive":

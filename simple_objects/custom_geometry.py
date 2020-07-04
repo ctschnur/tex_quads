@@ -886,7 +886,6 @@ def create_GeomNode_Single_Point(color_vec4=Vec4(1., 1., 1., 1.)):
     return geom_node
 
 
-
 def draw_dash(ls, draw_state, # from_point,
               from_point,
               to_point):
