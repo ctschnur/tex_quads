@@ -77,12 +77,16 @@ class OrbiterLens:
 
 
 class Orbiter:
-    def __init__(self, radius=2.):
+    def __init__(self, camera, radius=2.):
         base.disableMouse()
         self.orbit_center = Vec3(0., 0., 0.)
         self.r = radius
         self.phi = 0.
         self.theta = np.pi/3.
+
+
+        # camera stuff
+        self.camera = camera
 
         # --- hooks for camera movement
         self.camera_move_hooks = []  # store function objects

@@ -36,8 +36,6 @@ dropMask = BitMask32.bit(1)
 
 highlight = VBase4(.3,.3,.3,1)
 
-
-
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -120,7 +118,6 @@ class MyApp(ShowBase):
         # self.plnp.setPos(self.box, 0., 0., 40.)
         # render.setLight(self.plnp)
 
-
     def setupCollisionObjects(self):
         # creating stuff
         self.pick_traverser = CollisionTraverser()
@@ -173,6 +170,5 @@ class MyApp(ShowBase):
                 print("picked object: ",
                       # picked_obj_with_tag.getTags(), " tag: ",
                       ", the object: ", picked_obj_with_tag, ", the position: ", picked_obj_pos)
-
 app = MyApp()
 app.run()

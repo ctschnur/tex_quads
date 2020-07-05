@@ -160,7 +160,6 @@ class MyApp(ShowBase):
 
         BezierCurve(point_coords_arr)
 
-
         # -- make draggable control points
         objectManager = objectMangerClass()
         mouseCollision = mouseCollisionClass()
