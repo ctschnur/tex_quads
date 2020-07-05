@@ -32,7 +32,8 @@ pip install -r ./requirements.txt
 ***** Plot and implement handles for bezier control points
 ****** TODO make an object picker through collision detection
 - basic picker implemented: pick.py
-  -> now generalize the picking to an orbiter camera
+  -> now generalize the picking to an orbiter camer
+******* TODO onPress: save viewing plane (in 3d), then calculate new position from dragging within that plane
 
 **** DONE Plot a dashed parametric curve
 *** Plot a bezier curve
