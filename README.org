@@ -31,6 +31,9 @@ pip install -r ./requirements.txt
 **** Draw 2d bezier curve with handles
 ***** Plot and implement handles for bezier control points
 ****** TODO make an object picker through collision detection
+- basic picker implemented: pick.py
+  -> now generalize the picking to an orbiter camera
+
 **** DONE Plot a dashed parametric curve
 *** Plot a bezier curve
 *** implement coulomb repulsion of particles with strong damping

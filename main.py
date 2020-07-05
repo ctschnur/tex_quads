@@ -34,7 +34,7 @@ class MyApp(ShowBase):
         render.setAntialias(AntialiasAttrib.MAuto)
 
         ob = Orbiter(radius=3.)
-        # cs = CoordinateSystem(ob)
+        cs = CoordinateSystem(ob)
 
         # # -- plot surface using points
         # from plot_utils.pointcloud.pointcloud import plot_xy_z
@@ -58,6 +58,7 @@ class MyApp(ShowBase):
             pt = Point(pos=Vec3(*p), thickness=10, point_type="quasi2d")
             pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
             control_points.append(pt)
+
 
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
