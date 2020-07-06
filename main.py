@@ -34,7 +34,6 @@ class PickableObjectManager:
     at creation, use this class to generate a new individual tag for it """
     def __init__( self ):
         self.objectIdCounter = 0
-        # self.objectDict = dict()
 
     def tag( self, objectNp, # objectClass
     ):
@@ -43,20 +42,139 @@ class PickableObjectManager:
         objectNp.setTag('objectId', objectTag)
 
 
+class DragAndDropObjectsManager:
+    """ Stores all draggable objects.
+    Picking works using the nodepath. Thus, we need to store somewhere
+    all pickable objects, and then search their nodepaths to get to the one
+    that was picked.
+    Each drag and drop object has to have an individual tag,
+    at creation, use this class to generate a new individual tag for it.
+    Once it's picked for dragging, the dragAndDropObjectsManager of the context
+    is searched for the picked nodepath """
+    def __init__( self ):
+        self.objectIdCounter = 0
+        self.draggable_objects = []
+
+    def add_pickable_object_to_draggable_objects(self, pickable_object):
+        self.draggable_objects.append(pickable_object)
+        print("pickable object ", pickable_object, " added to ", self)
+
+    def clear_draggable_objects(self):
+        self.draggable_objects = []
+
+    def get_pickable_object_from_nodepath(self, object_nodepath):
+        """ Go through draggable_objects and query their nodepaths to search
+        the object with object_nodepath """
+
+        for c_do in self.draggable_objects:
+            if c_do.nodePath == object_nodepath:
+                return c_do
+        return None
+
+
+class Dragger:
+    """ each draggable object gets a dragger, bundling the
+    relevant information about it's state and doing calculations """
+    def __init__(self, nodePath):
+        # FIXME: figure out a better way than passing the nodePath in here
+        self.nodePath = nodePath
+
+        self.position_before_dragging = None
+        self.mouse_position_before_dragging = None
+
+    def init_dragging(self):
+        """ save original position """
+
+        r0_obj = math_utils.p3d_to_np(self.nodePath.getPos())
+
+        self.position_before_dragging = Vec3(*r0_obj)
+
+        mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
+        # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
+
+        self.mouse_position_before_dragging = mouse_pos
+
+        # -- setup a task that updates the position
+
+        # ---- dragging
+        base.accept("escape", sys.exit)
+        # base.accept('mouse1', self.onPress)
+        base.accept('mouse1-up', self.end_dragging)
+
+        # create an individual task for an individual dragger object
+        self.dragging_mouse_move_task = taskMgr.add(self.update_dragging, 'update_dragging')
+
+    def update_dragging(self, task):
+        """ save original position,"""
+
+        r0_obj = math_utils.p3d_to_np(self.nodePath.getPos())
+
+        v_cam_forward = math_utils.p3d_to_np(render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
+        v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
+        # self.camera_gear.camera.node().getLens().getViewVector()
+
+        v_cam_up = math_utils.p3d_to_np(render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getUpVector()))
+        v_cam_up = v_cam_up / np.linalg.norm(v_camup)
+
+        r_cam = math_utils.p3d_to_np(self.camera_gear.camera.getPos())
+
+        e_up = math_utils.p3d_to_np(v_cam_up/np.linalg.norm(v_cam_up))
+        # e_up = e_up / np.linalg.norm(e_up)
+        e_cross = math_utils.p3d_to_np(np.cross(v_cam_forward/np.linalg.norm(v_cam_forward), e_up))
+
+        # determine the middle origin of the draggable plane (where the plane intersects the camera's forward vector)
+        r0_middle_origin = math_utils.LinePlaneCollision(v_cam_forward, r0_obj, v_cam_forward, r_cam)
+
+        print("r0_obj", r0_obj)
+        print("v_cam_forward", v_cam_forward)
+        print("v_cam_up", v_cam_up)
+        print("r_cam", r_cam)
+        print("e_up", e_up)
+        print("e_cross", e_cross)
+        print("r0_middle_origin", r0_middle_origin)
+
+
+        # -- calculate the bijection between mouse coordinates m_x, m_y and plane coordinates p_x, p_y
+        # ---- calculate (solely camera and object needed and the recorded mouse position before dragging) the p_xy_offset
+        p_xy_offset = conventions.getFilmSizeCoordinates(self.mouse_position_before_dragging[0], self.mouse_position_before_dragging[1], p_x_0=0., p_y_0=0.)
+
+        mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
+        # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
+
+        p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], p_xy_offset[0], p_xy_offset[1])
+
+        drag_vec = p_x * e_cross + p_y * e_up
+
+        print("drag_vec", drag_vec)
+
+        # set the position while dragging
+        self.nodePath.setPos(self.position_before_dragging + Vec3(*drag_vec))
+
+        return task.cont
+
+    def end_dragging(self):
+        self.position_before_dragging = None
+        self.mouse_position_before_dragging = None
+        taskMgr.remove(self.dragging_mouse_move_task)
+
+
 class PickablePoint(Point):
     """ a flat point (2d box) parented by render """
     def __init__(self, pickableObjectManager, **kwargs):
         Point.__init__(self, **kwargs)
 
         self.nodePath.setColor(1., 0., 0., 1.)
-        pickableObjectManager.tag(self.nodePath, )
+        pickableObjectManager.tag(self.nodePath)
+
+        self.dragger = Dragger(self.nodePath)
 
         # self.box.setTag('MyObjectTag', '1')
 
 
 class CollisionPicker:
     """ This stores a ray, attached to a camera """
-    def __init__(self, camera_gear, render, mousewatchernode, base):
+    def __init__(self, camera_gear, render, mousewatchernode, base, dragAndDropObjectsManager):
+        self.dragAndDropObjectsManager = dragAndDropObjectsManager
 
         # -- things that are needed to do picking from different camera orientations
         self.camera_gear = camera_gear  # e.g. the orbiter class is a camera_gear
@@ -104,7 +222,7 @@ class CollisionPicker:
 
         # get the position of the mouse, then position the ray where the mouse clicked
         # mouse_pos = base.mouseWatcherNode.getMouse()
-        mouse_pos = self.base.mouseWatcherNode.getMouse()
+        mouse_pos = base.mouseWatcherNode.getMouse()
 
         self.pick_collision_ray.setFromLens(self.camera.node(), mouse_pos[0], mouse_pos[1])
 
@@ -120,38 +238,25 @@ class CollisionPicker:
             # check to see if indeed an object was picked, and which posiition it has
             if not picked_obj_with_tag.isEmpty():
                 picked_obj_pos = entry.getSurfacePoint(render)
-                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
                 print("picked object: ",
                       # picked_obj_with_tag.getTags(), " tag: ",
                       ", the object: ", picked_obj_with_tag, ", the position: ", picked_obj_pos)
                 picked_obj_with_tag.setColor(1., 1., 1., 1.)
 
-                r0_obj = math_utils.p3d_to_np(picked_obj_with_tag.getPos())
-                # v_cam_forward = render.getRelativeVector(self.camera_gear.camera, Vec3.forward())
-                # check if this is the same thing as
-                v_cam_forward = math_utils.p3d_to_np(render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
-                v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
-                # self.camera_gear.camera.node().getLens().getViewVector()
-                v_cam_up = math_utils.p3d_to_np(render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getUpVector()))
-                v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
+                # to retrieve the properties of the picked object associated with the dragging and dropping,
+                # search the DragAndDropObjectsManager's array for the picked NodePath
 
-                r_cam = math_utils.p3d_to_np(self.camera_gear.camera.getPos())
+                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+                picked_draggable_object = self.dragAndDropObjectsManager.get_pickable_object_from_nodepath(picked_obj_with_tag)
 
-                print("r0_obj", r0_obj)
-                print("v_cam_forward", v_cam_forward)
-                print("v_cam_up", v_cam_up)
-                print("r_cam", r_cam)
+                if picked_draggable_object is None:
+                    print("picked_draggable_object is None, no object found in draggable object manager")
+                    return
+                else:
+                    # set drag state of this object to True, save original position and add in the mousemoveevent a function updating it's position based on the mouse position
+                    picked_draggable_object.dragger.init_dragging()
 
-                e_up = math_utils.p3d_to_np(v_cam_up/np.linalg.norm(v_cam_up))
-                # e_up = e_up / np.linalg.norm(e_up)
-                e_cross = math_utils.p3d_to_np(np.cross(v_cam_forward/np.linalg.norm(v_cam_forward), e_up))
-
-                # determine the middle origin of the draggable plane (where the plane intersects the camera's forward vector)
-                r0_middle_origin = math_utils.LinePlaneCollision(v_cam_forward, r0_obj, v_cam_forward, r_cam)
-
-                print("e_up", e_up)
-                print("e_cross", e_cross)
-                print("r0_middle_origin", r0_middle_origin)
 
 
 class MyApp(ShowBase):
@@ -181,10 +286,10 @@ class MyApp(ShowBase):
         BezierCurve(point_coords_arr)
 
 
-
         pickableObjectManager = PickableObjectManager()
 
-        collisionPicker = CollisionPicker(ob, render, self.mouseWatcherNode, base)
+        dragAndDropObjectsManager = DragAndDropObjectsManager()
+        collisionPicker = CollisionPicker(ob, render, self.mouseWatcherNode, base, dragAndDropObjectsManager)
 
         myDirectObject = DirectObject.DirectObject()
         myDirectObject.accept('mouse1', collisionPicker.onMouseTask)
@@ -193,10 +298,12 @@ class MyApp(ShowBase):
         for p in point_coords_arr:
             pt = PickablePoint(pickableObjectManager,
                                pos=Vec3(*p), thickness=10, point_type="quasi2d")
+
+            dragAndDropObjectsManager.add_pickable_object_to_draggable_objects(pt)
+
             pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
             pt.nodePath.showBounds()
             control_points.append(pt)
-
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()

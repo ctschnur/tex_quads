@@ -1,5 +1,4 @@
 from direct.showbase.ShowBase import ShowBase
-
 from panda3d.core import (
     Mat4,
     Vec3,
@@ -144,3 +143,16 @@ def compute2dPosition(nodePath, point = Point3(0, 0, 0)):
     # If project() returns false, it means the point was behind the
     # lens.
     return None
+
+
+def getFilmSizeCoordinates(m_x, m_y, p_x_0=0., p_y_0=0.):
+    """ get actual orthogonal viewing film coordinates,
+    (like those returned by getFilmSize())
+    (dependent on the window's aspect ratio), from mouse coordinates
+    which are by default between -1 and 1 (window edges) """
+    filmsize = base.cam.node().getLens().getFilmSize()
+
+    p_x = p_x_0 + m_x * filmsize[0]
+    p_y = p_y_0 + m_y * filmsize[1]
+
+    return p_x, p_y
