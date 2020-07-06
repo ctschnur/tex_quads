@@ -75,6 +75,13 @@ class OrbiterLens:
         self.width = width
         self.height = height
 
+    def getOrthoLensRange(self):
+        """ when calling mouse_pos = self.base.mouseWatcherNode.getMouse(),
+        then mouse_pos is a 2d point in the range (-1, 1), (-1, 1).
+        To get the position relative to the film size (for my custom orthogonal
+        lens), """
+        return self.width, self.height
+
 
 class Orbiter:
     def __init__(self, camera, radius=2.):

@@ -525,7 +525,8 @@ class Pinned2dLabel:
         self.update()
 
     def update(self):
-        pos_rel_to_cam = base.cam.get_relative_point(base.render, self.refpoint3d)
+        pos_rel_to_cam = base.cam.get_relative_point(base.render,
+                                                     self.refpoint3d)
         p2d = Point2()
 
         if not self.nodeisattachedtoaspect2d:
