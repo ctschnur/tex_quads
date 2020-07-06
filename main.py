@@ -41,12 +41,6 @@ class PickableObjectManager:
         self.objectIdCounter += 1
         objectTag = str(self.objectIdCounter)
         objectNp.setTag('objectId', objectTag)
-    #     self.objectDict[objectTag] = objectClass
-
-    # def get( self, objectTag ):
-    #     if objectTag in self.objectDict:
-    #       return self.objectDict[objectTag]
-    #     return None
 
 
 class PickablePoint(Point):
@@ -58,29 +52,6 @@ class PickablePoint(Point):
         pickableObjectManager.tag(self.nodePath, )
 
         # self.box.setTag('MyObjectTag', '1')
-
-
-class DragDropObject:
-    dragMask = BitMask32.bit(1)
-    dropMask = BitMask32.bit(1)
-    highlight = VBase4(.3,.3,.3,1)
-
-    def __init__( self, np, objectManager):
-        self.model = np
-        self.previousParent = None
-        self.model.setCollideMask(dragMask)
-        self.objectManager = objectManager
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        self.objectManager.tag( self.model, self )
-
-    def onPress( self, mouseNp ):
-        self.previousParent = self.model.getParent()
-        self.model.wrtReparentTo( mouseNp )
-        self.model.setCollideMask(BitMask32.allOff())
-
-    def onRelease( self ):
-        self.model.wrtReparentTo( self.previousParent )
-        self.model.setCollideMask(dragMask)
 
 
 class CollisionPicker:
@@ -154,6 +125,33 @@ class CollisionPicker:
                       # picked_obj_with_tag.getTags(), " tag: ",
                       ", the object: ", picked_obj_with_tag, ", the position: ", picked_obj_pos)
                 picked_obj_with_tag.setColor(1., 1., 1., 1.)
+
+                r0_obj = math_utils.p3d_to_np(picked_obj_with_tag.getPos())
+                # v_cam_forward = render.getRelativeVector(self.camera_gear.camera, Vec3.forward())
+                # check if this is the same thing as
+                v_cam_forward = math_utils.p3d_to_np(render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
+                v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
+                # self.camera_gear.camera.node().getLens().getViewVector()
+                v_cam_up = math_utils.p3d_to_np(render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getUpVector()))
+                v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
+
+                r_cam = math_utils.p3d_to_np(self.camera_gear.camera.getPos())
+
+                print("r0_obj", r0_obj)
+                print("v_cam_forward", v_cam_forward)
+                print("v_cam_up", v_cam_up)
+                print("r_cam", r_cam)
+
+                e_up = math_utils.p3d_to_np(v_cam_up/np.linalg.norm(v_cam_up))
+                # e_up = e_up / np.linalg.norm(e_up)
+                e_cross = math_utils.p3d_to_np(np.cross(v_cam_forward/np.linalg.norm(v_cam_forward), e_up))
+
+                # determine the middle origin of the draggable plane (where the plane intersects the camera's forward vector)
+                r0_middle_origin = math_utils.LinePlaneCollision(v_cam_forward, r0_obj, v_cam_forward, r_cam)
+
+                print("e_up", e_up)
+                print("e_cross", e_cross)
+                print("r0_middle_origin", r0_middle_origin)
 
 
 class MyApp(ShowBase):

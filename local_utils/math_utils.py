@@ -80,3 +80,22 @@ def getTranslationMatrix3d_forrowvecs(bx, by, bz):
 
 def getNormFromP3dVector(p3dvec3):
     return np.linalg.norm([p3dvec3.getX(), p3dvec3.getY(), p3dvec3.getZ()])
+
+
+def LinePlaneCollision(planeNormal, planePoint, rayDirection, rayPoint, epsilon=1e-6):
+    """
+    quickly taken from https://rosettacode.org/wiki/Find_the_intersection_of_a_line_with_a_plane#Python
+    Returns the intersection point
+    """
+
+    ndotu = planeNormal.dot(rayDirection)
+    if abs(ndotu) < epsilon:
+            raise RuntimeError("no intersection or line is within plane")
+
+    w = rayPoint - planePoint
+    si = -planeNormal.dot(w) / ndotu
+    Psi = w + si * rayDirection + planePoint
+    return Psi
+
+def p3d_to_np(p3d_3f):
+    return np.array([p3d_3f[0], p3d_3f[1], p3d_3f[2]])
