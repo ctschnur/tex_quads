@@ -89,6 +89,8 @@ class Dragger:
         self.position_before_dragging = None
         self.mouse_position_before_dragging = None
 
+        self.counter = None
+
     def init_dragging(self):
         """ save original position """
 
@@ -109,11 +111,21 @@ class Dragger:
         base.accept('mouse1-up', self.end_dragging)
 
         # create an individual task for an individual dragger object
-        self.dragging_mouse_move_task = taskMgr.add(self.update_dragging, 'update_dragging')
+        self.dragging_mouse_move_task = taskMgr.add(self.update_dragging_task, 'update_dragging_task')
 
-    def update_dragging(self, task):
+        self.counter = 0
+
+        self.update_dragging()
+
+    def update_dragging_task(self, task):
         """ save original position,"""
+        self.update_dragging()
 
+        return task.cont
+
+    def update_dragging(self):
+        print("counter: ", self.counter)
+        self.counter += 1
         r0_obj = math_utils.p3d_to_np(self.nodePath.getPos())
 
         v_cam_forward = math_utils.p3d_to_np(render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
@@ -157,7 +169,6 @@ class Dragger:
         # set the position while dragging
         self.nodePath.setPos(self.position_before_dragging + Vec3(*drag_vec))
 
-        return task.cont
 
     def end_dragging(self):
         self.position_before_dragging = None
