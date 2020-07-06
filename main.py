@@ -43,7 +43,7 @@ class PickableObjectManager:
 
 
 class DragAndDropObjectsManager:
-    """ Stores all draggable objects.
+    """ Stores all dragger objects.
     Picking works using the nodepath. Thus, we need to store somewhere
     all pickable objects, and then search their nodepaths to get to the one
     that was picked.
@@ -51,33 +51,39 @@ class DragAndDropObjectsManager:
     at creation, use this class to generate a new individual tag for it.
     Once it's picked for dragging, the dragAndDropObjectsManager of the context
     is searched for the picked nodepath """
+
     def __init__( self ):
         self.objectIdCounter = 0
-        self.draggable_objects = []
+        self.draggers = []
 
-    def add_pickable_object_to_draggable_objects(self, pickable_object):
-        self.draggable_objects.append(pickable_object)
-        print("pickable object ", pickable_object, " added to ", self)
+    def add_dragger(self, dragger):
+        self.draggers.append(dragger)
+        print("dragger ", dragger, " added to ", self)
 
     def clear_draggable_objects(self):
-        self.draggable_objects = []
+        self.draggers = []
 
-    def get_pickable_object_from_nodepath(self, object_nodepath):
-        """ Go through draggable_objects and query their nodepaths to search
-        the object with object_nodepath """
+    def get_dragger_from_nodePath(self, nodePath):
+        """ Go through draggers and query their nodepaths to search
+        the object with nodePath.
+        Needed e.g. after picking, which gets you back only the lower-level nodePath,
+        not the dragger or directly the pickableobject """
 
-        for c_do in self.draggable_objects:
-            if c_do.nodePath == object_nodepath:
-                return c_do
+        for c_drg in self.draggers:
+            if c_drg.nodePath == nodePath:
+                return c_drg
         return None
 
 
 class Dragger:
-    """ each draggable object gets a dragger, bundling the
-    relevant information about it's state and doing calculations """
-    def __init__(self, nodePath):
+    """ a dragger object gets assigned a pickable object, and
+    dragger objects are managed by DragAndDropObjetsManager.
+    it bundles the relevant information about a drag's state """
+    def __init__(self, pickablepoint):
+
+        self.pickablepoint = pickablepoint
         # FIXME: figure out a better way than passing the nodePath in here
-        self.nodePath = nodePath
+        self.nodePath = pickablepoint.nodePath
 
         self.position_before_dragging = None
         self.mouse_position_before_dragging = None
@@ -166,8 +172,6 @@ class PickablePoint(Point):
         self.nodePath.setColor(1., 0., 0., 1.)
         pickableObjectManager.tag(self.nodePath)
 
-        self.dragger = Dragger(self.nodePath)
-
         # self.box.setTag('MyObjectTag', '1')
 
 
@@ -248,7 +252,7 @@ class CollisionPicker:
                 # search the DragAndDropObjectsManager's array for the picked NodePath
 
                 # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-                picked_draggable_object = self.dragAndDropObjectsManager.get_pickable_object_from_nodepath(picked_obj_with_tag)
+                picked_draggable_object = self.dragAndDropObjectsManager.get_dragger_from_nodePath(picked_obj_with_tag)
 
                 if picked_draggable_object is None:
                     print("picked_draggable_object is None, no object found in draggable object manager")
@@ -299,7 +303,9 @@ class MyApp(ShowBase):
             pt = PickablePoint(pickableObjectManager,
                                pos=Vec3(*p), thickness=10, point_type="quasi2d")
 
-            dragAndDropObjectsManager.add_pickable_object_to_draggable_objects(pt)
+            pt_dragger = Dragger(pt)
+
+            dragAndDropObjectsManager.add_dragger(pt_dragger)
 
             pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
             pt.nodePath.showBounds()
