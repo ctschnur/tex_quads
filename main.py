@@ -79,8 +79,9 @@ class Dragger:
     """ a dragger object gets assigned a pickable object, and
     dragger objects are managed by DragAndDropObjetsManager.
     it bundles the relevant information about a drag's state """
-    def __init__(self, pickablepoint):
+    def __init__(self, pickablepoint, camera_gear):
 
+        self.camera_gear = camera_gear
         self.pickablepoint = pickablepoint
         # FIXME: figure out a better way than passing the nodePath in here
         self.nodePath = pickablepoint.nodePath
@@ -120,7 +121,7 @@ class Dragger:
         # self.camera_gear.camera.node().getLens().getViewVector()
 
         v_cam_up = math_utils.p3d_to_np(render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getUpVector()))
-        v_cam_up = v_cam_up / np.linalg.norm(v_camup)
+        v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
 
         r_cam = math_utils.p3d_to_np(self.camera_gear.camera.getPos())
 
@@ -252,15 +253,14 @@ class CollisionPicker:
                 # search the DragAndDropObjectsManager's array for the picked NodePath
 
                 # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-                picked_draggable_object = self.dragAndDropObjectsManager.get_dragger_from_nodePath(picked_obj_with_tag)
+                picked_dragger = self.dragAndDropObjectsManager.get_dragger_from_nodePath(picked_obj_with_tag)
 
-                if picked_draggable_object is None:
-                    print("picked_draggable_object is None, no object found in draggable object manager")
+                if picked_dragger is None:
+                    print("picked_dragger is None, no corresponding dragger with the picked object found in draggable object manager")
                     return
                 else:
                     # set drag state of this object to True, save original position and add in the mousemoveevent a function updating it's position based on the mouse position
-                    picked_draggable_object.dragger.init_dragging()
-
+                    picked_dragger.init_dragging()
 
 
 class MyApp(ShowBase):
@@ -303,7 +303,7 @@ class MyApp(ShowBase):
             pt = PickablePoint(pickableObjectManager,
                                pos=Vec3(*p), thickness=10, point_type="quasi2d")
 
-            pt_dragger = Dragger(pt)
+            pt_dragger = Dragger(pt, ob)
 
             dragAndDropObjectsManager.add_dragger(pt_dragger)
 
