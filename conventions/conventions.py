@@ -152,7 +152,7 @@ def getFilmSizeCoordinates(m_x, m_y, p_x_0=0., p_y_0=0.):
     which are by default between -1 and 1 (window edges) """
     filmsize = base.cam.node().getLens().getFilmSize()
 
-    p_x = p_x_0 + m_x * filmsize[0]
-    p_y = p_y_0 + m_y * filmsize[1]
+    p_x = p_x_0 + m_x * filmsize[0] / 2.
+    p_y = p_y_0 + m_y * filmsize[1] / 2.
 
     return p_x, p_y

@@ -103,6 +103,12 @@ class Dragger:
 
         self.mouse_position_before_dragging = mouse_pos
 
+        # ---- calculate (solely camera and object needed and the recorded mouse position before dragging) the self.p_xy_offset
+        self.p_xy_offset = conventions.getFilmSizeCoordinates(-self.mouse_position_before_dragging[0], -self.mouse_position_before_dragging[1], p_x_0=0., p_y_0=0.)
+
+        print("mouse_position_before_dragging: ", self.mouse_position_before_dragging)
+        print("p_xy_offset: ", self.p_xy_offset)
+
         # -- setup a task that updates the position
 
         # ---- dragging
@@ -154,13 +160,14 @@ class Dragger:
 
 
         # -- calculate the bijection between mouse coordinates m_x, m_y and plane coordinates p_x, p_y
-        # ---- calculate (solely camera and object needed and the recorded mouse position before dragging) the p_xy_offset
-        p_xy_offset = conventions.getFilmSizeCoordinates(self.mouse_position_before_dragging[0], self.mouse_position_before_dragging[1], p_x_0=0., p_y_0=0.)
 
         mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
         # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
 
-        p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], p_xy_offset[0], p_xy_offset[1])
+        print("p_xy_offset: ", self.p_xy_offset)
+
+        p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], self.p_xy_offset[0], self.p_xy_offset[1])
+        # p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], 0., 0.)
 
         drag_vec = p_x * e_cross + p_y * e_up
 
@@ -272,6 +279,7 @@ class CollisionPicker:
                 else:
                     # set drag state of this object to True, save original position and add in the mousemoveevent a function updating it's position based on the mouse position
                     picked_dragger.init_dragging()
+                    print("init dragging ----------------")
 
 
 class MyApp(ShowBase):
