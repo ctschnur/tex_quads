@@ -89,7 +89,15 @@ class Dragger:
         self.position_before_dragging = None
         self.mouse_position_before_dragging = None
 
-        self.counter = None
+        self.counter = None  # debugging
+
+        self.last_frame_drag_pos = None # to query each frame if the position (state) of the dragged object has indeed changed
+        self.state_changed = None  # true or false,
+        # i.e. if you want to register events on the drag (e.g. updating of the geometry of a bezier curve),
+        # for the events to be run, this state variable has to be checked first
+
+        self.on_state_change_functions = []  # store functions to be called on state change
+
 
     def init_dragging(self):
         """ save original position """
@@ -123,9 +131,27 @@ class Dragger:
 
         self.update_dragging()
 
+    def add_on_state_change_function(self, func):
+        """ you can pass functions (or lambda functions) to here for execution """
+
+        self.on_state_change_functions.append(func)
+
+
+    def remove_on_state_change_function(self, func):
+        """ remove """
+
+        for f in self.on_state_change_functions:
+            self.on_state_change_functions.remove(f)
+
+
     def update_dragging_task(self, task):
-        """ save original position,"""
-        self.update_dragging()
+        """ whatever needs to be done every frame while dragging """
+        self.update_dragging()  # this changed state (or not)
+
+        if self.state_changed == True:
+            # execute the functions that were given to
+            for f in self.on_state_change_functions:
+                f()
 
         return task.cont
 
@@ -158,23 +184,33 @@ class Dragger:
         print("e_cross", e_cross)
         print("r0_middle_origin", r0_middle_origin)
 
-
         # -- calculate the bijection between mouse coordinates m_x, m_y and plane coordinates p_x, p_y
 
         mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
         # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
 
-        print("p_xy_offset: ", self.p_xy_offset)
+        # print("p_xy_offset: ", self.p_xy_offset)
 
         p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], self.p_xy_offset[0], self.p_xy_offset[1])
         # p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], 0., 0.)
 
         drag_vec = p_x * e_cross + p_y * e_up
 
-        print("drag_vec", drag_vec)
+        # print("drag_vec", drag_vec)
 
         # set the position while dragging
-        self.nodePath.setPos(self.position_before_dragging + Vec3(*drag_vec))
+        self.this_frame_drag_pos = self.position_before_dragging + Vec3(*drag_vec)
+        self.nodePath.setPos(self.this_frame_drag_pos)
+
+        if self.last_frame_drag_pos is None:
+            self.state_changed = True
+        elif self.last_frame_drag_pos == self.this_frame_drag_pos:
+            self.state_changed = False  # TODO: in the future, a state change on drag will probably not only be the position
+        else:
+            self.state_changed = True
+
+        # update the state between frames
+        self.last_frame_drag_pos = self.this_frame_drag_pos
 
 
     def end_dragging(self):
@@ -282,6 +318,9 @@ class CollisionPicker:
                     print("init dragging ----------------")
 
 
+def sayhi():
+    print("heylo ------- ######")
+
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -323,6 +362,8 @@ class MyApp(ShowBase):
                                pos=Vec3(*p), thickness=10, point_type="quasi2d")
 
             pt_dragger = Dragger(pt, ob)
+
+            pt_dragger.add_on_state_change_function(sayhi)
 
             dragAndDropObjectsManager.add_dragger(pt_dragger)
 
