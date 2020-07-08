@@ -57,6 +57,10 @@ class Point(Box2dCentered):
         self.pos = pos
         self.nodePath.setPos(*self.pos)
 
+    def getPos(self):
+        assert self.nodePath.getPos() == Vec3(*self.pos)  # this should be pretty much always true for point-type higher level classes
+        return self.pos
+
     def setColor(self, color):
         self.color = color
         self.nodePath.setColor(*self.color)
