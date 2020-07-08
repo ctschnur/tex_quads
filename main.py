@@ -24,7 +24,7 @@ from cameras.Orbiter import Orbiter
 
 from direct.task import Task
 
-from plot_utils.bezier_curve import BezierCurve
+from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
@@ -37,45 +37,15 @@ class MyApp(ShowBase):
         ob = Orbiter(base.cam, radius=3.)
         cs = CoordinateSystem(ob)
 
+        ob.set_view_to_yz_plane()
+
         # # -- plot surface using points
         # from plot_utils.pointcloud.pointcloud import plot_xy_z
         # x = np.linspace(0., 1., num=20, endpoint=True)
         # y = np.linspace(0., 1., num=20, endpoint=True)
         # plot_xy_z(x, y, lambda x, y: x**3. + y**3.)
 
-        ob.set_view_to_yz_plane()
-
-        # plot bezier curve together with points
-
-        point_coords_arr = np.array([# [0., 0., 0.],
-                                     # [0., 0., 1.],
-                                     [0., 1., 1.],
-                                     # [0., 1., 0.]
-        ])
-
-        # BezierCurve(point_coords_arr)
-
-
-        from interactive_tools.dragging_and_dropping import (
-            PickableObjectManager,  # should be able to handle both dragging simple picking
-            # DraggableObjectManager,  # a draggable object is also pickable
-            PickablePoint,
-            DraggablePoint,
-            CollisionPicker)
-
-        pickableObjectManager = PickableObjectManager()
-
-        collisionPicker = CollisionPicker(
-            ob, render, self.mouseWatcherNode, base)
-
-        control_points = []
-        for p in point_coords_arr:
-            pt = PickablePoint(pickableObjectManager,
-                               pos=Vec3(*p), thickness=10, point_type="quasi2d")
-            pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
-            pt.nodePath.showBounds()
-
-            control_points.append(pt)
+        dbc = DraggableBezierCurve(ob)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()

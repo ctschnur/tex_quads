@@ -83,6 +83,10 @@ class OrbiterLens:
         return self.width, self.height
 
 
+
+
+
+
 class Orbiter:
     def __init__(self, camera, radius=2.):
         base.disableMouse()
