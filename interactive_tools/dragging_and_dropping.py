@@ -2,7 +2,7 @@ from conventions import conventions
 
 from local_utils import math_utils
 
-from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded, Point3d
 
 from panda3d.core import NodePath, Vec3, Point3, Point2, Mat4, Vec4
 
@@ -208,15 +208,13 @@ class Dragger:
         taskMgr.remove(self.dragging_mouse_move_task)
 
 
-class PickablePoint(Point):
+class PickablePoint(Point3d):
     """ a flat point (2d box) parented by render """
     def __init__(self, pickableObjectManager, **kwargs):
-        Point.__init__(self, **kwargs)
+        Point3d.__init__(self, **kwargs)
 
         self.nodePath.setColor(1., 0., 0., 1.)
         pickableObjectManager.tag(self.nodePath)
-
-        # self.box.setTag('MyObjectTag', '1')
 
 
 class CollisionPicker:

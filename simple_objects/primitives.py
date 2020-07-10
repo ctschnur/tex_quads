@@ -27,6 +27,7 @@ from simple_objects.custom_geometry import createColoredParametricDashedCurveGeo
 class IndicatorPrimitive(Animator):
     def __init__(self):
         Animator.__init__(self)
+        # self.pos = np.array([0., 0., 0.])
         self.makeObject()
 
     def makeObject(self):
@@ -34,6 +35,22 @@ class IndicatorPrimitive(Animator):
             color_vec4=Vec4(1., 1., 1., 1.))
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setTwoSided(True)
+
+    def setPos(self, pos):
+        """
+        Parameters:
+        -  Vec3 position
+        """
+        self.pos = pos
+        self.nodePath.setPos(*self.pos)
+
+    def getPos(self):
+        assert self.nodePath.getPos() == Vec3(*self.pos)  # this should be pretty much always true for point-type higher level classes
+        return self.pos
+
+    def setColor(self, color):
+        self.color = color
+        self.nodePath.setColor(*self.color)
 
 
 class Box2dCentered(IndicatorPrimitive):
@@ -46,9 +63,11 @@ class Box2dCentered(IndicatorPrimitive):
         self.nodePath = render.attachNewNode(self.node)
 
 
-class LinePrimitive(Animator):
+class LinePrimitive(IndicatorPrimitive):
     def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.)):
         Animator.__init__(self)
+        self.tip_point = np.array([1., 1., 1.])
+        self.tail_point = np.array([0., 0., 0.])
         self.thickness = thickness
         self.color = color
         self.makeObject(thickness, color)
@@ -58,6 +77,8 @@ class LinePrimitive(Animator):
             thickness=thickness, color_vec4=self.color)
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setLightOff(1)
+
+        # self.setPos(Vec3(0., 0., 0.))
 
 
 class LineDashedPrimitive(Animator):

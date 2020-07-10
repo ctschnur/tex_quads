@@ -2,7 +2,7 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
-from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
 from simple_objects import primitives
 from local_utils import math_utils
 
@@ -45,7 +45,24 @@ class MyApp(ShowBase):
         # y = np.linspace(0., 1., num=20, endpoint=True)
         # plot_xy_z(x, y, lambda x, y: x**3. + y**3.)
 
-        dbc = DraggableBezierCurve(ob)
+        # pp = PointPrimitive(pos=Vec3(1., 1., 1.))
+
+        # p3d = Point3d(pos=Vec3(1., 1., 1.))
+
+        dbc = DraggableBezierCurve(ob,
+                                   P_arr=np.array([[0.2, 0.2, 0.2],
+                                                   [0.2, 0.2, 1.2],
+                                                   [1.2, 1.2, 1.2],
+                                                   [1.2, 1.2, 0.2]]))
+
+        # gn = create_GeomNode_Sphere()
+        # np = NodePath(gn)
+        # np.reparentTo(render)
+
+        l = Line1dObject(thickness=5., color=Vec4(1,0,1,1))
+        l.setTipPoint(Vec3(1, 1, 1))
+        l.setPos(Vec3(0.5, 0.5, 0.5))
+        l.setTipPoint(Vec3(0., 2., 2.))
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()

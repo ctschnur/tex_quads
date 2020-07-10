@@ -83,7 +83,7 @@ class DraggableBezierCurve(BezierCurve):
         # ---- go through the coordinates and assign PickablePoints
         for p in self.bez_points:
             pt = PickablePoint(self.pickableObjectManager,
-                               pos=Vec3(*p), thickness=10, point_type="quasi2d")
+                               pos=Vec3(*p))
 
             pt_dragger = Dragger(pt, self.camera_gear)
             pt_dragger.add_on_state_change_function(sayhi)

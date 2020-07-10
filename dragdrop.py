@@ -2,7 +2,7 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
-from simple_objects.simple_objects import Line2dObject, Point, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
 from simple_objects import primitives
 from local_utils import math_utils
 
@@ -166,7 +166,7 @@ class MyApp(ShowBase):
 
         control_points = []
         for p in point_coords_arr:
-            pt = Point(pos=Vec3(*p), thickness=10, point_type="quasi2d")
+            pt = PointPrimitive(pos=Vec3(*p), thickness=10)
             pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
             # control_points.append(pt)
             draggable = dragDropObjectClass(pt.nodePath, objectManager)

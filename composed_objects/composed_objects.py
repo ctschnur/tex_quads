@@ -5,6 +5,8 @@ from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from simple_objects.animator import Animator
 from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
 
+from simple_objects.simple_objects import Point3d
+
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
     Vec3,
@@ -132,13 +134,13 @@ class Vector:
         #   - translate arrowhead back to the scaled back line1's tip
 
         translation_to_tip_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
-            self.line1.vec_prime[0],
-            self.line1.vec_prime[1],
-            self.line1.vec_prime[2])
+            self.line1.tip_point[0],
+            self.line1.tip_point[1],
+            self.line1.tip_point[2])
 
         arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
-        arrowhead_direction = self.line1.vec_prime / \
-            np.linalg.norm(self.line1.vec_prime)
+        arrowhead_direction = self.line1.tip_point / \
+            np.linalg.norm(self.line1.tip_point)
         b_tilde = arrowhead_length * arrowhead_direction
         translation_to_match_point_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
             b_tilde[0],
@@ -155,9 +157,9 @@ class Vector:
         # figure out the factor by which to scale back the line1
         # based on the size of the arrow tip
         l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
-        arrowhead_direction = self.line1.vec_prime / \
-            np.linalg.norm(self.line1.vec_prime)
-        l_line_0 = np.linalg.norm(self.line1.vec_prime)
+        arrowhead_direction = self.line1.tip_point / \
+            np.linalg.norm(self.line1.tip_point)
+        l_line_0 = np.linalg.norm(self.line1.tip_point)
         c_scaling = l_line_0 / (l_line_0 - l_arrow)
 
         scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
@@ -398,7 +400,7 @@ class Scatter:
 
         # create the points
         for cur_x, cur_y, cur_z in zip(self.x, self.y, self.z):
-            cur_point = Point()
+            cur_point = Point3d()
             # FIXME: for 3d plots, this has to change
             cur_point.nodePath.setPos(cur_x, cur_y, cur_z)
             cur_point.nodePath.setColor(*self.color)

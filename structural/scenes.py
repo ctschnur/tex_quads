@@ -25,7 +25,7 @@ class Scene2d:
 
         # draw the box
         for cur_x, cur_y, cur_z in zip(self.x_lowerleft, self.y_lowerleft, self.z):
-            cur_point = Point()
+            cur_point = PointPrimitive()
             cur_point.nodePath.setPos(cur_x, 0, cur_y)
             cur_point.nodePath.setColor(*self.color)
             self.set_bbox.append(cur_point)
