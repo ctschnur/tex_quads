@@ -1,5 +1,7 @@
 from interactive_tools.dragging_and_dropping import PickableObjectManager, PickablePoint, Dragger, PickablePoint, CollisionPicker, DragAndDropObjectsManager
 
+from simple_objects.simple_objects import Line1dObject
+
 # from interactive_tools.dragging_and_dropping import PickableObjectManager
 
 from simple_objects.primitives import ParametricLinePrimitive
@@ -96,6 +98,17 @@ class DraggableBezierCurve(BezierCurve):
 
             self.control_points_pickable_points.append(pt)
 
+
+        # -- add a line betwen each set of 2 pickablepoints (like in inkscape)
+        # ---- with only 4 pickablepoints, assign a line to the fist 2 and the last 2
+        self.l1 = Line1dObject(thickness=1., color=Vec4(1,0,1,1))
+        self.l2 = Line1dObject(thickness=1., color=Vec4(1,0,1,1))
+        # l1.setPos(Vec3(0., 0., 0.))
+        # l1.setTipPoint(Vec3(0., 0., 0.))
+
+        self.updateCurveAfterPointCoordsChanged()
+
+
         # # -- add the update dragging tasks for each of the PickablePoints' draggers
         # for cppp in self.control_points_pickable_points:
         #     dragger = self.dragAndDropObjectsManager.get_dragger_from_nodePath(cppp.nodePath):
@@ -103,6 +116,16 @@ class DraggableBezierCurve(BezierCurve):
 
         # TODO: improve the design by letting DraggableBezierCurve inherit from DragAndDropObjectsManager,
         # it can be easily thought of as holding the dragger objects themselves
+
+    def updateHandleLinesAfterPointCoordsChanged(self):
+        """ update the handle lines to have tip/tail points at the positions of
+        the new coordinates of the pickable points """
+
+        self.l1.setPos(self.bez_points[0])
+        self.l1.setTipPoint(self.bez_points[1])
+
+        self.l2.setPos(self.bez_points[2])
+        self.l2.setTipPoint(self.bez_points[3])
 
 
     def updateCurveAfterPointCoordsChanged(self):
@@ -118,6 +141,8 @@ class DraggableBezierCurve(BezierCurve):
             new_point_coords.append(cppp.getPos())
 
         self.bez_points = new_point_coords
+
+        self.updateHandleLinesAfterPointCoordsChanged()
 
         # regenerate the curve, python should drop the reference-less previous ParametricLinePrimitive soon after
         self.beziercurve=ParametricLinePrimitive(

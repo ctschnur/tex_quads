@@ -71,6 +71,9 @@ class Point3d(Point):
         self.nodePath.reparentTo(render)
         self.node = self.nodePath.node()
 
+        # self.nodePath.setRenderModeWireFrame(False)
+        self.nodePath.setRenderModeFilled()
+
         # override the vertex colors of the model
         self.nodePath.setColor(self.color)
 
@@ -137,7 +140,6 @@ class Line1dObject(LinePrimitive):
 
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         self.form_from_primitive_trafo = self.nodePath.getMat()
-        # self.nodePath.setRenderModeWireframe()
 
         self.tip_point = np.array([0., 0., 0.])
         self.pos = np.array([0., 0., 0.])
@@ -285,7 +287,6 @@ class LineDashed1dObject(LineDashedPrimitive):
         # self.nodePath.setMat(self.form_from_primitive_trafo)
 
         self.form_from_primitive_trafo = self.nodePath.getMat()
-        # self.nodePath.setRenderModeWireframe()
 
         self.setTipPoint(Vec3(1., 0., 0.))
 
@@ -407,7 +408,6 @@ class Line2dObject(Box2dCentered):
         self.nodePath.setMat(self.form_from_primitive_trafo)
 
         # self.form_from_primitive_trafo = self.nodePath.getMat()
-        self.nodePath.setRenderModeWireframe()
         self.setTipPoint(Vec3(1., 0., 0.))
 
     def setTipPoint(self, tip_point):

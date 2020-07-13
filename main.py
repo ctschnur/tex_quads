@@ -28,6 +28,7 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
+
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -49,6 +50,12 @@ class MyApp(ShowBase):
 
         # p3d = Point3d(pos=Vec3(1., 1., 1.))
 
+        # dbc = DraggableBezierCurve(ob,
+        #                            P_arr=np.array([[0.2, 0.2, 0.2],
+        #                                            [0.2, 0.2, 1.2],
+        #                                            [1.2, 1.2, 1.2],
+        #                                            [1.2, 1.2, 0.2]]))
+
         dbc = DraggableBezierCurve(ob,
                                    P_arr=np.array([[0.2, 0.2, 0.2],
                                                    [0.2, 0.2, 1.2],
@@ -58,11 +65,6 @@ class MyApp(ShowBase):
         # gn = create_GeomNode_Sphere()
         # np = NodePath(gn)
         # np.reparentTo(render)
-
-        l = Line1dObject(thickness=5., color=Vec4(1,0,1,1))
-        l.setTipPoint(Vec3(1, 1, 1))
-        l.setPos(Vec3(0.5, 0.5, 0.5))
-        l.setTipPoint(Vec3(0., 2., 2.))
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
             children = parentnode.get_children()
