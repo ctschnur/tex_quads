@@ -2,7 +2,7 @@ from conventions import conventions
 
 from local_utils import math_utils
 
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded, Point3d
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, Point3d
 
 from panda3d.core import NodePath, Vec3, Point3, Point2, Mat4, Vec4
 

@@ -1,6 +1,11 @@
 from interactive_tools.dragging_and_dropping import PickableObjectManager, PickablePoint, Dragger, PickablePoint, CollisionPicker, DragAndDropObjectsManager
 
-from simple_objects.simple_objects import Line1dObject
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
+
+from local_utils import math_utils
+
+from simple_objects.simple_objects import Line1dSolid, PointPrimitive
+from composed_objects.composed_objects import Vector
 
 # from interactive_tools.dragging_and_dropping import PickableObjectManager
 
@@ -49,6 +54,7 @@ class BezierCurve:
                      * t**np.float(i)
                      * P_i)
         return _sum
+
 
 
 class DraggableBezierCurve(BezierCurve):
@@ -101,8 +107,8 @@ class DraggableBezierCurve(BezierCurve):
 
         # -- add a line betwen each set of 2 pickablepoints (like in inkscape)
         # ---- with only 4 pickablepoints, assign a line to the fist 2 and the last 2
-        self.l1 = Line1dObject(thickness=1., color=Vec4(1,0,1,1))
-        self.l2 = Line1dObject(thickness=1., color=Vec4(1,0,1,1))
+        self.l1 = Line1dSolid(thickness=1., color=Vec4(1,0,1,1))
+        self.l2 = Line1dSolid(thickness=1., color=Vec4(1,0,1,1))
         # l1.setPos(Vec3(0., 0., 0.))
         # l1.setTipPoint(Vec3(0., 0., 0.))
 
@@ -143,6 +149,135 @@ class DraggableBezierCurve(BezierCurve):
         self.bez_points = new_point_coords
 
         self.updateHandleLinesAfterPointCoordsChanged()
+
+        # regenerate the curve, python should drop the reference-less previous ParametricLinePrimitive soon after
+        self.beziercurve=ParametricLinePrimitive(
+            lambda t:
+            np.array([
+                BezierCurve.calcBezierCurve(t, self.bez_points)[0],
+                BezierCurve.calcBezierCurve(t, self.bez_points)[1],
+                BezierCurve.calcBezierCurve(t, self.bez_points)[2]
+            ]),
+            param_interv=np.array([0, 1]),
+            thickness=1.,
+            color=Vec4(1., 1., 0., 1.))
+
+
+class SelectableBezierCurve(DraggableBezierCurve):
+    def __init__(self, *args, **kwargs):
+
+        self.point_primitives = []
+        self.oriented_circles = []
+
+        self.tangent_vectors = []
+        self.normal_vectors = []
+        self.binormal_vectors = []
+
+        DraggableBezierCurve.__init__(self, *args, **kwargs)
+
+        # generate a tube mesh around the curve
+        self.updateTubeMesh()
+
+
+    def updateTubeMesh(self):
+        # -- re-calculate the points and path lengths
+        points, path_lengths = math_utils.getPointsAndPathLengthsAlongPolygonalChain(
+            func=(
+                lambda t: np.array([
+                    BezierCurve.calcBezierCurve(t, self.bez_points)[0],
+                    BezierCurve.calcBezierCurve(t, self.bez_points)[1],
+                    BezierCurve.calcBezierCurve(t, self.bez_points)[2]])
+                # lambda t: np.array([0, t, 2.7**t])
+            ),
+            param_interv=np.array([0., 1.]),
+            ed_subpath_length=0.2)
+
+
+        # ---- clear out the ancillary objects on update
+        for pp in self.point_primitives:
+            pp.nodePath.removeNode()
+
+        for oc in self.oriented_circles:
+            oc.nodePath.removeNode()
+
+        for tv in self.tangent_vectors:
+            tv.nodePath.removeNode()
+
+        for nv in self.normal_vectors:
+            nv.nodePath.removeNode()
+
+        for bv in self.binormal_vectors:
+            bv.nodePath.removeNode()
+
+
+        # ---- then re-generate them anew
+        self.point_primitives = []
+        self.oriented_circles = []
+
+        self.tangent_vectors = []
+        self.tangent_vectors_logical = []
+        self.normal_vectors = []
+        self.binormal_vectors = []
+
+        view_scale = 0.2
+
+        for i, p in enumerate(points):
+            self.point_primitives.append(PointPrimitive(pos=Vec3(*tuple(p))))
+            t_vec = None
+            if i > 0:
+                d_vec_r_of_s = points[i] - points[i-1]
+                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+                d_s = np.linalg.norm(path_lengths[i] - path_lengths[i-1])
+                t_vec = math_utils.normalize(d_vec_r_of_s/d_s)
+                self.oriented_circles.append(OrientedCircle(
+                    origin_point=points[i],
+                    normal_vector_vec3=Vec3(*tuple(t_vec))))
+
+                tv_line = Line1dSolid(color=Vec4(1., 0., 0., 1.))
+                tv_line.setTipPoint(points[i] + t_vec*view_scale)
+                tv_line.setTailPoint(points[i])
+
+                self.tangent_vectors.append(tv_line)
+                self.tangent_vectors_logical.append(t_vec)
+
+            if i > 1:  # after a change in the tangent vector, the normal vector is well-defined
+                n_vec = math_utils.normalize(
+                    self.tangent_vectors_logical[i-1] - self.tangent_vectors_logical[i-2])
+
+                nv_line = Line1dSolid(color=Vec4(0., 1., 0., 1.))
+                nv_line.setTipPoint(points[i] + n_vec*view_scale)
+                nv_line.setTailPoint(points[i])
+
+                self.normal_vectors.append(nv_line)
+
+                # after tangent vector and normal vector are well-defined, the binormal is also
+                b_vec = math_utils.normalize(
+                    np.cross(n_vec, t_vec))
+
+                bv_line = Line1dSolid(color=Vec4(0., 0., 1., 1.))
+                bv_line.setTipPoint(points[i] + b_vec*view_scale)
+                bv_line.setTailPoint(points[i])
+
+                self.binormal_vectors.append(bv_line)
+
+
+    def updateCurveAfterPointCoordsChanged(self):
+        """ if a PickablePoint has been dragged, you need to update the curve
+        i.e. here: fully recreate it from the coordinates of the PickablePoints """
+
+        # delete the old curve
+        self.beziercurve.nodePath.removeNode()
+
+        # extract the new coordinates from the pickable points
+        new_point_coords = []
+        for cppp in self.control_points_pickable_points:
+            new_point_coords.append(cppp.getPos())
+
+        self.bez_points = new_point_coords
+
+        self.updateHandleLinesAfterPointCoordsChanged()
+
+        self.updateTubeMesh()
 
         # regenerate the curve, python should drop the reference-less previous ParametricLinePrimitive soon after
         self.beziercurve=ParametricLinePrimitive(

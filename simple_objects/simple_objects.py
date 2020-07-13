@@ -2,7 +2,8 @@ from conventions import conventions
 from simple_objects import custom_geometry
 
 from local_utils import math_utils
-from .primitives import IndicatorPrimitive, Box2dCentered, LinePrimitive, LineDashedPrimitive, ConePrimitive
+from .primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
+from simple_objects.animator import Animator
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
 from direct.showbase.ShowBase import ShowBase
@@ -23,7 +24,6 @@ import hashlib
 import numpy as np
 import sys, os
 
-
 class Point(IndicatorPrimitive):
     def __init__(self, **kwargs):
         if 'pos' in kwargs:
@@ -37,28 +37,24 @@ class Point(IndicatorPrimitive):
             self.color = Vec4(1., 1., 1., 1.)
 
         super(Point, self).__init__()
-        self.doInitialSetupTransformation()
-
-    def doInitialSetupTransformation(self):
-        self.nodePath.setPos(*self.pos)
-        self.nodePath.setColor(*self.color)
-
 
 class Point3d(Point):
     def __init__(self, scale=0.025, **kwargs):
         self.scale = scale
         Point.__init__(self, **kwargs)
 
+        self.makeObject()
+        self.doInitialSetupTransformation()
+
     def doInitialSetupTransformation(self):
-        scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
-            self.scale,
-            self.scale,
-            self.scale)
+
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(self.scale, self.scale, self.scale))
 
         self.form_from_primitive_trafo = scaling_forrowvecs # * rotation_forrowvecs
         self.nodePath.setMat(self.form_from_primitive_trafo)
 
         self.setPos(self.pos)
+        self.setColor(self.color)
 
     def makeObject(self):
         # load a gltf file
@@ -81,23 +77,20 @@ class Point3d(Point):
 
 class PointPrimitive(Point):
     """ a pixel point (no real spatial extent for e.g. picking) """
-    def __init__(self, thickness=5., **kwargs):
-        self.thickness = thickness
+    def __init__(self, **kwargs):
         Point.__init__(self, **kwargs)
 
-    def setThickness(self, thickness):
-        self.thickness = thickness
-        self.nodePath.setRenderModeThickness(self.thickness)
-        self.setThickness(self.thickness)
+        self.makeObject()
 
     def makeObject(self):
         self.node = custom_geometry.create_GeomNode_Single_Point(
             color_vec4=Vec4(1., 1., 1., 1.))
+
         self.nodePath = render.attachNewNode(self.node)
-
         self.nodePath.setLightOff(1)
-
         self.nodePath.setRenderModeThickness(5)
+
+        self.setPos(self.pos)
 
 
 class Point2d(Point):
@@ -115,12 +108,70 @@ class Point2d(Point):
         self.nodePath.setLightOff(1)
 
 
-class Line1dObject(LinePrimitive):
+# ---- lines
+
+class LinePrimitive(IndicatorPrimitive):
+    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.)):
+        IndicatorPrimitive.__init__(self)
+        self.tip_point = np.array([1., 1., 1.])
+        self.tail_point = np.array([0., 0., 0.])
+        self.color = color
+        self.makeObject(thickness, color)
+
+    def makeObject(self, thickness, color):
+        self.node = custom_geometry.createColoredUnitLineGeomNode(
+            thickness=thickness, color_vec4=self.color)
+        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setLightOff(1)
+
+
+class Line1dPrimitive(LinePrimitive):
+    def __init__(self, thickness=1., **kwargs):
+        LinePrimitive.__init__(self, **kwargs)
+
+        self.thickness = thickness
+        self.makeObject(thickness, self.color)
+
+    def makeObject(self, thickness, color):
+        self.node = custom_geometry.createColoredUnitLineGeomNode(
+            thickness=thickness,
+            color_vec4=self.color)
+        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setLightOff(1)
+
+    def setTipPoint(self, tip_point):
+        # the diff_vec needs to be first scaled and rotated, then translated by self.pos
+        # to get a line at a position of a certain tip and tail point
+
+        self.tip_point = tip_point
+        diff_vec = tip_point - self.pos
+
+        rotation_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getMat4by4_to_rotate_xhat_to_vector(diff_vec))
+        self._rotation_forrowvecs = rotation_forrowvecs
+
+        # scaling matrix: scale the vector along xhat when it points in xhat direction
+        # (to prevent skewing if the vector's line is a mesh)
+
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(np.linalg.norm(diff_vec), 1., 1.))
+
+        # apply the net transformation
+        # first the scaling, then the rotation_forrowvecs
+        # remember, the row vector stands on the left in p3d multiplication
+        # so the order is reversed
+
+        scaling_and_rotation_forrowvecs = scaling_forrowvecs * self._rotation_forrowvecs
+
+        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(self.pos[0], self.pos[1], self.pos[2])
+
+        self.nodePath.setMat(self.form_from_primitive_trafo * scaling_and_rotation_forrowvecs * translation_forrowvecs)
+
+
+class Line1dSolid(Line1dPrimitive):
     initial_length = 1.
-    # thickness is derived from LinePrimitive
+    # thickness is derived from Line1dPrimitive
 
     def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
-        LinePrimitive.__init__(self, thickness=thickness, color=color)  # this also sets the position
+        Line1dPrimitive.__init__(self, thickness=thickness, color=color)  # this also sets the position
 
         self._rotation_forrowvecs = Mat4()
 
@@ -129,113 +180,12 @@ class Line1dObject(LinePrimitive):
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):
-        # if 'thickness' in kwargs:
-        #     self.thickness = kwargs.get('thickness')
-
-        # scaling = math_utils.getScalingMatrix3d_forrowvecs(1., 1., 1.)
         self.length = self.initial_length
-
-        # self.form_from_primitive_trafo = scaling * self.translation_to_xhat_forrowvecs
-        # self.nodePath.setMat(self.form_from_primitive_trafo)
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         self.form_from_primitive_trafo = self.nodePath.getMat()
-
-        self.tip_point = np.array([0., 0., 0.])
+        self.tip_point = None
         self.pos = np.array([0., 0., 0.])
         self.setTipPoint(Vec3(1., 0., 0.))
 
-    def setTipPoint(self, tip_point):
-        self.tip_point = tip_point
-
-        # --- Rodriguez rotation formula ---
-        # apply rodriguez formula to rotate the geometrie's given
-        # xhat = [1, 0, 0] vector to the destination vector v
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        a = np.array([1., 0., 0.], dtype=np.float)
-
-        diff_vec = tip_point - self.pos  # the diff_vec needs to be first scaled and rotated, then translated by self.pos
-        # to get a line at a position of a certain tip and tail point
-
-        diff_vec = np.array([diff_vec[0], diff_vec[1], diff_vec[2]], dtype=np.float)
-        b = diff_vec
-
-        theta = np.arccos(
-            np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
-
-        R = None
-        epsilon = 0.0000001
-        if theta < epsilon:  # edge case: parallel
-            # in this case, you can't divide by zero to get the rotation axis x
-            R = np.identity(3, dtype=np.float)
-        elif np.pi - theta < epsilon:  # edge case: antiparallel
-            # find a vector orthogonal to a,
-            # for this, e.g. first find the component of least magnitude
-            # of a, then calculate the cross product of the
-            # corresponding standard
-            # unit vector with a, which cannot be zero in magnitude
-
-            i = min(np.where(a == np.min(a))[0])
-
-            # chop up identity matrix to get the standard unit vector
-            e_i = np.identity(3)[i]
-
-            x = np.cross(a, e_i) / np.linalg.norm(np.cross(a, e_i))
-
-            A = np.array([
-                [0.,    -x[2],  x[1]],
-                [x[2],  0.,    -x[0]],
-                [-x[1], x[0],   0.]
-            ], dtype=np.float)
-
-            R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
-             + (1. - np.cos(theta)) * np.matmul(A, A))
-        else:
-            x = np.cross(a, b) / np.linalg.norm(np.cross(a, b))
-
-            A = np.array([
-                [0.,    -x[2],  x[1]],
-                [x[2],  0.,    -x[0]],
-                [-x[1], x[0],   0.]
-            ], dtype=np.float)
-
-            R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
-             + (1. - np.cos(theta)) * np.matmul(A, A))
-
-        R_4by4 = np.array(
-            [
-                [R[0][0], R[0][1], R[0][2], 0.],
-                [R[1][0], R[1][1], R[1][2], 0.],
-                [R[2][0], R[2][1], R[2][2], 0.],
-                [0., 0., 0., 1.]
-            ]
-        )
-
-        rotation = Mat4(*tuple(np.transpose(R_4by4).flatten()))
-
-        self._rotation_forrowvecs = rotation
-
-        # scaling matrix: scale the vector along xhat when it points in xhat direction
-        # (to prevent skewing if the vector's line is a mesh)
-        vx = np.linalg.norm(diff_vec)  # length
-        vy = 1.
-        vz = 1.
-        scaling = np.array([[vx,  0,  0, 0],
-                            [0,  vy,  0, 0],
-                            [0,   0, vz, 0],
-                            [0,   0,  0, 1]], dtype=np.float)
-        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-
-        # apply the net transformation
-        # first the scaling, then the rotation
-        # remember, the row vector stands on the left in p3d multiplication
-        # so the order is reversed
-        scaling_and_rotation_forrowvecs = trafo = scaling_forrowvecs * self._rotation_forrowvecs
-
-        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(self.pos[0], self.pos[1], self.pos[2])
-
-        self.nodePath.setMat(self.form_from_primitive_trafo * scaling_and_rotation_forrowvecs * translation_forrowvecs)
 
     def setPos(self, point_vec3):
         """ this is an alias for setting the tail point """
@@ -262,13 +212,27 @@ class Line1dObject(LinePrimitive):
         return self._rotation_forrowvecs
 
 
-class LineDashed1dObject(LineDashedPrimitive):
+class LineDashedPrimitive(Animator):
+    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.), howmany_periods=5.):
+        Animator.__init__(self)
+        self.thickness = thickness
+        self.color = color
+        self.howmany_periods = howmany_periods
+        self.makeObject(thickness, color, howmany_periods)
+
+    def makeObject(self, thickness, color, howmany_periods):
+        self.node = custom_geometry.createColoredUnitDashedLineGeomNode(
+            thickness=thickness, color_vec4=self.color, howmany_periods=5.)
+        self.nodePath = render.attachNewNode(self.node)
+
+        self.nodePath.setLightOff(1)
+
+
+class Line1dDashed(LineDashedPrimitive):
     initial_length = 1.
 
-    # thickness is derived from LinePrimitive
-
     def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), howmany_periods=5., **kwargs):
-        super(LineDashed1dObject, self).__init__(
+        super(Line1dDashed, self).__init__(
             thickness=thickness, color=color, howmany_periods=howmany_periods)
 
         self._rotation_forrowvecs = Mat4()
@@ -279,7 +243,6 @@ class LineDashed1dObject(LineDashedPrimitive):
         # if 'thickness' in kwargs:
         #     self.thickness = kwargs.get('thickness')
 
-        # scaling = math_utils.getScalingMatrix3d_forrowvecs(1., 1., 1.)
         self.length = self.initial_length
         # self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(0.5, 0, 0)
 
@@ -290,94 +253,6 @@ class LineDashed1dObject(LineDashedPrimitive):
 
         self.setTipPoint(Vec3(1., 0., 0.))
 
-    def setTipPoint(self, tip_point):
-        # --- Rodriguez rotation formula ---
-        # apply rodriguez formula to rotate the geometrie's given
-        # xhat = [1, 0, 0] vector to the destination vector v
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        a = np.array([1., 0., 0.], dtype=np.float)
-        self.tip_point = np.array(
-            [tip_point[0], tip_point[1], tip_point[2]], dtype=np.float)
-        b = self.tip_point
-
-        theta = np.arccos(
-            np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
-
-        R = None
-        epsilon = 0.0000001
-        if theta < epsilon:  # edge case: parallel
-            # in this case, you can't divide by zero to get the rotation axis x
-            R = np.identity(3, dtype=np.float)
-        elif np.pi - theta < epsilon:  # edge case: antiparallel
-            # find a vector orthogonal to a,
-            # for this, e.g. first find the component of least magnitude
-            # of a, then calculate the cross product of the
-            # corresponding standard
-            # unit vector with a, which cannot be zero in magnitude
-
-            i = min(np.where(a == np.min(a))[0])
-
-            # chop up identity matrix to get the standard unit vector
-            e_i = np.identity(3)[i]
-
-            x = np.cross(a, e_i) / np.linalg.norm(np.cross(a, e_i))
-
-            A = np.array([
-                [0.,    -x[2],  x[1]],
-                [x[2],  0.,    -x[0]],
-                [-x[1], x[0],   0.]
-            ], dtype=np.float)
-
-            R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
-             + (1. - np.cos(theta)) * np.matmul(A, A))
-        else:
-            x = np.cross(a, b) / np.linalg.norm(np.cross(a, b))
-
-            A = np.array([
-                [0.,    -x[2],  x[1]],
-                [x[2],  0.,    -x[0]],
-                [-x[1], x[0],   0.]
-            ], dtype=np.float)
-
-            R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
-             + (1. - np.cos(theta)) * np.matmul(A, A))
-
-        R_4by4 = np.array(
-            [
-                [R[0][0], R[0][1], R[0][2], 0.],
-                [R[1][0], R[1][1], R[1][2], 0.],
-                [R[2][0], R[2][1], R[2][2], 0.],
-                [0., 0., 0., 1.]
-            ]
-        )
-
-        rotation = Mat4(*tuple(np.transpose(R_4by4).flatten()))
-
-        self._rotation_forrowvecs = rotation
-
-        # scaling matrix: scale the vector along xhat when it points in xhat direction
-        # (to prevent skewing if the vector's line is a mesh)
-        vx = np.linalg.norm(self.tip_point)  # length
-        vy = 1.
-        vz = 1.
-        scaling = np.array([[vx,  0,  0, 0],
-                            [0,  vy,  0, 0],
-                            [0,   0, vz, 0],
-                            [0,   0,  0, 1]], dtype=np.float)
-        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-
-        # apply the net transformation
-        # first the scaling, then the rotation
-        # remember, the row vector stands on the left in p3d multiplication
-        # so the order is reversed
-        trafo = scaling_forrowvecs * self._rotation_forrowvecs
-
-        # if tip_point != Vec3(1., 0., 0.):
-        #     import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
-        self.nodePath.setMat(self.form_from_primitive_trafo * trafo)
-
     def getRotation(self):
         """
         forrowvecs
@@ -385,7 +260,6 @@ class LineDashed1dObject(LineDashedPrimitive):
 
         assert self._rotation_forrowvecs
         return self._rotation_forrowvecs
-
 
 class Line2dObject(Box2dCentered):
     width = 0.025
@@ -409,41 +283,6 @@ class Line2dObject(Box2dCentered):
 
         # self.form_from_primitive_trafo = self.nodePath.getMat()
         self.setTipPoint(Vec3(1., 0., 0.))
-
-    def setTipPoint(self, tip_point):
-        self.tip_point = np.array(
-            [tip_point[0], tip_point[1], tip_point[2]])
-
-        # rotation matrix for xhat
-        xhat = np.array([1, 0, 0])
-        normal = np.array([0, 1, 0])  # panda3d out of screen: yhat
-        # find angle \theta (\in [-pi, pi]) between \hat{x} and \hat{x}'
-        # using the arctan2 of a determinant and a dot product
-        det = np.dot(normal, np.cross(xhat, self.tip_point))
-        theta = np.arctan2(det, np.dot(xhat, self.tip_point))
-        rotation = np.array([[np.cos(theta),  0, np.sin(theta), 0],
-                             [0,               1,             0, 0],
-                             [-np.sin(theta),  0, np.cos(theta), 0],
-                             [0,               0,             0, 1]])
-        self._rotation_forrowvecs = Mat4(
-            *tuple(np.transpose(rotation).flatten()))
-
-        # scaling matrix for xhat
-        vx = np.linalg.norm(self.tip_point)  # length
-        vy = 1.
-        vz = 1.
-        scaling = np.array([[vx,  0,  0, 0],
-                            [0,  vy,  0, 0],
-                            [0,   0, vz, 0],
-                            [0,   0,  0, 1]])
-        scaling_forrowvecs = Mat4(*tuple(np.transpose(scaling).flatten()))
-
-        # apply the net transformation
-        # first the scaling, then the rotation
-        # remember, the row vector stands on the left in p3d multiplication
-        # so the order is reversed
-        trafo = scaling_forrowvecs * self._rotation_forrowvecs
-        self.nodePath.setMat(self.form_from_primitive_trafo * trafo)
 
     def getRotation(self):
         """
@@ -514,21 +353,21 @@ class ArrowHeadCone(Box2dCentered):
         self.nodePath.setTwoSided(True)
 
 
-class ArrowHeadConeShaded(Box2dCentered):
+class ArrowHeadConeShaded(IndicatorPrimitive):
     scale = .1
 
     def __init__(self, color=Vec4(0., 0., 0., 0.)):
         self.color=color
         super(ArrowHeadConeShaded, self).__init__()
+
+        self.makeObject()
+
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
         # self.nodePath.setScale(self.scale, self.scale, self.scale)
 
-        scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
-            ArrowHead.scale,
-            ArrowHead.scale,
-            ArrowHead.scale)
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(ArrowHead.scale, ArrowHead.scale, ArrowHead.scale))
 
         # the underlying model is already rotated in the x direction
         # rotation_forrowvecs = math_utils.get_R_y_forrowvecs(np.pi/2.)
@@ -638,3 +477,67 @@ class Pinned2dLabel:
         # parented by aspect2d
         from conventions.conventions import win_aspect_ratio
         self.textNodePath.setPos((p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1]+ self.yshift)
+
+
+class OrientedDisk(IndicatorPrimitive):
+    """ a disk with a normal vector (rotation) and a radius
+    TODO: implement normal vector orientaion """
+    def __init__(self, thickness=5., **kwargs):
+        IndicatorPrimitive.__init__(self, **kwargs)
+        self.makeObject()
+
+    def makeObject(self):
+        self.node = custom_geometry.createColoredUnitDisk(
+            color_vec4=Vec4(1., 1., 1., 1.))
+
+        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setLightOff(1)
+        self.nodePath.setTwoSided(True)
+
+        # self.nodePath.setRenderModeThickness(5)
+
+
+class OrientedCircle(IndicatorPrimitive):
+    """ a circle with a normal vector (rotation) and a radius
+    TODO: implement normal vector orientaion """
+
+    def __init__(self,
+                 origin_point=Vec3(1., 1., 1.),
+                 normal_vector_vec3=Vec3(1., 1., 1.),
+                 radius=0.1,
+                 scale=0.1,
+                 **kwargs):
+
+        self.scale = scale
+        self.normal_vector = normal_vector_vec3
+        self.pos = origin_point
+
+        IndicatorPrimitive.__init__(self, **kwargs)
+        self.makeObject()
+        self.doInitialSetupTransformation(normal_vector_vec3, origin_point, scale)
+
+    def makeObject(self):
+        self.node = custom_geometry.createCircle(
+            color_vec4=Vec4(1., 1., 1., 1.),
+            with_hole=True)
+
+        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath.setLightOff(1)
+        # self.nodePath.setTwoSided(True)
+
+        # self.nodePath.setRenderModeThickness(5)
+
+        # ---- set orientation from normal vector
+        # self.nodePath.setMat()
+
+    def doInitialSetupTransformation(self, normal_vector_vec3, origin_point, scale):
+        normal_vector_vec3 = np.array([normal_vector_vec3[0], normal_vector_vec3[1], normal_vector_vec3[2]])
+
+        rotation = math_utils.getMat4by4_to_rotate_xhat_to_vector(normal_vector_vec3, a=np.array([0., 1., 0.]))
+        rotation_forrowvecs = math_utils.math_convention_to_p3d_mat4(rotation)
+
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(scale, scale, scale))
+
+        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(origin_point[0], origin_point[1], origin_point[2])
+
+        self.nodePath.setMat(scaling_forrowvecs * rotation_forrowvecs * translation_forrowvecs)  # reverse order column first row second convention

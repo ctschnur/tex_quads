@@ -3,7 +3,7 @@ from simple_objects import custom_geometry
 from local_utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from simple_objects.animator import Animator
-from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
+from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded
 
 from simple_objects.simple_objects import Point3d
 
@@ -79,12 +79,12 @@ class Vector:
                 if 'howmany_periods' in kwargs:
                     howmany_periods = kwargs.get('howmany_periods')
 
-                self.line1 = LineDashed1dObject(
+                self.line1 = Line1dDashed(
                     thickness=self.thickness1dline,
                     color=self.color,
                     howmany_periods=howmany_periods)
             else:
-                self.line1 = Line1dObject(
+                self.line1 = Line1dSolid(
                     thickness=self.thickness1dline, color=self.color)
 
 
@@ -162,17 +162,14 @@ class Vector:
         l_line_0 = np.linalg.norm(self.line1.tip_point)
         c_scaling = l_line_0 / (l_line_0 - l_arrow)
 
-        scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
-            c_scaling,
-            c_scaling,
-            c_scaling)
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(c_scaling, c_scaling, c_scaling))
+
         self.line1.nodePath.setMat(
             self.line1.nodePath.getMat() * scaling_forrowvecs)
 
 
 class GroupNode(Animator):
-    """Documentation for GroupNode
-
+    """ Documentation for GroupNode
     """
 
     def __init__(self):
@@ -248,7 +245,7 @@ class Axis:
             trafo_nodePath = NodePath("trafo_nodePath")
             trafo_nodePath.reparentTo(self.ticks_groupNode.nodePath)
             # tick_line = Line2dObject()
-            tick_line = Line1dObject(thickness=self.thickness1dline)
+            tick_line = Line1dSolid(thickness=self.thickness1dline)
             tick_line.nodePath.reparentTo(trafo_nodePath)
 
             tick_length = 0.2

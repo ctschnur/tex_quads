@@ -5,6 +5,7 @@ Afer early attempts at building [[https://github.com/ctschnur/first-graphics-eng
 So far, the functionality is still pretty basic. This is a sample (for what it's worth): 
 [[file:screenshots/Peek3.gif]]
 
+
 This program can also display ~LaTeX~ equations on-screen. One long term goal is to enable computer-assisted manipulation of mathematical expressions and parallel visualization. 
 
 * Installation
@@ -32,7 +33,19 @@ pip install -r ./requirements.txt
 *** DONE Draw 2d bezier curve with handles
 *** DONE implement on-hover highlighting of a particular bezier curve 
 **** TODO implement collision detection for a parametric curve
-- Naive idea: procedurally create a smooth, invisible tube-like object around a parametric curve and test for ray collision with the cursor
+- Naive idea: procedurally create a smooth, invisible tube-like object (extrusion) around a parametric curve and test for ray collision with the cursor
+
+Strategy:
+- pick the curve
+  - advance in +equidistant path-length+ segments along the path of a smooth continuous curve and at each point
+    - plot a point (1.)
+    - plot a circle (2.)
+    - find the basis of unit vectors at each point of the path (t_vec points along the tangent, n_vec points along the direction of max. radius of curvature (see e.g. [[https://de.wikipedia.org/wiki/Frenetsche_Formeln#Frenetsche_Formeln_in_Abh%C3%A4ngigkeit_von_anderen_Parametern][Frenet-Serret formulas]], with $s=t$) and b_vec = t_vec cross n_vec) and plot it
+    - plot the circle so that it's first point is connected to the (saved) first point of the last circle (last_circle_first_point_vec)
+    - bulid the triangle mesh in a for loop (always accessing the last circle's coordinates last_circle_coords)
+
+alter the position of the cursor along the path by dragging horizontally (horizontal dragging distance maps to path length advancement at first, with quadratic increase in dragging speed when the dragging accelerates)
+
 *** implement coulomb repulsion of particles with strong damping
 *** map an mp3 file along a bezier curve
 ** deferred tasks

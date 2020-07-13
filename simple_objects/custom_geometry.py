@@ -466,7 +466,7 @@ def create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries):
     return polygonGeomNode
 
 
-def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.)):
+def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.)):
     # Own Geometry
     # format = GeomVertexFormat.getV3c4t2()
     format = GeomVertexFormat.getV3c4()
@@ -484,12 +484,17 @@ def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.)):
     origin_point_z = 0.
     vertexPosWriter.addData3f(origin_point_x, 0, origin_point_z)
 
+
+    # circle_points = get_circle_vertices(num_of_verts=num_of_verts, radius=r)
+    # for p in circle_points:
+    #     vertexPosWriter.addData3f(p[0], 0, p[2])
+
+
     for i in range(num_of_verts):
         phi += 2. * np.pi / num_of_verts
         x = r * np.cos(phi)
         z = r * np.sin(phi)
         vertexPosWriter.addData3f(x, 0, z)
-
 
     # let's also add color to each vertex
     colorWriter = GeomVertexWriter(vdata, "color")
@@ -521,7 +526,8 @@ def createColoredUnitCircle(color_vec4=Vec4(0., 0., 1., 1.)):
 
 from panda3d.core import LineSegs
 
-def createColoredUnitLineGeomNode(thickness=1., color_vec4=Vec4(1., 1., 1., 1.)):
+def createColoredUnitLineGeomNode(thickness=1.,
+                                  color_vec4=Vec4(1., 1., 1., 1.)):
     ls = LineSegs()
     ls.setThickness(thickness)
 
@@ -960,3 +966,57 @@ def createColoredParametricDashedCurveGeomNode(
     # nodepath = NodePath(geomnode)
 
     return geomnode
+
+
+
+
+
+def createCircle(color_vec4=Vec4(1., 1., 1., 1.), with_hole=False):
+    # Own Geometry
+    format = GeomVertexFormat.getV3c4()
+    vdata = GeomVertexData("colored_circle", format, Geom.UHStatic)
+    vdata.setNumRows(4)
+
+    vertexPosWriter = GeomVertexWriter(vdata, "vertex")
+
+    num_of_verts = 10
+
+    phi = 0.
+    r = 1.
+    # circle_points = get_circle_vertices(num_of_verts=num_of_verts, radius=r)
+    # for p in circle_points:
+    #     vertexPosWriter.addData3f(p[0], 0, p[2])
+
+
+    for i in range(num_of_verts):
+        phi += 2. * np.pi / num_of_verts
+        x = r * np.cos(phi)
+        z = r * np.sin(phi)
+        vertexPosWriter.addData3f(x, 0, z)
+
+    # let's also add color to each vertex
+    colorWriter = GeomVertexWriter(vdata, "color")
+
+    for i in range(num_of_verts):
+        colorWriter.addData4f(color_vec4)
+
+    # make primitives and assign vertices to them (primitives and primitive
+    # groups can be made independently from vdata, and are later assigned
+    # to vdata)
+    line = GeomLinestrips(Geom.UHStatic)
+
+    line.add_consecutive_vertices(0, num_of_verts)
+
+    if with_hole != True:
+        line.add_vertex(0)  # connect it up at the end
+
+    line.closePrimitive()  # the 1st primitive is finished
+
+    # make a Geom object to hold the primitives
+    geom = Geom(vdata)
+    geom.addPrimitive(line)
+
+    geom_node = GeomNode("colored_circle_node")
+    geom_node.addGeom(geom)
+
+    return geom_node

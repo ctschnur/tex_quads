@@ -2,7 +2,7 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dObject, LineDashed1dObject, ArrowHeadCone, ArrowHeadConeShaded
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
 from simple_objects import primitives
 from local_utils import math_utils
 
@@ -24,7 +24,7 @@ from cameras.Orbiter import Orbiter
 
 from direct.task import Task
 
-from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve
+from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, SelectableBezierCurve
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
@@ -56,11 +56,36 @@ class MyApp(ShowBase):
         #                                            [1.2, 1.2, 1.2],
         #                                            [1.2, 1.2, 0.2]]))
 
-        dbc = DraggableBezierCurve(ob,
-                                   P_arr=np.array([[0.2, 0.2, 0.2],
-                                                   [0.2, 0.2, 1.2],
-                                                   [1.2, 1.2, 1.2],
-                                                   [1.2, 1.2, 0.2]]))
+        # dbc = DraggableBezierCurve(ob,
+        #                            P_arr=np.array([[0.2, 0.2, 0.2],
+        #                                            [0.2, 0.2, 1.2],
+        #                                            [1.2, 1.2, 1.2],
+        #                                            [1.2, 1.2, 0.2]]))
+
+        sbc = SelectableBezierCurve(ob,
+                                    P_arr=np.array([[0.2, 0.2, 0.2],
+                                                    [0.2, 0.2, 1.2],
+                                                    [1.2, 1.2, 1.2],
+                                                    [1.2, 1.2, 0.2]]))
+
+        # oc = OrientedCircle()
+
+        # p = PointPrimitive(pos=Vec3(*tuple(np.array([1., 1., 1.]))))
+
+        # -- generate points, then circles
+
+
+        # points, path_lengths = math_utils.getPointsAndPathLengthsAlongPolygonalChain(func=(lambda t: np.array([0, t, 2.7**t])), param_interv=np.array([0., 1.]), ed_subpath_length=0.2)
+
+        # point_primitives = []
+        # for p in points:
+        #     point_primitives.append(PointPrimitive(pos=Vec3(*tuple(p))))
+
+            # plot a circle
+
+
+
+
 
         # gn = create_GeomNode_Sphere()
         # np = NodePath(gn)
