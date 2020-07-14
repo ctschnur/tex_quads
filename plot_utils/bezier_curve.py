@@ -7,6 +7,8 @@ from local_utils import math_utils
 from simple_objects.simple_objects import Line1dSolid, PointPrimitive
 from composed_objects.composed_objects import Vector
 
+from simple_objects.custom_geometry import create_Triangle_Mesh_From_Vertices_and_Indices, createCircle, createColoredUnitQuadGeomNode
+
 # from interactive_tools.dragging_and_dropping import PickableObjectManager
 
 from simple_objects.primitives import ParametricLinePrimitive
@@ -15,7 +17,11 @@ from panda3d.core import Vec3, Mat4, Vec4
 import numpy as np
 import scipy.special
 
+import glm
+
 from direct.showbase.ShowBase import ShowBase, DirectObject
+
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight
 
 
 def sayhi():
@@ -150,7 +156,8 @@ class DraggableBezierCurve(BezierCurve):
 
         self.updateHandleLinesAfterPointCoordsChanged()
 
-        # regenerate the curve, python should drop the reference-less previous ParametricLinePrimitive soon after
+        # regenerate the curve, python should drop the reference-less previous
+        # ParametricLinePrimitive soon after
         self.beziercurve=ParametricLinePrimitive(
             lambda t:
             np.array([
@@ -173,6 +180,10 @@ class SelectableBezierCurve(DraggableBezierCurve):
         self.normal_vectors = []
         self.binormal_vectors = []
 
+        self.mesh_points = []
+
+        self.tube_mesh_nodePath = None
+
         DraggableBezierCurve.__init__(self, *args, **kwargs)
 
         # generate a tube mesh around the curve
@@ -192,7 +203,6 @@ class SelectableBezierCurve(DraggableBezierCurve):
             param_interv=np.array([0., 1.]),
             ed_subpath_length=0.2)
 
-
         # ---- clear out the ancillary objects on update
         for pp in self.point_primitives:
             pp.nodePath.removeNode()
@@ -209,6 +219,9 @@ class SelectableBezierCurve(DraggableBezierCurve):
         for bv in self.binormal_vectors:
             bv.nodePath.removeNode()
 
+        for mp in self.mesh_points:
+            mp.nodePath.removeNode()
+
 
         # ---- then re-generate them anew
         self.point_primitives = []
@@ -219,33 +232,74 @@ class SelectableBezierCurve(DraggableBezierCurve):
         self.normal_vectors = []
         self.binormal_vectors = []
 
-        view_scale = 0.2
+        self.mesh_points = []
+        self.mesh_points_logical = []  # stores the 3d vertex positions of the desired triangle mesh
+
+        # ---- for the tube mesh
+
+        # circles_vertices = []  # stores the 3d vertex positions of the desired triangle mesh
+        triangles = []  # stores the indices to the vertices in circles_vertices
+        radius = 0.1
+        num_of_verts = 10
+        scale = 0.2
 
         for i, p in enumerate(points):
             self.point_primitives.append(PointPrimitive(pos=Vec3(*tuple(p))))
             t_vec = None
             if i > 0:
                 d_vec_r_of_s = points[i] - points[i-1]
-                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
                 d_s = np.linalg.norm(path_lengths[i] - path_lengths[i-1])
                 t_vec = math_utils.normalize(d_vec_r_of_s/d_s)
-                self.oriented_circles.append(OrientedCircle(
-                    origin_point=points[i],
-                    normal_vector_vec3=Vec3(*tuple(t_vec))))
 
                 tv_line = Line1dSolid(color=Vec4(1., 0., 0., 1.))
-                tv_line.setTipPoint(points[i] + t_vec*view_scale)
+                tv_line.setTipPoint(points[i] + t_vec*scale)
                 tv_line.setTailPoint(points[i])
+
+                tv_line.nodePath.hide()
 
                 self.tangent_vectors.append(tv_line)
                 self.tangent_vectors_logical.append(t_vec)
+
+                # --- draw oriented circle
+                oc = OrientedCircle(
+                    origin_point=points[i],
+                    normal_vector_vec3=Vec3(*tuple(t_vec)),
+                    radius=radius)
+
+                oc.nodePath.hide()
+
+                self.oriented_circles.append(oc)
+
+                # --- generate vertex data for the current circle
+                vd_cc = math_utils.get_circle_vertices(num_of_verts=num_of_verts, radius=radius)
+                vd_cc_transformed = []
+                for v in vd_cc:
+                    # transform the vertices of the circles appropriately (you want one mesh)
+                    trafo = math_utils.p3d_mat4_to_math_convention(
+                        math_utils.getTranslationMatrix3d_forrowvecs(v[0], v[1], v[2]) *
+                        OrientedCircle.getSetupTransformation(t_vec, points[i], scale=0.5))
+
+                    # transform the coordinates
+                    v = glm.vec4(*tuple(v), 1.) * glm.mat4(*tuple(np.ravel(trafo)))
+
+                    vd_cc_transformed.append([v[0], v[1], v[2]])
+
+                    point = Point3d(pos=np.array([v[0], v[1], v[2]]), scale=0.02)
+                    point.nodePath.hide()
+
+                    self.mesh_points.append(point)
+
+                self.mesh_points_logical.append(vd_cc_transformed)
+
+                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 
             if i > 1:  # after a change in the tangent vector, the normal vector is well-defined
                 n_vec = math_utils.normalize(
                     self.tangent_vectors_logical[i-1] - self.tangent_vectors_logical[i-2])
 
                 nv_line = Line1dSolid(color=Vec4(0., 1., 0., 1.))
-                nv_line.setTipPoint(points[i] + n_vec*view_scale)
+                nv_line.setTipPoint(points[i] + n_vec*scale)
                 nv_line.setTailPoint(points[i])
 
                 self.normal_vectors.append(nv_line)
@@ -255,10 +309,60 @@ class SelectableBezierCurve(DraggableBezierCurve):
                     np.cross(n_vec, t_vec))
 
                 bv_line = Line1dSolid(color=Vec4(0., 0., 1., 1.))
-                bv_line.setTipPoint(points[i] + b_vec*view_scale)
+                bv_line.setTipPoint(points[i] + b_vec*scale)
                 bv_line.setTailPoint(points[i])
 
                 self.binormal_vectors.append(bv_line)
+
+                # you can generate vertex and index data for the current circle and a last circle
+
+                # ---- access vertex data of the previous circle
+
+                vd_pc = self.mesh_points_logical[i-2]
+
+                vd_pc_idx_offset = (i-2) * num_of_verts
+                vd_cc_idx_offset = (i-1) * num_of_verts
+
+                # now build the triangles (indices) to go in between the last circle
+                # and the current circle
+                j = 0  # vertex index
+                cur_triangles_arr = []  # stores 3-arrays of indices
+                while j < len(vd_pc) - 1:
+                    # sense of contour buildup: clockwise
+
+                    # 1st triangle
+                    cur_triangles_arr.append(
+                        [vd_pc_idx_offset+j,
+                         vd_cc_idx_offset+j,
+                         vd_pc_idx_offset+j+1])
+
+                    # opposite side triangle
+                    cur_triangles_arr.append(
+                        [vd_pc_idx_offset+j+1,
+                         vd_cc_idx_offset+j,
+                         vd_cc_idx_offset+j+1])
+
+                    j += 1
+
+                triangles.append(cur_triangles_arr)
+
+        # -- plot the mesh whose points and Tristrips were created
+
+        vertices_flat = np.ravel(self.mesh_points_logical)
+        indices_flat = np.ravel(triangles)
+
+        gn = create_Triangle_Mesh_From_Vertices_and_Indices(vertices_flat, indices_flat, color_vec4=Vec4(1., 0., 0., 1.))
+        # gn = createCircle(num_of_verts=100)
+        # gn = createColoredUnitQuadGeomNode(color_vec4=Vec4(0., 0., 1., 1.),
+        #                                    center_it=False)
+
+        if self.tube_mesh_nodePath:
+            self.tube_mesh_nodePath.removeNode()
+
+        self.tube_mesh_nodePath = render.attachNewNode(gn)
+        self.tube_mesh_nodePath.setRenderModeWireframe()
+        self.tube_mesh_nodePath.setTwoSided(True)
+        self.tube_mesh_nodePath.setLightOff(1)
 
 
     def updateCurveAfterPointCoordsChanged(self):

@@ -16,6 +16,8 @@ from panda3d.core import Triangulator, LPoint2d, NodePath
 from math import pi, cos
 import numpy as np
 
+from local_utils import math_utils
+
 def createTexturedUnitQuadGeomNode():
     # Own Geometry
 
@@ -312,6 +314,52 @@ def create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries):
 
     return geom_node
 
+
+def create_Triangle_Mesh_From_Vertices_and_Indices(vertices, indices,
+                                                   color_vec4=Vec4(1., 1., 1., 1.)):
+    """ create a mesh out of flat arrays of vertices and indices, which were prepared
+    to create a mesh made of triangles. """
+
+    # Own Geometry
+
+    # format = GeomVertexFormat.getV3c4t2()
+    format = GeomVertexFormat.getV3c4()
+    vdata = GeomVertexData("colored_mesh_out_of_triangles", format, Geom.UHStatic)
+    vdata.setNumRows(4)
+
+    # let's also add color to each vertex
+    colorWriter = GeomVertexWriter(vdata, "color")
+    vertexPosWriter = GeomVertexWriter(vdata, "vertex")
+
+    vertices = np.reshape(vertices, (-1, 3))
+    for v in vertices:
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        vertexPosWriter.addData3f(v[0], v[1], v[2])
+        colorWriter.addData4f(color_vec4)
+
+    # make primitives and assign vertices to them (primitives and primitive
+    # groups can be made independently from vdata, and are later assigned
+    # to vdata)
+    tris = GeomTriangles(Geom.UHStatic)
+
+    indices = np.reshape(indices, (-1, 3))
+    for index_triple in indices:
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        tris.addVertices(index_triple[0], index_triple[1], index_triple[2])
+
+    tris.closePrimitive()
+
+    # make a Geom object to hold the primitives
+    geom = Geom(vdata)  # vdata contains the vertex position/color/... buffers
+    geom.addPrimitive(tris)  # tris contains the index buffer
+
+    # now put geom in a GeomNode
+    geom_node = GeomNode("colored_polygon_node")
+    geom_node.addGeom(geom)
+
+    return geom_node
+
+
 def create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries):
     color_vec4 = Vec4(1., 1., 1., 1.)
 
@@ -477,24 +525,22 @@ def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.)):
 
     num_of_verts = 10
 
-    phi = 0.
+    # phi = 0.
     r = 1.
 
     origin_point_x = 0.
     origin_point_z = 0.
     vertexPosWriter.addData3f(origin_point_x, 0, origin_point_z)
 
+    circle_points = math_utils.get_circle_vertices(num_of_verts=num_of_verts, radius=r)
+    for p in circle_points:
+        vertexPosWriter.addData3f(p[0], 0, p[1])
 
-    # circle_points = get_circle_vertices(num_of_verts=num_of_verts, radius=r)
-    # for p in circle_points:
-    #     vertexPosWriter.addData3f(p[0], 0, p[2])
-
-
-    for i in range(num_of_verts):
-        phi += 2. * np.pi / num_of_verts
-        x = r * np.cos(phi)
-        z = r * np.sin(phi)
-        vertexPosWriter.addData3f(x, 0, z)
+    # for i in range(num_of_verts):
+    #     phi += 2. * np.pi / num_of_verts
+    #     x = r * np.cos(phi)
+    #     z = r * np.sin(phi)
+    #     vertexPosWriter.addData3f(x, 0, z)
 
     # let's also add color to each vertex
     colorWriter = GeomVertexWriter(vdata, "color")
@@ -771,24 +817,6 @@ def createColoredParametricCurveGeomNode(
 #             howmany_periods=howmany_periods)
 
 
-def get_circle_vertices(num_of_verts=10, radius=0.5):
-    phi = 0.
-    r = radius
-
-    origin_point_x = 0.
-    origin_point_z = 0.
-
-    verts = np.array([])
-    for i in range(num_of_verts):
-        phi += 2. * np.pi / num_of_verts
-        x = r * np.cos(phi)
-        y = r * np.sin(phi)
-        z = 0
-
-        verts = np.append(verts, np.array([x, y, z]))
-
-    return np.reshape(verts, (-1, 3))
-
 
 def create_GeomNode_Cone(color_vec4=Vec4(1., 1., 1., 1.)):
     # a cone that points into the y direction
@@ -808,7 +836,7 @@ def create_GeomNode_Cone(color_vec4=Vec4(1., 1., 1., 1.)):
 
     # first the circle vertices
     num_of_circle_vertices = 10
-    circle_verts = get_circle_vertices(num_of_verts=num_of_circle_vertices)
+    circle_verts = math_utils.get_circle_vertices(num_of_verts=num_of_circle_vertices)
 
     # then the origin point vertex
     vertexPosWriter.addData3f(0., 0., 0.)
@@ -968,10 +996,7 @@ def createColoredParametricDashedCurveGeomNode(
     return geomnode
 
 
-
-
-
-def createCircle(color_vec4=Vec4(1., 1., 1., 1.), with_hole=False):
+def createCircle(color_vec4=Vec4(1., 1., 1., 1.), with_hole=False, num_of_verts=10, radius=1.):
     # Own Geometry
     format = GeomVertexFormat.getV3c4()
     vdata = GeomVertexData("colored_circle", format, Geom.UHStatic)
@@ -979,20 +1004,11 @@ def createCircle(color_vec4=Vec4(1., 1., 1., 1.), with_hole=False):
 
     vertexPosWriter = GeomVertexWriter(vdata, "vertex")
 
-    num_of_verts = 10
+    # generates circles in x-y plane
+    circle_points = math_utils.get_circle_vertices(num_of_verts=num_of_verts, radius=radius)
 
-    phi = 0.
-    r = 1.
-    # circle_points = get_circle_vertices(num_of_verts=num_of_verts, radius=r)
-    # for p in circle_points:
-    #     vertexPosWriter.addData3f(p[0], 0, p[2])
-
-
-    for i in range(num_of_verts):
-        phi += 2. * np.pi / num_of_verts
-        x = r * np.cos(phi)
-        z = r * np.sin(phi)
-        vertexPosWriter.addData3f(x, 0, z)
+    for p in circle_points:
+        vertexPosWriter.addData3f(p[0], p[1], p[2])
 
     # let's also add color to each vertex
     colorWriter = GeomVertexWriter(vdata, "color")

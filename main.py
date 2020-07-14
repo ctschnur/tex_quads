@@ -84,20 +84,17 @@ class MyApp(ShowBase):
             # plot a circle
 
 
-
-
-
         # gn = create_GeomNode_Sphere()
         # np = NodePath(gn)
         # np.reparentTo(render)
 
-        def findChildrenAndSetRenderModeRecursively(parentnode):
-            children = parentnode.get_children()
-            for child in children:
-                findChildrenAndSetRenderModeRecursively(child)
-                child.setRenderModeFilled()
+        # def findChildrenAndSetRenderModeRecursively(parentnode):
+        #     children = parentnode.get_children()
+        #     for child in children:
+        #         findChildrenAndSetRenderModeRecursively(child)
+        #         child.setRenderModeFilled()
 
-        findChildrenAndSetRenderModeRecursively(render)
+        # findChildrenAndSetRenderModeRecursively(render)
 
 
 app = MyApp()

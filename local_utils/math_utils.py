@@ -166,8 +166,17 @@ def getMat4by4_to_rotate_xhat_to_vector(target_position_vector, a=np.array([1., 
 
 def math_convention_to_p3d_mat4(mat4):
     """ convert numpy 4x4 matrix in usual math convention to hardware-optimized p3d matrix representation
-    (by entering the components into p3d's Mat4 function in the usual order) """
+    (by entering the components into p3d's Mat4 function in the transposed order) """
     return Mat4(*tuple(np.transpose(mat4).flatten()))
+
+
+def p3d_mat4_to_math_convention(m):
+    """ convert hardware-optimized p3d matrix representation of a 4x4 matrix
+    to a numpy 4x4 matrix in usual math notation convention convention.
+    All that is needed is to transpose it, actually. """
+    # test it using e.g.
+    # a = Mat4(1., 2., 3., 4., 5., 6., 7., 8., 9., 10., 11., 12., 13., 14., 15., 16.)
+    return np.transpose(m)  # surprisingly, this works
 
 
 def getPointsAndPathLengthsAlongPolygonalChain(
@@ -227,3 +236,19 @@ def getPointsAndPathLengthsAlongPolygonalChain(
 def normalize(vec3_np):
     """ given a 3d numpy vector, normalize it """
     return vec3_np / np.linalg.norm(vec3_np)
+
+
+def get_circle_vertices(num_of_verts=10, radius=1.):
+    phi = 0.
+    r = radius
+
+    verts = np.array([])
+    for i in range(num_of_verts):
+        phi += 2. * np.pi / num_of_verts
+        x = r * np.cos(phi)
+        y = r * np.sin(phi)
+        z = 0
+
+        verts = np.append(verts, np.array([x, y, z]))
+
+    return np.reshape(verts, (-1, 3))
