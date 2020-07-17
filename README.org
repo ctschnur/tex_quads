@@ -3,6 +3,7 @@ The first idea is to create another animation engine, so that I can put my own s
 Afer early attempts at building [[https://github.com/ctschnur/first-graphics-engine][my own rendering engine]] in ~C++~, I am for now basing this on the much more complete [[https://github.com/panda3d/panda3d][panda3d]] game engine (initially developed by Disney, written in ~C++~, having DirectX and OpenGL backends and python bindings).
 
 So far, the functionality is still pretty basic. This is a sample (3d interactive Bezier Curves and extrusion of a parametric curve): 
+
 [[file:screenshots/Peek4.gif]]
 
 This program can also display ~LaTeX~ equations on-screen. One long term goal is to enable computer-assisted manipulation of mathematical expressions and parallel visualization. 
