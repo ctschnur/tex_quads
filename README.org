@@ -32,16 +32,14 @@ pip install -r ./requirements.txt
 *** DONE Plot a dashed parametric curve
 *** DONE Draw 2d bezier curve with handles
 *** DONE implement on-hover highlighting of a particular bezier curve 
-**** TODO implement collision detection for a parametric curve
-- Naive idea: procedurally create a smooth, invisible tube-like object (extrusion) around a parametric curve and test for ray collision with the cursor
-Strategy:
-- pick the curve
+**** TODO curve picking
+Strategy to achieve curve picking: 
+- build a tube mesh along an arbirary path: 
   - advance in +equidistant path-length+ segments along the path of a smooth continuous curve and at each point
     - plot a point (1.)
     - plot a circle (2.)
     - +find the basis of unit vectors at each point of the path (t_vec points along the tangent, n_vec points along the direction of max. radius of curvature (see e.g. [[https://de.wikipedia.org/wiki/Frenetsche_Formeln#Frenetsche_Formeln_in_Abh%C3%A4ngigkeit_von_anderen_Parametern][Frenet-Serret formulas]], with $s=t$) and b_vec = t_vec cross n_vec) and plot it+
-    - the tangent vector and connected the circles to a tube as they were laying
-    - plot the circle so that it's first point is connected to the (saved) first point of the last circle (last_circle_first_point_vec)
+    - find the tangent vectors, generate the circles perpendicular to them, with naive choice of the start-vertex of each circle
     - bulid the triangle mesh in a for loop (always accessing the last circle's coordinates last_circle_coords)
 
 Fixable Problems: 
