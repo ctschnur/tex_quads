@@ -31,8 +31,11 @@ pip install -r ./requirements.txt
 *** DONE Make blender-like side, top, front view (map to number keys)
 *** DONE Plot a dashed parametric curve
 *** DONE Draw 2d bezier curve with handles
-*** DONE implement on-hover highlighting of a particular bezier curve 
-**** TODO curve picking
+*** TODO implement force-directed graph plotting
+**** DONE draw a graph by using networkx for the layout generation
+**** DONE make individual nodes of the graph draggable
+*** WAITING implement on-hover highlighting of a particular bezier curve 
+**** WAITING curve picking
 Strategy to achieve curve picking: 
 - build a tube mesh along an arbirary path: 
   - advance in +equidistant path-length+ segments along the path of a smooth continuous curve and at each point
@@ -49,11 +52,15 @@ alter the position of the cursor along the path by dragging horizontally (horizo
 
 *** implement coulomb repulsion of particles with strong damping
 *** map an mp3 file along a bezier curve
+** Scientific scratchpad idea
+*** Implement Copy-Pasting of images
+*** Implement Text Areas
+*** Implement On-Screen Freehand Writing
+*** Implement Collapsable Notes
 ** deferred tasks
 *** DEFERRED Plot the Bloch sphere
 *** DEFERRED triangulation of latex characters
 Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.
-
 *** DEFERRED Make rectangle class
 **** DONE draw a rectangle made of lines
 **** DEFERRED Make it automatically encompass things

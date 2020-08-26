@@ -268,8 +268,8 @@ class Orbiter:
         # print("wIsPressed: ", wIsPressed)
 
     def set_view_to_xy_plane(self):
-        self.phi = -np.pi/2.
-        self.theta = np.pi/2.
+        self.phi = np.pi/2.
+        self.theta = 0.  # np.pi/2.
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 

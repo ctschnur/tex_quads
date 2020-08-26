@@ -322,7 +322,7 @@ class CoordinateSystem:
         self.groupNode = GroupNode()
 
         for direction_vec, color_vec in zip(CoordinateSystem.cartesian_axes_directions[:dimension], CoordinateSystem.cartesian_axes_colors[:dimension]):
-            ax = Axis(direction_vec, thickness1dline=2.5, color=color_vec)
+            ax = Axis(direction_vec, thickness1dline=5, color=color_vec)
             self.axes.append(ax)
             self.groupNode.addChildNodePaths([ax.groupNode.nodePath])
 
