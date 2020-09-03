@@ -35,7 +35,8 @@ pip install -r ./requirements.txt
 **** DONE draw a graph by using networkx for the layout generation
 **** DONE make individual nodes of the graph draggable
 **** on-hover highlighting of a line and plotting a cursor
-***** TODO on-hover highlighting of the closest infinite straight line
+***** DONE on-hover highlighting of the closest infinite straight line
+***** TODO pin text (parametric value between 0 and 1) to the hovering cursor
 ***** on-hover highlighting of the closest finite straight line
 *** WAITING implement on-hover highlighting of a particular bezier curve 
 **** WAITING curve picking

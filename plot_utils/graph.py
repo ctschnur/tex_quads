@@ -23,6 +23,8 @@ from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, 
 
 import networkx as nx
 
+from simple_objects.simple_objects import Pinned2dLabel
+
 def sayhi():
     print("heylo ------- ######")
 
@@ -305,23 +307,25 @@ class GraphHoverer:
         # self.shortest_distance_line.setTailPoint(Vec3(1., 0., 0.))
         # self.shortest_distance_line.setTipPoint(Vec3(0., 0., 0.))
 
+        self.initTimeLabel()
+
+
     def mouseMoverTask(self, task):
         print("onHover")
-
-        self.renderHintCursors()
-
+        self.renderHints()
         return task.cont
-
 
     def onPress(self):
         # for edge in self.draggablegraph.graph_edges:
         #     edge.nodePath.setColor((1., 0., 1., 1.), 1)
 
-        self.renderHintCursors()
-
+        self.renderHints()
         print("onPress")
 
-    def renderHintCursors(self):
+    def renderHints(self):
+        """ render various on-hover things:
+            - cursors
+            - time labels """
         if base.mouseWatcherNode.hasMouse():
             mpos = base.mouseWatcherNode.getMouse()
 
@@ -431,3 +435,46 @@ class GraphHoverer:
                     point.nodePath.setColor((1., 0., 0., 1.), 1)
                 else:
                     point.nodePath.setColor((1., 1., 1., 1.), 1)
+
+
+            # -- set the time label
+            # ---- set the position of the label to the position of the mouse cursor, but a bit higher
+            if closestedge is not None:
+                print("hey there")
+                self.time_label.textNodePath.show()
+                self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
+
+                # figure out the parameter t
+                t = np.linalg.norm(closestedge.getTailPoint() - c1)/np.linalg.norm(closestedge.getTailPoint() - closestedge.getTipPoint())
+
+                self.time_label.setText("t = {0:.2f}".format(t))
+                self.time_label.update()
+                self.time_label.textNodePath.setScale(0.04)
+
+
+                # self.hoverindicatorpoint.setPos()
+            else:
+                self.time_label.textNodePath.hide()
+
+
+    def initTimeLabel(self):
+        """ show a text label at the position of the cursor:
+            - set an event to trigger updating of the text on-hover
+            - check if the active edge has changed """
+
+        # init the textNode (there is one text node)
+        pos_rel_to_world_x = Point3(1., 0., 0.)
+
+        self.time_label = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="mytext",
+                                       xshift=0.02, yshift=0.02, font="fonts/arial.egg")
+
+        self.time_label.textNode.setTransform(
+            math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
+
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+
+# class GraphCursorDragger:
+#     """ This class saves the drag state of the cursor automatically advances it graphically. """
+#     def __init__(self, GraphHoverer):
+#         self.

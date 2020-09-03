@@ -436,18 +436,36 @@ class SphereModelShaded(Box2dCentered):
 from conventions.conventions import compute2dPosition
 from panda3d.core import TextNode
 
+
 class Pinned2dLabel:
     # from direct.gui.OnscreenText import OnscreenText
     #     textObject = OnscreenText(text='my text string', pos=(-0.5, 0.02), scale=0.07)
 
-    def __init__(self, refpoint3d=Point3(1., 1., 1.), text="pinned?", xshift=0., yshift=0.):
+    def __init__(self, refpoint3d=Point3(1., 1., 1.), text="pinned?", xshift=0., yshift=0.,
+                 font="cmr12.egg"):
         self.refpoint3d = refpoint3d
         self.text = text
         self.nodeisattachedtoaspect2d = False
 
+        self.font = font
+        self.font_p3d = loader.loadFont(font)
+
         self.xshift = xshift
         self.yshift = yshift
 
+        self.update()
+
+    def setPos(self, x, y, z):
+        """ essentially sets the 3d position of the pinned label """
+        self.refpoint3d = Point3(x, y, z)
+        self.update()
+
+    def setText(self, text):
+        """ sets the text and updates the pinned label """
+        self.text = text
+        self.textNode.setText(self.text)
+        self.textNodePath.removeNode()
+        self.nodeisattachedtoaspect2d = False
         self.update()
 
     def update(self):
@@ -460,14 +478,17 @@ class Pinned2dLabel:
             self.textNode.setText(self.text)
 
             # load a font
-            cmr12 = loader.loadFont('cmr12.egg')
-            self.textNode.setFont(cmr12)
+            # cmr12 = loader.loadFont('cmr12.egg')
+
+            self.textNode.setFont(self.font_p3d)
 
             # set a shadow
             self.textNode.setShadow(0.05, 0.05)
             self.textNode.setShadowColor(0, 0, 0, 1)
+            self.textNode_p3d_generated = self.textNode.generate()
 
-            self.textNodePath = aspect2d.attachNewNode(self.textNode)
+            self.textNodePath = aspect2d.attachNewNode(self.textNode_p3d_generated)
+
             self.nodeisattachedtoaspect2d = True
             self.textNodePath.setScale(0.07)
 
@@ -484,7 +505,7 @@ class Pinned2dLabel:
         # the y coordinate gets ignored for the TextNode
         # parented by aspect2d
         from conventions.conventions import win_aspect_ratio
-        self.textNodePath.setPos((p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1]+ self.yshift)
+        self.textNodePath.setPos((p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1] + self.yshift)
 
 
 class OrientedDisk(IndicatorPrimitive):
