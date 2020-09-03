@@ -13,6 +13,8 @@ from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, 
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
+from plot_utils.graph import GraphHoverer
+
 import local_tests.svgpathtodat.main
 
 import os
@@ -29,109 +31,111 @@ from plot_utils.bezier_curve import BezierCurve
 # import direct.directbase.DirectStart
 from pandac.PandaModules import *
 from direct.task import Task
-import sys, random
+import sys
+import random
 
 # Collision mask worn by all draggable objects.
 dragMask = BitMask32.bit(1)
 # Collision mask worn by all droppable objects.
 dropMask = BitMask32.bit(1)
 
-highlight = VBase4(.3,.3,.3,1)
+highlight = VBase4(.3, .3, .3, 1)
 
 
 class objectMangerClass:
-  def __init__( self ):
-    self.objectIdCounter = 0
-    self.objectDict = dict()
+    def __init__(self):
+        self.objectIdCounter = 0
+        self.objectDict = dict()
 
-  def tag( self, objectNp, objectClass ):
-    self.objectIdCounter += 1
-    objectTag = str(self.objectIdCounter)
-    objectNp.setTag( 'objectId', objectTag )
-    self.objectDict[objectTag] = objectClass
+    def tag(self, objectNp, objectClass):
+        self.objectIdCounter += 1
+        objectTag = str(self.objectIdCounter)
+        objectNp.setTag('objectId', objectTag)
+        self.objectDict[objectTag] = objectClass
 
-  def get( self, objectTag ):
-    if objectTag in self.objectDict:
-      return self.objectDict[objectTag]
-    return None
+    def get(self, objectTag):
+        if objectTag in self.objectDict:
+            return self.objectDict[objectTag]
+        return None
 
 
 class dragDropObjectClass:
-  def __init__( self, np, objectManager):
-    self.model = np
-    self.previousParent = None
-    self.model.setCollideMask(dragMask)
-    self.objectManager = objectManager
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-    self.objectManager.tag( self.model, self )
+    def __init__(self, np, objectManager):
+        self.model = np
+        self.previousParent = None
+        self.model.setCollideMask(dragMask)
+        self.objectManager = objectManager
+        self.objectManager.tag(self.model, self)
 
-  def onPress( self, mouseNp ):
-    self.previousParent = self.model.getParent()
-    self.model.wrtReparentTo( mouseNp )
-    self.model.setCollideMask(BitMask32.allOff())
+    def onPress(self, mouseNp):
+        self.previousParent = self.model.getParent()
+        self.model.wrtReparentTo(mouseNp)
+        self.model.setCollideMask(BitMask32.allOff())
 
-  def onRelease( self ):
-    self.model.wrtReparentTo( self.previousParent )
-    self.model.setCollideMask(dragMask)
+    def onRelease(self):
+        self.model.wrtReparentTo(self.previousParent)
+        self.model.setCollideMask(dragMask)
 
-  def onCombine( self, otherObj ):
-    self.model.setPos( otherObj.model.getPos() )
+    def onCombine(self, otherObj):
+        self.model.setPos(otherObj.model.getPos())
+
 
 class mouseCollisionClass:
-  def __init__(self):
-    base.accept("escape", sys.exit)
-    base.accept('mouse1', self.onPress)
-    base.accept('mouse1-up', self.onRelease)
-    self.draggedObj = None
-    self.setupCollision()
+    def __init__(self):
+        base.accept("escape", sys.exit)
+        base.accept('mouse1', self.onPress)
+        base.accept('mouse1-up', self.onRelease)
+        self.draggedObj = None
+        self.setupCollision()
 
-    taskMgr.add( self.mouseMoverTask, 'mouseMoverTask' )
+        taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
 
-  def setupCollision( self ):
-    # Initialise the collision ray that is used to detect which draggable
-    # object the mouse pointer is over.
-    cn = CollisionNode('')
-    cn.addSolid( CollisionRay(0,-100,0, 0,1,0) )
-    cn.setFromCollideMask(dragMask)
-    cn.setIntoCollideMask(BitMask32.allOff())
-    self.cnp = render.attachNewNode(cn)
-    self.ctrav = CollisionTraverser()
-    self.queue = CollisionHandlerQueue()
-    self.ctrav.addCollider(self.cnp, self.queue)
-    self.cnp.show()
+    def setupCollision(self):
+        # Initialise the collision ray that is used to detect which draggable
+        # object the mouse pointer is over.
+        cn = CollisionNode('')
+        cn.addSolid(CollisionRay(0, -100, 0, 0, 1, 0))
+        cn.setFromCollideMask(dragMask)
+        cn.setIntoCollideMask(BitMask32.allOff())
+        self.cnp = render.attachNewNode(cn)
+        self.ctrav = CollisionTraverser()
+        self.queue = CollisionHandlerQueue()
+        self.ctrav.addCollider(self.cnp, self.queue)
+        self.cnp.show()
 
-  def mouseMoverTask( self, task ):
-    if base.mouseWatcherNode.hasMouse():
-      mpos = base.mouseWatcherNode.getMouse()
-      self.cnp.setPos(render2d,mpos[0],0,mpos[1])
-    return task.cont
+    def mouseMoverTask(self, task):
+        if base.mouseWatcherNode.hasMouse():
+            mpos = base.mouseWatcherNode.getMouse()
+            self.cnp.setPos(render2d, mpos[0], 0, mpos[1])
+        return task.cont
 
-  def collisionCheck( self ):
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-    self.ctrav.traverse(render)
-    self.queue.sortEntries()
-    if self.queue.getNumEntries():
-      np = self.queue.getEntry( self.queue.getNumEntries()-1 ).getIntoNodePath() #self.queue.getNumEntries()-1
-      objectId = np.getTag( 'objectId' )
-      if objectId is None:
-        objectId = np.findNetTag( 'objectId' )
-      if objectId is not None:
-        object = self.objectManager.get( objectId )
-        return object
-    return None
+    def collisionCheck(self):
+        self.ctrav.traverse(render)
+        self.queue.sortEntries()
+        if self.queue.getNumEntries():
+            # self.queue.getNumEntries()-1
+            np = self.queue.getEntry(
+                self.queue.getNumEntries()-1).getIntoNodePath()
+            objectId = np.getTag('objectId')
+            if objectId is None:
+                objectId = np.findNetTag('objectId')
+            if objectId is not None:
+                object = self.objectManager.get(objectId)
+                return object
+        return None
 
-  def onPress( self ):
-    obj = self.collisionCheck()
-    import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-    if obj is not None:
-      self.draggedObj = obj
-      obj.onPress( self.cnp )
+    def onPress(self):
+        obj = self.collisionCheck()
 
-  def onRelease( self ):
-    obj = self.collisionCheck()
-    self.draggedObj.onRelease() # self.cnp )
-    if obj is not None:
-      self.draggedObj.onCombine( obj )
+        if obj is not None:
+            self.draggedObj = obj
+            obj.onPress(self.cnp)
+
+    def onRelease(self):
+        obj = self.collisionCheck()
+        self.draggedObj.onRelease()  # self.cnp )
+        if obj is not None:
+            self.draggedObj.onCombine(obj)
 
 
 class MyApp(ShowBase):

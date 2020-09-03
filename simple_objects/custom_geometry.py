@@ -940,7 +940,7 @@ def draw_dash(ls, draw_state, # from_point,
         # ls.moveTo(*tuple(to_point))
         return to_point
     else:
-        import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         print("ERR in draw_dash: draw_state not defined")
         exit(1)
 

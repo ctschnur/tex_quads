@@ -18,7 +18,7 @@ import local_tests.svgpathtodat.main
 import os
 import sys
 import pytest
-import gltf
+# import gltf
 
 from cameras.Orbiter import Orbiter
 
@@ -28,7 +28,7 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
-from plot_utils.graph import Graph, DraggableGraph
+from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
 
 
 class MyApp(ShowBase):
@@ -200,9 +200,10 @@ class MyApp(ShowBase):
         # g.plot()
 
         dg = DraggableGraph(ob)
+        gh = GraphHoverer(dg, ob)
         # dg.plot()
-
         print("hi")
+
 
 
 app = MyApp()

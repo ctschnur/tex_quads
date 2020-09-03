@@ -239,7 +239,6 @@ class CollisionPicker:
         # ---- build the CollisionRay
         self.pick_collision_ray = CollisionRay()  # the pick ray is apparently a 'Solid'
 
-
         # -- a ray is a half-inifinite straight line
         # it is supposed to shoot out orthogonally to the view plane and hit an object
         self.pick_collision_ray.setOrigin(self.camera.getPos(self.render))

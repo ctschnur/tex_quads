@@ -165,6 +165,12 @@ class Line1dPrimitive(LinePrimitive):
 
         self.nodePath.setMat(self.form_from_primitive_trafo * scaling_and_rotation_forrowvecs * translation_forrowvecs)
 
+    def getTipPoint(self):
+        return self.tip_point
+
+    def getTailPoint(self):
+        return self.getPos()
+
 
 class Line1dSolid(Line1dPrimitive):
     initial_length = 1.

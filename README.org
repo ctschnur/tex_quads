@@ -31,9 +31,12 @@ pip install -r ./requirements.txt
 *** DONE Make blender-like side, top, front view (map to number keys)
 *** DONE Plot a dashed parametric curve
 *** DONE Draw 2d bezier curve with handles
-*** TODO implement force-directed graph plotting
+*** DONE implement force-directed graph plotting
 **** DONE draw a graph by using networkx for the layout generation
 **** DONE make individual nodes of the graph draggable
+**** on-hover highlighting of a line and plotting a cursor
+***** TODO on-hover highlighting of the closest infinite straight line
+***** on-hover highlighting of the closest finite straight line
 *** WAITING implement on-hover highlighting of a particular bezier curve 
 **** WAITING curve picking
 Strategy to achieve curve picking: 

@@ -96,6 +96,16 @@ def LinePlaneCollision(planeNormal, planePoint, rayDirection, rayPoint, epsilon=
     return Psi
 
 
+def shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2):
+    """ see e.g.
+    https://math.stackexchange.com/questions/2213165/find-shortest-distance-between-lines-in-3d
+    r1 and r2 are points on line 1 and 2 respectively and e1 and e2 are directions
+    """
+    n = np.cross(e1, e2)
+    d = np.dot(n, (r1 - r2)) / np.linalg.norm(n)
+    return d
+
+
 def p3d_to_np(p3d_3f):
     return np.array([p3d_3f[0], p3d_3f[1], p3d_3f[2]])
 
