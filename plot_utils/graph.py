@@ -94,9 +94,9 @@ class Graph:
     def plot(self):
         # nodes
         for coord in self.coords:
-            p = Point3d(pos=Vec3(
-                coord[0], coord[1], 0.
-            ), scale=0.025)
+            p = Point3d(
+                pos=Vec3(coord[0], coord[1], 0.),
+                scale=0.025)
 
             self.graph_points.append(p)
 
@@ -301,6 +301,10 @@ class GraphHoverer:
 
         self.hoverindicatorpoint = Point3d()
 
+        self.shortest_distance_line = Line1dSolid()
+        # self.shortest_distance_line.setTailPoint(Vec3(1., 0., 0.))
+        # self.shortest_distance_line.setTipPoint(Vec3(0., 0., 0.))
+
     def mouseMoverTask(self, task):
         if base.mouseWatcherNode.hasMouse():
             mpos = base.mouseWatcherNode.getMouse()
@@ -313,6 +317,11 @@ class GraphHoverer:
 
             closestedge = None
             d_min = None
+
+            # points of shortest distance
+            c1_min = None
+            c2_min = None
+
             for edge in self.draggablegraph.graph_edges:
 
                 # find closest line (infinite straight)
@@ -320,6 +329,11 @@ class GraphHoverer:
                 e2 = edge.getTipPoint() - edge.getTailPoint()
 
                 d = np.abs(math_utils.shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2))
+                c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
+                    r1, r2, e1, e2)
+
+                # only count this edge if the vector of shortest distance lies in-between the
+                # start and end points of the line
 
                 if d is not None:
                     if d_min is None:
@@ -328,6 +342,14 @@ class GraphHoverer:
                     if d < d_min:
                         d_min = d
                         closestedge = edge
+
+                        c1_min = c1
+                        c2_min = c2
+
+                        self.shortest_distance_line.setTipPoint(math_utils.np_to_p3d_Vec3(c1))
+                        self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
+
+                        self.shortest_distance_line.nodePath.show()
 
                 else:
                     d_min = d

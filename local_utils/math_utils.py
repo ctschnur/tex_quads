@@ -106,8 +106,30 @@ def shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2):
     return d
 
 
+def getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2):
+    """ see e.g.
+    https://en.wikipedia.org/wiki/Skew_lines#Nearest_Points
+    r1 and r2 are points on line 1 and 2 respectively and e1 and e2 are directions
+    """
+    # n = np.cross(e1, e2)
+    # d = np.dot(n, (r1 - r2)) / np.linalg.norm(n)
+
+    n = np.cross(e1, e2)
+
+    n1 = np.cross(e1, n)
+    n2 = np.cross(e2, n)
+
+    c1 = r1 + (np.dot((r2 - r1), n2)/np.dot(e1, n2)) * e1
+    c2 = r2 + (np.dot((r1 - r2), n1)/np.dot(e2, n1)) * e2
+
+    return c1, c2
+
+
 def p3d_to_np(p3d_3f):
     return np.array([p3d_3f[0], p3d_3f[1], p3d_3f[2]])
+
+def np_to_p3d_Vec3(np_vec3d):
+    return Vec3(np_vec3d[0], np_vec3d[1], np_vec3d[2])
 
 
 def getMat4by4_to_rotate_xhat_to_vector(target_position_vector, a=np.array([1., 0., 0.], dtype=np.float)):
