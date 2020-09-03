@@ -301,11 +301,27 @@ class GraphHoverer:
 
         self.hoverindicatorpoint = Point3d()
 
-        self.shortest_distance_line = Line1dSolid()
+        self.shortest_distance_line = Line1dSolid(thickness=1, color=Vec4(1., 1., 1., 0.5))
         # self.shortest_distance_line.setTailPoint(Vec3(1., 0., 0.))
         # self.shortest_distance_line.setTipPoint(Vec3(0., 0., 0.))
 
     def mouseMoverTask(self, task):
+        print("onHover")
+
+        self.renderHintCursors()
+
+        return task.cont
+
+
+    def onPress(self):
+        # for edge in self.draggablegraph.graph_edges:
+        #     edge.nodePath.setColor((1., 0., 1., 1.), 1)
+
+        self.renderHintCursors()
+
+        print("onPress")
+
+    def renderHintCursors(self):
         if base.mouseWatcherNode.hasMouse():
             mpos = base.mouseWatcherNode.getMouse()
 
@@ -316,17 +332,19 @@ class GraphHoverer:
 
 
             closestedge = None
-            d_min = None
+            d_min = float('inf')
 
             # points of shortest distance
             c1_min = None
             c2_min = None
 
             for edge in self.draggablegraph.graph_edges:
-
                 # find closest line (infinite straight)
                 r2 = edge.getTailPoint()
-                e2 = edge.getTipPoint() - edge.getTailPoint()
+                edge_p1 = r2
+                edge_p2 = edge.getTipPoint()
+
+                e2 = edge_p2 - edge_p1  # direction vector for edge infinite straight line
 
                 d = np.abs(math_utils.shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2))
                 c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
@@ -334,49 +352,67 @@ class GraphHoverer:
 
                 # only count this edge if the vector of shortest distance lies in-between the
                 # start and end points of the line
+                # if d is not None:
+                # if d_min is None:
+                #     d_min = d
+                # if closestedge is None:
+                #     closestedge = edge
+                if c1_min is None:
+                    c1_min = c1
+                if c2_min is None:
+                    c2_min = c2
 
-                if d is not None:
-                    if d_min is None:
-                        d_min = d
+                # conditions for closest edge
+                # -    d < d_min
+                # -    the line segment of shortest distance touches the edge's line within the
+                #      two node points of the edge:
+                #
 
-                    if d < d_min:
-                        d_min = d
-                        closestedge = edge
-
-                        c1_min = c1
-                        c2_min = c2
-
-                        self.shortest_distance_line.setTipPoint(math_utils.np_to_p3d_Vec3(c1))
-                        self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
-
-                        self.shortest_distance_line.nodePath.show()
-
-                else:
+                if d < d_min and math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1):
                     d_min = d
                     closestedge = edge
+
+                    c1_min = c1
+                    c2_min = c2
+
+                    self.shortest_distance_line.setTipPoint(math_utils.np_to_p3d_Vec3(c1))
+                    self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
+                    self.shortest_distance_line.nodePath.show()
+                # else:
+                #     closestedge = None
+                #     self.shortest_distance_line.nodePath.hide()
 
             print("closest edge: ", closestedge)  # TODO: maybe take the absolute value ? is it ever negative?
             print("d_min: ", d_min)
 
-            # color edges
-            for edge in self.draggablegraph.graph_edges:
-                edge.nodePath.setColor((1., 0., 1., 1.), 1)
-
-                if edge is closestedge:
-                    edge.nodePath.setColor((1., 0., 0., 1.), 1)
-                else:
+            # -- color edges
+            if closestedge is not None:
+                for edge in self.draggablegraph.graph_edges:
+                    # color all
                     edge.nodePath.setColor((1., 1., 1., 1.), 1)
+                    if edge is closestedge:
+                        edge.nodePath.setColor((1., 0., 0., 1.), 1)
+            else:
+                # hide the connection line
+                self.shortest_distance_line.nodePath.hide()
+
+                # make all the same color
+                for edge in self.draggablegraph.graph_edges:
+                    edge.nodePath.setColor((1., 1., 1., 1.), 1)
+
 
             self.hoverindicatorpoint.setPos(ray_aufpunkt + ray_direction * 1.)
 
-            # color point
-            # find closest point
+            # -- color point
+            # ---- find closest point,
+            # within a certain radius (FIXME: automatically calculate that radius based on the
+            # sorroundings)
+
             d_min_point = None
             closestpoint = None
             for point in self.draggablegraph.graph_points:
                 d = np.linalg.norm(math_utils.p3d_to_np(point.getPos())
                                    - math_utils.p3d_to_np(ray_aufpunkt))
-                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
                 if d_min_point is not None:
                     if d < d_min_point:
                         d_min_point = d
@@ -387,8 +423,7 @@ class GraphHoverer:
 
             print("closest point: ", closestpoint.getPos())
 
-
-            # color point
+            # ---- color in point
             for point in self.draggablegraph.graph_points:
                 point.nodePath.setColor((1., 0., 1., 1.), 1)
 
@@ -396,18 +431,3 @@ class GraphHoverer:
                     point.nodePath.setColor((1., 0., 0., 1.), 1)
                 else:
                     point.nodePath.setColor((1., 1., 1., 1.), 1)
-
-
-
-            # draw connection line of length d to the intersection with the edge
-
-            print("onHover")
-
-        return task.cont
-
-    def onPress(self):
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        for edge in self.draggablegraph.graph_edges:
-            edge.nodePath.setColor((1., 0., 1., 1.), 1)
-
-        print("onPress")

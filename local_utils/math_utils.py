@@ -125,6 +125,19 @@ def getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2):
     return c1, c2
 
 
+def isPointBetweenTwoPoints(p1, p2, p):
+    """ p1 and p2 are on one line.
+        p may or may not be on the same line.
+        The 'between' condition is fulfilled if the distance from each point p1 and p2
+        to p is less than the distance between p1 and p2
+    """
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    d_p1p2 = np.linalg.norm(p1 - p2)
+    cond = np.linalg.norm(p1 - p) < d_p1p2 and np.linalg.norm(p2 - p) < d_p1p2
+
+    return cond
+
+
 def p3d_to_np(p3d_3f):
     return np.array([p3d_3f[0], p3d_3f[1], p3d_3f[2]])
 
