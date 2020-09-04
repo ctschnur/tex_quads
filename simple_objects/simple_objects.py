@@ -182,7 +182,6 @@ class Line1dSolid(Line1dPrimitive):
         self._rotation_forrowvecs = Mat4()
 
         # at this point, the default position (tail point) and tip point are defined
-
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):
@@ -209,7 +208,6 @@ class Line1dSolid(Line1dPrimitive):
         #   to do that, implement the affine transformation in math_utils
         # must take into account the tailpoint
         self.setTipPoint(self.tip_point)
-
 
     def getRotation(self):
         """ forrowvecs """

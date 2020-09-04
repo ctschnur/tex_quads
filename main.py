@@ -67,7 +67,6 @@ class MyApp(ShowBase):
         G.add_edge(dt, mh)
         G.add_edge(st, mh)
 
-
         dg = DraggableGraph(ob)
         gh = GraphHoverer(dg, ob)
 
