@@ -303,6 +303,10 @@ class GraphHoverer:
 
         self.hoverindicatorpoint = Point3d()
 
+        # self.c1point = Point3d()
+
+        # self.c2point = Point3d()
+
         self.shortest_distance_line = Line1dSolid(thickness=1, color=Vec4(1., 1., 1., 0.5))
         # self.shortest_distance_line.setTailPoint(Vec3(1., 0., 0.))
         # self.shortest_distance_line.setTipPoint(Vec3(0., 0., 0.))
@@ -311,7 +315,7 @@ class GraphHoverer:
 
 
     def mouseMoverTask(self, task):
-        print("onHover")
+        # print("onHover")
         self.renderHints()
         return task.cont
 
@@ -382,6 +386,34 @@ class GraphHoverer:
                     self.shortest_distance_line.setTipPoint(math_utils.np_to_p3d_Vec3(c1))
                     self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
                     self.shortest_distance_line.nodePath.show()
+
+
+                    # self.c1point.setPos(c1)
+                    # self.c1point.setColor(Vec4(0.5, 0.5, 0.5, 1.))
+
+                    # self.c2point.setPos(c2)
+                    # self.c2point.setColor(Vec4(0., 0., 0., 1.))
+
+                    # -- set the time label
+                    # ---- set the position of the label to the position of the mouse cursor, but a bit higher
+                    if closestedge is not None:
+                        print("hey there")
+                        self.time_label.textNodePath.show()
+                        self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
+
+                        # figure out the parameter t
+                        t = np.linalg.norm(closestedge.getTailPoint() - math_utils.np_to_p3d_Vec3(c2))/np.linalg.norm(closestedge.getTailPoint() - closestedge.getTipPoint())
+
+                        # print("t = np.linalg.norm(closestedge.getTailPoint() - math_utils.np_to_p3d_Vec3(c2))/np.linalg.norm(closestedge.getTailPoint() - closestedge.getTipPoint())")
+                        # print(t, "np.linalg.norm(", closestedge.getTailPoint(), " - ", math_utils.np_to_p3d_Vec3(c2), ")/, np.linalg.norm(", closestedge.getTailPoint(), " - ", closestedge.getTipPoint(), ")")
+
+                        self.time_label.setText("t = {0:.2f}".format(t))
+                        self.time_label.update()
+                        self.time_label.textNodePath.setScale(0.04)
+
+                    else:
+                        self.time_label.textNodePath.hide()
+
                 # else:
                 #     closestedge = None
                 #     self.shortest_distance_line.nodePath.hide()
@@ -436,25 +468,6 @@ class GraphHoverer:
                 else:
                     point.nodePath.setColor((1., 1., 1., 1.), 1)
 
-
-            # -- set the time label
-            # ---- set the position of the label to the position of the mouse cursor, but a bit higher
-            if closestedge is not None:
-                print("hey there")
-                self.time_label.textNodePath.show()
-                self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
-
-                # figure out the parameter t
-                t = np.linalg.norm(closestedge.getTailPoint() - c1)/np.linalg.norm(closestedge.getTailPoint() - closestedge.getTipPoint())
-
-                self.time_label.setText("t = {0:.2f}".format(t))
-                self.time_label.update()
-                self.time_label.textNodePath.setScale(0.04)
-
-
-                # self.hoverindicatorpoint.setPos()
-            else:
-                self.time_label.textNodePath.hide()
 
 
     def initTimeLabel(self):
