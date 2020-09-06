@@ -65,7 +65,7 @@ class OrbiterLens:
             exit(1)
 
         width = height * (conventions.winsizex/conventions.winsizey)
-        print("Ortho Lens Film: ", "width: ", width, ", height: ", height)
+        # print("Ortho Lens Film: ", "width: ", width, ", height: ", height)
         # setFilmSize specifies the size of the Lens box
         # I call it a *viewing box* if the projection matrix produces
         # orthogonal projection, and *viewing frustum* if the projection
@@ -158,9 +158,9 @@ class Orbiter:
         # --- fix a point light to the side of the camera
         from panda3d.core import PointLight
         self.plight = PointLight('plight')
-        self.plnp = render.attachNewNode(self.plight)
+        self.pl_nodePath = render.attachNewNode(self.plight)
         self.set_pointlight_pos_spherical_coords()
-        render.setLight(self.plnp)
+        render.setLight(self.pl_nodePath)
 
         # -- set faint ambient white lighting
         from panda3d.core import AmbientLight
@@ -170,7 +170,7 @@ class Orbiter:
         render.setLight(self.alnp)
 
     def poll_zoom_plus_minus(self, task):
-        # print("heyi")
+
         is_down = base.mouseWatcherNode.is_button_down
 
         if is_down(self.plus_button):
@@ -184,9 +184,9 @@ class Orbiter:
     def get_spherical_coords(self, offset_r=0., offset_theta=0., offset_phi=0.,
                              prevent_overtop_flipping=False,
                              fixed_phi=None, fixed_theta=None, fixed_r=None):
-        print("theta = ", self.theta, ", ",
-              "phi = ", self.phi, ", ",
-              "r = ", self.r)
+        # print("theta = ", self.theta, ", ",
+        #       "phi = ", self.phi, ", ",
+        #       "r = ", self.r)
 
         # prevent over-the-top flipping
         # self.theta = self.theta % np.pi
@@ -248,8 +248,8 @@ class Orbiter:
 
     def set_pointlight_pos_spherical_coords(self):
         x, y, z = self.get_spherical_coords(offset_phi=np.pi/2.)
-        self.plnp.setPos(x, y, z)
-        self.plnp.lookAt(self.orbit_center)
+        self.pl_nodePath.setPos(x, y, z)
+        self.pl_nodePath.lookAt(self.orbit_center)
 
     def handle_wheel_up(self):
         self.phi = self.phi + 0.1
@@ -296,7 +296,7 @@ class Orbiter:
         self.set_pointlight_pos_spherical_coords()
 
     def handle_zoom_plus(self):
-        print("plus pressed")
+        # print("plus pressed")
         # to give an effective zoom effect in orthographic projection
         # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
         # to self\.r + r_0
@@ -305,7 +305,7 @@ class Orbiter:
         self.set_pointlight_pos_spherical_coords()
 
     def handle_zoom_minus(self):
-        print("minus pressed")
+        # print("minus pressed")
         # to give an effective zoom effect in orthographic projection
         # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
         # to self\.r + r_0

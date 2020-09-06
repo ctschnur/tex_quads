@@ -26,11 +26,6 @@ import sys, os
 
 class Point(IndicatorPrimitive):
     def __init__(self, **kwargs):
-        if 'pos' in kwargs:
-            self.pos = kwargs.get('pos')
-        else:
-            self.pos = Vec3(0., 0., 0.)
-
         if 'color' in kwargs:
             self.color = kwargs.get('color')
         else:
@@ -52,8 +47,6 @@ class Point3d(Point):
 
         self.form_from_primitive_trafo = scaling_forrowvecs # * rotation_forrowvecs
         self.nodePath.setMat(self.form_from_primitive_trafo)
-
-        self.setPos(self.pos)
         self.setColor(self.color)
 
     def makeObject(self):
@@ -90,8 +83,6 @@ class PointPrimitive(Point):
         self.nodePath.setLightOff(1)
         self.nodePath.setRenderModeThickness(5)
 
-        self.setPos(self.pos)
-
 
 class Point2d(Point):
     """ a (2d) quad """
@@ -113,8 +104,13 @@ class Point2d(Point):
 class LinePrimitive(IndicatorPrimitive):
     def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.)):
         IndicatorPrimitive.__init__(self)
-        self.tip_point = np.array([1., 1., 1.])
-        self.tail_point = np.array([0., 0., 0.])
+
+        # these are graphical values
+        # for more complex, e.g. recessed lines for vectors, you need another set
+        # of variables to store the logical end points
+        self.tip_point = None
+        self.tail_point = None
+
         self.color = color
         self.makeObject(thickness, color)
 
@@ -132,6 +128,9 @@ class Line1dPrimitive(LinePrimitive):
         self.thickness = thickness
         self.makeObject(thickness, self.color)
 
+        self.setTailPoint(self.tail_point)
+        self.setTipPoint(self.tip_point)
+
     def makeObject(self, thickness, color):
         self.node = custom_geometry.createColoredUnitLineGeomNode(
             thickness=thickness,
@@ -139,14 +138,25 @@ class Line1dPrimitive(LinePrimitive):
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setLightOff(1)
 
-    def setTipPoint(self, tip_point):
-        # the diff_vec needs to be first scaled and rotated, then translated by self.pos
+    def setTipPoint(self, point):
+        # the diff_vec needs to be first scaled and rotated, then translated by it's position
         # to get a line at a position of a certain tip and tail point
 
-        self.tip_point = tip_point
-        diff_vec = tip_point - self.pos
+        self.tip_point = point
 
-        rotation_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getMat4by4_to_rotate_xhat_to_vector(diff_vec))
+        if (self.tip_point is None or self.tail_point is None):
+            # set vector status to hidden
+            self.nodePath.hide()
+            return
+        else:
+            self.nodePath.show()
+
+        diff_vec = self.tip_point - self.tail_point
+
+        rotation_forrowvecs = (
+            math_utils.math_convention_to_p3d_mat4(
+                math_utils.getMat4by4_to_rotate_xhat_to_vector(diff_vec)))
+
         self._rotation_forrowvecs = rotation_forrowvecs
 
         # scaling matrix: scale the vector along xhat when it points in xhat direction
@@ -161,47 +171,26 @@ class Line1dPrimitive(LinePrimitive):
 
         scaling_and_rotation_forrowvecs = scaling_forrowvecs * self._rotation_forrowvecs
 
-        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(self.pos[0], self.pos[1], self.pos[2])
+        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(*self.nodePath.getPos())
 
         self.nodePath.setMat(self.form_from_primitive_trafo * scaling_and_rotation_forrowvecs * translation_forrowvecs)
 
-    def getTipPoint(self):
-        return self.tip_point
+    def setTailPoint(self, point):
+        """ this sets the tailpoint (self.nodePath.getPos()), keeping the tip point at it's original position """
 
-    def getTailPoint(self):
-        return self.getPos()
+        self.tail_point = point
 
+        if (self.tip_point is None or self.tail_point is None):
+            self.nodePath.hide()
+            return
+        else:
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+            self.nodePath.show()
 
-class Line1dSolid(Line1dPrimitive):
-    initial_length = 1.
-    # thickness is derived from Line1dPrimitive
-
-    def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
-        Line1dPrimitive.__init__(self, thickness=thickness, color=color)  # this also sets the position
-
-        self._rotation_forrowvecs = Mat4()
-
-        # at this point, the default position (tail point) and tip point are defined
-        self.doInitialSetupTransformation(**kwargs)
-
-    def doInitialSetupTransformation(self, **kwargs):
-        self.length = self.initial_length
-        self.form_from_primitive_trafo = self.nodePath.getMat()
-        self.tip_point = None
-        self.pos = np.array([0., 0., 0.])
-        self.setTipPoint(Vec3(1., 0., 0.))
-
-
-    def setPos(self, point_vec3):
-        """ this is an alias for setting the tail point """
-        self.setTailPoint(point_vec3)
-
-    def setTailPoint(self, point_vec3):
-        """ this sets the tailpoint (self.pos), keeping the tip point at it's original position """
-        IndicatorPrimitive.setPos(self, point_vec3)
+        self.nodePath.setPos(point)
 
         # setTipPoint applies a transformation on an already existing line object, i.e.
-        #   first figure out the difference betweeen the tip point (self.tip_point) and the tail point (self.pos) to get the length of the vector
+        #   first figure out the difference betweeen the tip point (self.tip_point) and the tail point (self.nodePath.getPos()) to get the length of the vector
         #   then take the difference vector (diff_vec)
         #   knowing the difference vector, compute the rotation matrix for the position vector diff_vec
         #   if you want to set the rotation using a matrix, then you have to set the position as well using a matrix
@@ -209,11 +198,31 @@ class Line1dSolid(Line1dPrimitive):
         # must take into account the tailpoint
         self.setTipPoint(self.tip_point)
 
-    def getRotation(self):
+
+    def getRotation_forrowvecs(self):
         """ forrowvecs """
 
         assert self._rotation_forrowvecs
         return self._rotation_forrowvecs
+
+
+class Line1dSolid(Line1dPrimitive):
+    initial_length = 1.
+    # thickness is derived from Line1dPrimitive
+
+    def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
+
+        self._rotation_forrowvecs = Mat4()
+
+        Line1dPrimitive.__init__(self, thickness=thickness, color=color)  # this also sets the position
+
+
+
+        self.doInitialSetupTransformation(**kwargs)
+
+    def doInitialSetupTransformation(self, **kwargs):
+        self.length = self.initial_length
+        self.form_from_primitive_trafo = self.nodePath.getMat()
 
 
 class LineDashedPrimitive(Animator):
@@ -230,6 +239,14 @@ class LineDashedPrimitive(Animator):
         self.nodePath = render.attachNewNode(self.node)
 
         self.nodePath.setLightOff(1)
+
+    def getRotation_forrowvecs(self):
+        """
+        forrowvecs
+        """
+
+        assert self._rotation_forrowvecs
+        return self._rotation_forrowvecs
 
 
 class Line1dDashed(LineDashedPrimitive):
@@ -257,13 +274,6 @@ class Line1dDashed(LineDashedPrimitive):
 
         self.setTipPoint(Vec3(1., 0., 0.))
 
-    def getRotation(self):
-        """
-        forrowvecs
-        """
-
-        assert self._rotation_forrowvecs
-        return self._rotation_forrowvecs
 
 class Line2dObject(Box2dCentered):
     width = 0.025
@@ -288,7 +298,7 @@ class Line2dObject(Box2dCentered):
         # self.form_from_primitive_trafo = self.nodePath.getMat()
         self.setTipPoint(Vec3(1., 0., 0.))
 
-    def getRotation(self):
+    def getRotation_forrowvecs(self):
         """
         forrowvecs
         """
@@ -307,9 +317,9 @@ class ArrowHead(Box2dCentered):
         # self.nodePath.setScale(self.scale, self.scale, self.scale)
 
         scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
-            ArrowHead.scale,
-            ArrowHead.scale,
-            ArrowHead.scale)
+            self.scale,
+            self.scale,
+            self.scale)
 
         self.form_from_primitive_trafo = scaling_forrowvecs
 
@@ -335,9 +345,9 @@ class ArrowHeadCone(Box2dCentered):
         # self.nodePath.setScale(self.scale, self.scale, self.scale)
 
         scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
-            ArrowHead.scale,
-            ArrowHead.scale,
-            ArrowHead.scale)
+            self.scale,
+            self.scale,
+            self.scale)
 
         # also, rotate this one to orient itself in the x direction
         rotation_forrowvecs = math_utils.get_R_y_forrowvecs(np.pi/2.)
@@ -358,10 +368,10 @@ class ArrowHeadCone(Box2dCentered):
 
 
 class ArrowHeadConeShaded(IndicatorPrimitive):
-    scale = .1
-
-    def __init__(self, color=Vec4(0., 0., 0., 0.)):
+    def __init__(self, color=Vec4(0., 0., 0., 0.), scale=1./5.):
         self.color=color
+        self.scale=scale
+
         super(ArrowHeadConeShaded, self).__init__()
 
         self.makeObject()
@@ -371,7 +381,10 @@ class ArrowHeadConeShaded(IndicatorPrimitive):
     def doInitialSetupTransformation(self):
         # self.nodePath.setScale(self.scale, self.scale, self.scale)
 
-        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(ArrowHead.scale, ArrowHead.scale, ArrowHead.scale))
+        scaling_forrowvecs = (
+            math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(self.scale,
+                                                                                  self.scale,
+                                                                                  self.scale)))
 
         # the underlying model is already rotated in the x direction
         # rotation_forrowvecs = math_utils.get_R_y_forrowvecs(np.pi/2.)
@@ -397,7 +410,6 @@ class ArrowHeadConeShaded(IndicatorPrimitive):
 
 
 class SphereModelShaded(Box2dCentered):
-
     def __init__(self, color=Vec4(1., 1., 1., 1.), scale=0.1):
         self.color=color
         self.scale=scale
@@ -428,7 +440,6 @@ class SphereModelShaded(Box2dCentered):
         self.nodePath.setColor(self.color)
 
         self.nodePath.setLightOff(1)
-
 
 
 from conventions.conventions import compute2dPosition
@@ -538,8 +549,6 @@ class OrientedCircle(IndicatorPrimitive):
 
         self.scale = scale
         self.normal_vector = normal_vector_vec3
-        self.pos = origin_point
-        # self.num_of_verts = num_of_verts
 
         IndicatorPrimitive.__init__(self, **kwargs)
         self.makeObject(num_of_verts, radius)

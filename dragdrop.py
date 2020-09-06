@@ -42,7 +42,7 @@ dropMask = BitMask32.bit(1)
 highlight = VBase4(.3, .3, .3, 1)
 
 
-class objectMangerClass:
+class ObjectMangerClass:
     def __init__(self):
         self.objectIdCounter = 0
         self.objectDict = dict()
@@ -61,23 +61,23 @@ class objectMangerClass:
 
 class dragDropObjectClass:
     def __init__(self, np, objectManager):
-        self.model = np
+        self.model_nodePath = np
         self.previousParent = None
-        self.model.setCollideMask(dragMask)
+        self.model_nodePath.setCollideMask(dragMask)
         self.objectManager = objectManager
-        self.objectManager.tag(self.model, self)
+        self.objectManager.tag(self.model_nodePath, self)
 
     def onPress(self, mouseNp):
-        self.previousParent = self.model.getParent()
-        self.model.wrtReparentTo(mouseNp)
-        self.model.setCollideMask(BitMask32.allOff())
+        self.previousParent = self.model_nodePath.getParent()
+        self.model_nodePath.wrtReparentTo(mouseNp)
+        self.model_nodePath.setCollideMask(BitMask32.allOff())
 
     def onRelease(self):
-        self.model.wrtReparentTo(self.previousParent)
-        self.model.setCollideMask(dragMask)
+        self.model_nodePath.wrtReparentTo(self.previousParent)
+        self.model_nodePath.setCollideMask(dragMask)
 
     def onCombine(self, otherObj):
-        self.model.setPos(otherObj.model.getPos())
+        self.model_nodePath.setPos(otherObj.model_nodePath.getPos())
 
 
 class mouseCollisionClass:
@@ -97,16 +97,16 @@ class mouseCollisionClass:
         cn.addSolid(CollisionRay(0, -100, 0, 0, 1, 0))
         cn.setFromCollideMask(dragMask)
         cn.setIntoCollideMask(BitMask32.allOff())
-        self.cnp = render.attachNewNode(cn)
+        self.c_nodePath = render.attachNewNode(cn)
         self.ctrav = CollisionTraverser()
         self.queue = CollisionHandlerQueue()
-        self.ctrav.addCollider(self.cnp, self.queue)
-        self.cnp.show()
+        self.ctrav.addCollider(self.c_nodePath, self.queue)
+        self.c_nodePath.show()
 
     def mouseMoverTask(self, task):
         if base.mouseWatcherNode.hasMouse():
             mpos = base.mouseWatcherNode.getMouse()
-            self.cnp.setPos(render2d, mpos[0], 0, mpos[1])
+            self.c_nodePath.setPos(render2d, mpos[0], 0, mpos[1])
         return task.cont
 
     def collisionCheck(self):
@@ -129,11 +129,11 @@ class mouseCollisionClass:
 
         if obj is not None:
             self.draggedObj = obj
-            obj.onPress(self.cnp)
+            obj.onPress(self.c_nodePath)
 
     def onRelease(self):
         obj = self.collisionCheck()
-        self.draggedObj.onRelease()  # self.cnp )
+        self.draggedObj.onRelease()  # self.c_nodePath )
         if obj is not None:
             self.draggedObj.onCombine(obj)
 
@@ -165,7 +165,7 @@ class MyApp(ShowBase):
         BezierCurve(point_coords_arr)
 
         # -- make draggable control points
-        objectManager = objectMangerClass()
+        objectManager = ObjectMangerClass()
         mouseCollision = mouseCollisionClass()
 
         control_points = []
@@ -188,23 +188,3 @@ class MyApp(ShowBase):
 
 app = MyApp()
 app.run()
-
-
-# if __name__ == '__main__':
-#   cm = CardMaker('cm')
-#   left,right,bottom,top = 0,2,0,-2
-#   width = right - left
-#   height = top - bottom
-#   cm.setFrame(left,right,bottom,top)
-#   node = render.attachNewNode('')
-#   node.setPos(-1.2,0,0.9)
-#   cards = []
-
-#   for i in range(3):
-#     for j in range(3):
-#       card = node.attachNewNode(cm.generate())
-#       card.setScale(.2)
-#       card.setPos(i/2.0,0,-j/2.0)
-#       card.setColor(random.random(),random.random(),random.random())
-#       draggable = dragDropObjectClass(card)
-#       cards.append(card)

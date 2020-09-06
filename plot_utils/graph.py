@@ -142,14 +142,14 @@ class GraphPickablePoint(GraphPoint, PickablePoint):
         PickablePoint.__init__(self, pickableObjectManager, pos=pos)
 
 
-class GraphEdge(Line1dSolid):
+class GraphEdge(Vector):
     """ when dragging a graph node, the graph edge also needs to update, so you need to know it's associated logical graph nodes """
     def __init__(self, nx_graph, nx_graph_edge, point1_vec3, point2_vec3):
         self.nx_graph = nx_graph
         self.nx_graph_edge = nx_graph_edge
 
         # plot a line between point1 and point2
-        Line1dSolid.__init__(self)
+        Vector.__init__(self)
         self.setTailPoint(point1_vec3)
         self.setTipPoint(point2_vec3)
 
@@ -176,14 +176,6 @@ class DraggableGraph(Graph):
         # -- add a mouse task to check for picking
         self.p3d_direct_object = DirectObject.DirectObject()
         self.p3d_direct_object.accept('mouse1', self.collisionPicker.onMouseTask)
-
-
-        # # -- add a line betwen each set of 2 pickablepoints (like in inkscape)
-        # # ---- with only 4 pickablepoints, assign a line to the fist 2 and the last 2
-        # self.l1 = Line1dSolid(thickness=1., color=Vec4(1,0,1,1))
-        # self.l2 = Line1dSolid(thickness=1., color=Vec4(1,0,1,1))
-        # # l1.setPos(Vec3(0., 0., 0.))
-        # # l1.setTipPoint(Vec3(0., 0., 0.))
 
         self.plot()
 
@@ -387,13 +379,6 @@ class GraphHoverer:
                     self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
                     self.shortest_distance_line.nodePath.show()
 
-
-                    # self.c1point.setPos(c1)
-                    # self.c1point.setColor(Vec4(0.5, 0.5, 0.5, 1.))
-
-                    # self.c2point.setPos(c2)
-                    # self.c2point.setColor(Vec4(0., 0., 0., 1.))
-
                     # -- set the time label
                     # ---- set the position of the label to the position of the mouse cursor, but a bit higher
                     if closestedge is not None:
@@ -436,8 +421,7 @@ class GraphHoverer:
                 for edge in self.draggablegraph.graph_edges:
                     edge.nodePath.setColor((1., 1., 1., 1.), 1)
 
-
-            self.hoverindicatorpoint.setPos(ray_aufpunkt + ray_direction * 1.)
+            self.hoverindicatorpoint.nodePath.setPos(ray_aufpunkt + ray_direction * 1.)
 
             # -- color point
             # ---- find closest point,

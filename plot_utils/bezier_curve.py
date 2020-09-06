@@ -115,8 +115,6 @@ class DraggableBezierCurve(BezierCurve):
         # ---- with only 4 pickablepoints, assign a line to the fist 2 and the last 2
         self.l1 = Line1dSolid(thickness=1., color=Vec4(1,0,1,1))
         self.l2 = Line1dSolid(thickness=1., color=Vec4(1,0,1,1))
-        # l1.setPos(Vec3(0., 0., 0.))
-        # l1.setTipPoint(Vec3(0., 0., 0.))
 
         self.updateCurveAfterPointCoordsChanged()
 
@@ -133,10 +131,10 @@ class DraggableBezierCurve(BezierCurve):
         """ update the handle lines to have tip/tail points at the positions of
         the new coordinates of the pickable points """
 
-        self.l1.setPos(self.bez_points[0])
+        self.l1.setTailPoint(self.bez_points[0])
         self.l1.setTipPoint(self.bez_points[1])
 
-        self.l2.setPos(self.bez_points[2])
+        self.l2.setTailPoint(self.bez_points[2])
         self.l2.setTipPoint(self.bez_points[3])
 
 
@@ -363,7 +361,6 @@ class SelectableBezierCurve(DraggableBezierCurve):
         self.tube_mesh_nodePath.setRenderModeWireframe()
         self.tube_mesh_nodePath.setTwoSided(True)
         self.tube_mesh_nodePath.setLightOff(1)
-
 
     def updateCurveAfterPointCoordsChanged(self):
         """ if a PickablePoint has been dragged, you need to update the curve

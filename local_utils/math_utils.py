@@ -224,6 +224,9 @@ def p3d_mat4_to_math_convention(m):
     return np.transpose(m)  # surprisingly, this works
 
 
+def multiply_scalar_with_vec3(scalar, vec3):
+    return Vec3(*(scalar * p3d_to_np(vec3)))
+
 def getPointsAndPathLengthsAlongPolygonalChain(
         func=(lambda t: np.array([t, t, t])),
         param_interv=np.array([0, 1]),

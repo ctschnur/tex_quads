@@ -104,17 +104,8 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     # vary doesn't do anything to the displayed content (except maybe
     # hiding it beyond the near/far planes)
 
-    # base.cam.setPos(0.5, -2, 0.5)  # this manipulates the viewing matrix
-    # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
-
     base.cam.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
-
     base.cam.lookAt(lookat_position)  # this manipulates the viewing matrix
-    # base.cam.setPos(0., -2, 0.)  # this manipulates the viewing matrix
-    # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
-
-    # base.cam.setPos(0, 0, 2.5)  # this manipulates the viewing matrix
-    # base.cam.lookAt(Vec3(0,0,0))  # this manipulates the viewing matrix
 
     # -- set faint ambient white lighting
     from panda3d.core import AmbientLight

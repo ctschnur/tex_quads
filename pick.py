@@ -64,7 +64,7 @@ class MyApp(ShowBase):
         BezierCurve(point_coords_arr)
 
         # # -- make draggable control points
-        # objectManager = objectMangerClass()
+        # objectManager = ObjectMangerClass()
         # mouseCollision = mouseCollisionClass()
 
         control_points = []
@@ -113,10 +113,10 @@ class MyApp(ShowBase):
         # from panda3d.core import PointLight
         # self.plight = PointLight('plight')
         # self.plight.setColor(Vec4(0.7, 0.7, 0.7, 1.))
-        # self.plnp = render.attachNewNode(self.plight)
+        # self.pl_nodePath = render.attachNewNode(self.plight)
         # # self.set_pointlight_pos_spherical_coords()
-        # self.plnp.setPos(self.box, 0., 0., 40.)
-        # render.setLight(self.plnp)
+        # self.pl_nodePath.setPos(self.box, 0., 0., 40.)
+        # render.setLight(self.pl_nodePath)
 
     def setupCollisionObjects(self):
         # creating stuff

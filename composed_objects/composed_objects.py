@@ -7,6 +7,8 @@ from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1d
 
 from simple_objects.simple_objects import Point3d
 
+from p3d_tools import p3d_tools
+
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
     Vec3,
@@ -50,11 +52,16 @@ class Vector:
        it looks like a properly drawn vector
     """
 
-    def __init__(self, tip_point=None, **kwargs):
+    def __init__(self, tail_point_logical=None, tip_point_logical=None, arrowhead_scale=1./15., **kwargs):
         if 'linetype' in kwargs:
             self.linetype = kwargs.get('linetype')
         else:
             self.linetype = "1d"
+
+        if 'color' in kwargs:
+            self.color = kwargs.get('color')
+        else:
+            self.color = Vec4(1., 0., 0., 1.)
 
         if self.linetype == "1d":
             if 'thickness1dline' in kwargs:
@@ -62,17 +69,10 @@ class Vector:
             else:
                 self.thickness1dline = 2.
 
-            if 'color' in kwargs:
-                self.color = kwargs.get('color')
-            else:
-                self.color = 2.
-
             if 'linestyle' in kwargs:
                 self.linestyle = kwargs.get('linestyle')
             else:
                 self.linestyle = "-"
-
-            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
             if self.linestyle == "--":
                 howmany_periods = 5.
@@ -87,16 +87,10 @@ class Vector:
                 self.line1 = Line1dSolid(
                     thickness=self.thickness1dline, color=self.color)
 
-
         elif self.linetype == "2d":
             self.line1 = Line2dObject()
         else:
             print("Error: linetype " + self.linetype + " is invalid")
-
-        if 'color' in kwargs:
-            self.color = kwargs.get('color')
-        else:
-            self.color = Vec4(1., 0., 0., 1.)
 
         if 'arrowheadstyle' in kwargs:
             self.arrowheadstyle = kwargs.get('arrowheadstyle')
@@ -107,24 +101,91 @@ class Vector:
             elif self.arrowheadstyle == "ArrowHead":
                 self.arrowhead = ArrowHead()
         else:
-            # self.arrowhead = ArrowHeadCone()
-            self.arrowhead = ArrowHeadConeShaded(color=self.color)
+            self.arrowhead = ArrowHeadConeShaded(color=self.color, scale=arrowhead_scale)
 
-        self.arrowhead.nodePath.setRenderModeWireframe()
+        # self.arrowhead.nodePath.setRenderModeWireframe()
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
             [self.line1.nodePath, self.arrowhead.nodePath])
 
-        self.setVectorTipPoint(tip_point)
+        self.tip_point_logical = tip_point_logical
+        self.tail_point_logical = tail_point_logical
 
-    def setVectorTipPoint(self, tip_point):
-        if tip_point is not None:
-            self.line1.setTipPoint(tip_point)
+        self.setVectorTipPoint(self.tip_point_logical)
+        self.setVectorTailPoint(self.tail_point_logical)
 
-        # join ArrowHead and Line
-        self._adjustArrowHead()
-        self._adjustLine()
+        self.setVectorColor(self.color)
+
+    def setVectorColor(self, color):
+        """ set this color to all panda nodes """
+        children = self.groupNode.get_children()
+        for child in children:
+            child.setColor(color)
+
+
+    def setVectorTipPoint(self, point, param=False, adjust=True):
+        """ the group node might have an additional non-zero position:
+            -> setPos of the groupnode determines the origin of the primed coorinate system, i.e. the tail of the vector, which is at it's origin
+            -> the tip point is either specified in the primed coordinate system (primed=True). This already works and can be used to plot vector fields
+            -> if the vector tip point however is meant to be a coordinate in the unprimed system, then:
+               - the specified tip point has to be transformed by (groupnode.getMat)^-1 (on updating the vector, -> on the cpu) to undo the effect of the groupnode transformation,
+                 and then the transformed tip point is used (this causes self.tip_point_logical to be different than the relative position of the tip point wrt the primed system)
+               - as the arrowhead's orientation is wrt the primed system, it should still be ok.
+        """
+
+        if param is True:
+            import ipdb
+            ipdb.set_trace()  # noqa BREAKPOINT
+
+        self.tip_point_logical = point
+
+        if (self.tip_point_logical is None or self.tail_point_logical is None):
+            adjust = False
+            self.groupNode.hide()
+
+            if self.tip_point_logical is not None:
+                self.line1.setTipPoint(self.tip_point_logical)
+
+        else:
+            self.groupNode.show()
+            self.line1.setTipPoint(self.tip_point_logical)
+            self.line1.setTailPoint(self.tail_point_logical)
+
+        if adjust is True:
+            # import ipdb
+            # ipdb.set_trace()  # noqa BREAKPOINT
+            # join ArrowHead and Line
+            self._adjustArrowHead()
+            self._adjustLine()
+
+    def setVectorTailPoint(self, point, param=False, adjust=True):
+        """ This sets the position of the local coordinate system that is the vector.
+            If there is already a tip point, set the tail point and then set the tip point again """
+
+        if param is True:
+            import ipdb
+            ipdb.set_trace()  # noqa BREAKPOINT
+
+        self.tail_point_logical = point
+
+        if (self.tip_point_logical is None or self.tail_point_logical is None):
+            adjust = False
+            self.groupNode.hide()
+
+            if self.tail_point_logical is not None:
+                self.line1.setTailPoint(self.tail_point_logical)
+        else:
+            self.groupNode.show()
+            self.line1.setTipPoint(self.tip_point_logical)
+            self.line1.setTailPoint(self.tail_point_logical)
+
+        if adjust is True:
+            # import ipdb
+            # ipdb.set_trace()  # noqa BREAKPOINT
+            # join ArrowHead and Line
+            self._adjustArrowHead()
+            self._adjustLine()
 
     def _adjustArrowHead(self):
         # 0. scale arrowhead (may just be identity)
@@ -133,39 +194,82 @@ class Vector:
         #   - translate arrowhead to the tip of the line1
         #   - translate arrowhead back to the scaled back line1's tip
 
+        assert self.line1.nodePath.getPos() == self.line1.tail_point
+        assert self.line1.nodePath.getPos() == self.tail_point_logical
+
         translation_to_tip_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
-            self.line1.tip_point[0],
-            self.line1.tip_point[1],
-            self.line1.tip_point[2])
+            self.tip_point_logical[0],
+            self.tip_point_logical[1],
+            self.tip_point_logical[2])
 
-        arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
-        arrowhead_direction = self.line1.tip_point / \
-            np.linalg.norm(self.line1.tip_point)
-        b_tilde = arrowhead_length * arrowhead_direction
+        # arrowhead_length = -np.cos(np.pi / 6.) * self.arrowhead.scale
+        arrowhead_length = self.arrowhead.scale
+        arrowhead_direction = self._get_direction()
+
+        b_tilde = - math_utils.multiply_scalar_with_vec3(arrowhead_length, arrowhead_direction)
+
         translation_to_match_point_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
-            b_tilde[0],
-            b_tilde[1],
-            b_tilde[2])
+            b_tilde[0], b_tilde[1], b_tilde[2])
 
-        translation_forrowvecs = (
-            translation_to_tip_forrowvecs * translation_to_match_point_forrowvecs)
+        # translation_forrowvecs = (
+        #     # translation_to_tip_forrowvecs * translation_to_match_point_forrowvecs
+        #     Mat4()
+        # )
 
         self.arrowhead.nodePath.setMat(
-            self.arrowhead.form_from_primitive_trafo * self.line1.getRotation() * translation_forrowvecs)
+            self.arrowhead.form_from_primitive_trafo *  # for me, this is just the scaling
+            self.line1.getRotation_forrowvecs() *
+            translation_to_tip_forrowvecs *
+            translation_to_match_point_forrowvecs
+        )
+
+    def _get_length_logical(self):
+        vec_length_logical = np.linalg.norm(
+            math_utils.p3d_to_np(self.tail_point_logical - self.tip_point_logical))
+        return vec_length_logical
+
+    def _get_direction(self):
+        return (
+            math_utils.multiply_scalar_with_vec3(
+                1./np.linalg.norm(self.tip_point_logical - self.tail_point_logical),
+                self.tip_point_logical - self.tail_point_logical))
 
     def _adjustLine(self):
         # figure out the factor by which to scale back the line1
         # based on the size of the arrow tip
-        l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
-        arrowhead_direction = self.line1.tip_point / \
-            np.linalg.norm(self.line1.tip_point)
-        l_line_0 = np.linalg.norm(self.line1.tip_point)
-        c_scaling = l_line_0 / (l_line_0 - l_arrow)
+        # l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
+        # arrowhead_direction = self._get_direction()
 
-        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(c_scaling, c_scaling, c_scaling))
+        l_arrowhead = self.arrowhead.scale  # this could be made more general in the ArrowHead class
+        l_line_0 = self._get_length_logical()
+        c_scaling =  (l_line_0 - l_arrowhead) / l_line_0
+
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+        assert c_scaling <= 1.
+
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(
+            math_utils.getScalingMatrix4x4(c_scaling, c_scaling, c_scaling))
+
+        # you apply the scaling with the tail of the vector sitting in the origin, i.e.
+        # 0. save it's original tail position
+        # 1. translate it to the origin
+        # 2. apply the scaling
+        # 3. translate it back to it's original position
+
+        assert self.line1.nodePath.getPos() == self.line1.tail_point
+        assert self.line1.nodePath.getPos() == self.tail_point_logical
 
         self.line1.nodePath.setMat(
-            self.line1.nodePath.getMat() * scaling_forrowvecs)
+            (self.line1.nodePath.getMat() *
+             math_utils.getTranslationMatrix3d_forrowvecs(-self.tail_point_logical[0],
+                                                          -self.tail_point_logical[1],
+                                                          -self.tail_point_logical[2]) *
+             scaling_forrowvecs *
+             math_utils.getTranslationMatrix3d_forrowvecs(self.tail_point_logical[0],
+                                                          self.tail_point_logical[1],
+                                                          self.tail_point_logical[2])
+             ))
 
 
 class GroupNode(Animator):
@@ -184,6 +288,23 @@ class GroupNode(Animator):
     def removeChildNodePaths(self, NodePaths):
         for np in NodePaths:
             np.removeNode()
+
+    def hide(self):
+        """ hide every child node in the group node """
+        children = self.nodePath.get_children()
+
+        for child in children:
+            child.hide()
+
+    def show(self):
+        """ hide every child node in the group node """
+        children = self.nodePath.get_children()
+        for child in children:
+            child.show()
+
+    def get_children(self):
+        return self.nodePath.get_children()
+
 
 
 class Axis:
@@ -219,13 +340,13 @@ class Axis:
         #                                   self.ticks_groupNode.nodePath])
 
     def _build_vector(self):
-        tip_point = self.direction_vector * self.axis_length
+        tip_point_logical = self.direction_vector * self.axis_length
 
         if self.axis_vector:
-            self.axis_vector.setVectorTipPoint(tip_point)
+            self.axis_vector.setVectorTipPoint(tip_point_logical)
         else:
             self.axis_vector = Vector(
-                tip_point=tip_point, thickness1dline=self.thickness1dline, color=self.color)
+                tip_point_logical=tip_point_logical, thickness1dline=self.thickness1dline, color=self.color)
             self.groupNode.addChildNodePaths(
                 [self.axis_vector.groupNode.nodePath])
 
@@ -269,7 +390,7 @@ class Axis:
 
         # apply rotation to ticks group Node
         self.ticks_groupNode.nodePath.setMat(
-            self.axis_vector.line1.getRotation())
+            self.axis_vector.line1.getRotation_forrowvecs())
 
         self.groupNode.addChildNodePaths([self.ticks_groupNode.nodePath])
 
@@ -357,18 +478,22 @@ class CoordinateSystem:
 
         if isinstance(self.camera, cameras.Orbiter.Orbiter):
             pos_rel_to_world_x = Point3(1., 0., 0.)
-            myPinnedLabelx = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="x", xshift=0.02, yshift=0.02)
+            myPinnedLabelx = Pinned2dLabel(
+                refpoint3d=pos_rel_to_world_x, text="x", xshift=0.02, yshift=0.02)
             self.camera.add_camera_move_hook(myPinnedLabelx.update)
 
             pos_rel_to_world_y = Point3(0., 1., 0.)
-            myPinnedLabely = Pinned2dLabel(refpoint3d=pos_rel_to_world_y, text="y", xshift=0.02, yshift=0.02)
+            myPinnedLabely = Pinned2dLabel(
+                refpoint3d=pos_rel_to_world_y, text="y", xshift=0.02, yshift=0.02)
             self.camera.add_camera_move_hook(myPinnedLabely.update)
 
             pos_rel_to_world_z = Point3(0., 0., 1.)
-            myPinnedLabelz = Pinned2dLabel(refpoint3d=pos_rel_to_world_z, text="z", xshift=0.02, yshift=0.02)
+            myPinnedLabelz = Pinned2dLabel(
+                refpoint3d=pos_rel_to_world_z, text="z", xshift=0.02, yshift=0.02)
             self.camera.add_camera_move_hook(myPinnedLabelz.update)
         else:
-            print("ERR: no other camera yet implemented for attaching lablels to CoordinateSystem")
+            print(
+                "ERR: no other camera yet implemented for attaching lablels to CoordinateSystem")
 
 
 class Scatter:
@@ -473,12 +598,12 @@ class CoordinateSystemP3dPlain:
 
         # Y axis
         ls.setColor(0.0, 1.0, 0.0, 1.0)
-        ls.moveTo(0.0,0.0,0.0)
+        ls.moveTo(0.0, 0.0, 0.0)
         ls.drawTo(0.0, 1.0, 0.0)
 
         # Z axis
         ls.setColor(0.0, 0.0, 1.0, 1.0)
-        ls.moveTo(0.0,0.0,0.0)
+        ls.moveTo(0.0, 0.0, 0.0)
         ls.drawTo(0.0, 0.0, 1.0)
 
         geomnode = ls.create()

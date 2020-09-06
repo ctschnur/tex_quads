@@ -38,7 +38,9 @@ class MyApp(ShowBase):
         render.setAntialias(AntialiasAttrib.MAuto)
 
         ob = Orbiter(base.cam, radius=3.)
-        cs = CoordinateSystem(ob)
+        # cs = CoordinateSystem(ob)
+
+        csplain = CoordinateSystemP3dPlain()
 
         # ob.set_view_to_yz_plane()
         ob.set_view_to_xy_plane()
@@ -67,8 +69,64 @@ class MyApp(ShowBase):
         G.add_edge(dt, mh)
         G.add_edge(st, mh)
 
-        dg = DraggableGraph(ob)
-        gh = GraphHoverer(dg, ob)
+        # dg = DraggableGraph(ob)
+        # gh = GraphHoverer(dg, ob)
+
+        l = Line1dSolid()
+
+        l.setTipPoint(Vec3(2.0, 0.1, 0.))
+        l.setTailPoint(Vec3(1.0, 0.1, 0.))
+
+        l2 = Line1dSolid()
+
+        l2.setTipPoint(Vec3(0.5, 0.2, 0.))
+        l2.setTailPoint(Vec3(0.0, 0.2, 0.))
+
+        # a = Vector(tail_point_logical=Vec3(1., .7, 0.), tip_point_logical=Vec3(-0.5, -0.5, 0.0))
+
+        a = Vector()
+
+        # a.groupNode.hide()
+
+        a.setVectorTipPoint(Vec3(1., 0., 0.)# , param=True
+        )
+        a.setVectorTailPoint(Vec3(0.5, 0., 0.) # , param=True
+        )
+
+
+        a2 = Vector(color=Vec4(0., 1., 0., 1.))
+
+        a2.setVectorTipPoint(Vec3(0.5, 0.5, 0.)# , param=True
+        )
+        a2.setVectorTailPoint(Vec3(1., 1.0, 0.) # , param=True
+        )
+
+
+        l3 = Line1dSolid()
+
+        l3.setTipPoint(Vec3(0.5, 0.5, 0.))
+        l3.setTailPoint(Vec3(0.0, 0.5, 0.))
+
+        l4 = Line1dSolid()
+
+        l4.setTipPoint(Vec3(1., 1., 0.))
+        l4.setTailPoint(Vec3(0.0, 1., 0.))
+
+        # ahcs = ArrowHeadConeShaded(color=Vec4(0., 1., 1., 1.), scale=1.0)
+        # ahcs.nodePath.setRenderModeWireframe()
+
+        # a.setVectorTipPoint(Vec3(0., 0., 0.))
+        # a.setVectorTipPoint(Vec3(1., 1., 0.)# , param=True
+        # )
+
+        # print("a.line1.pos: ", a.line1.pos)
+        # print("a.line1.getPos(): ", a.line1.getPos())
+        # print("a.line1.getTailPoint(): ", a.line1.getTailPoint())
+        # print("a.line1.tail_point_logical: ", a.line1.tail_point_logical)
+        # print("a.line1.getTipPoint(): ", a.line1.getTipPoint())
+
+        # a.setVectorTailPoint(Vec3(0., 1.05, 0.))
+        # a.setVectorTipPoint(Vec3(0., 1., 0.))
 
         print("hi")
 

@@ -31,19 +31,6 @@ class IndicatorPrimitive(Animator):
     # a makeobject is pointless to define here, since it will get overridden anyway
     # for a specific object
 
-    def setPos(self, pos):
-        """
-        Parameters:
-        - pos : Vec3 position
-        """
-        self.pos = pos
-        self.nodePath.setPos(*self.pos)
-
-    def getPos(self):
-        # this should be pretty much always true for point-type higher level classes
-        assert self.nodePath.getPos() == Vec3(*self.pos)
-        return self.pos
-
     def setColor(self, color):
         self.color = color
         self.nodePath.setColor(*self.color)
