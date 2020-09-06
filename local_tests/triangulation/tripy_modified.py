@@ -62,7 +62,7 @@ def earclip(polygon):
         i_original = polygon_original.index(ear)  
         triangles_indices.append((i_original - 1, i_original, i_original + 1))
         # --- END my modification
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
         
         if point_count > 3:
             prev_prev_point = polygon[prev_index - 1]

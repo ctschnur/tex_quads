@@ -333,7 +333,7 @@ def create_Triangle_Mesh_From_Vertices_and_Indices(vertices, indices,
 
     vertices = np.reshape(vertices, (-1, 3))
     for v in vertices:
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
         vertexPosWriter.addData3f(v[0], v[1], v[2])
         colorWriter.addData4f(color_vec4)
 
@@ -344,7 +344,7 @@ def create_Triangle_Mesh_From_Vertices_and_Indices(vertices, indices,
 
     indices = np.reshape(indices, (-1, 3))
     for index_triple in indices:
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
         tris.addVertices(index_triple[0], index_triple[1], index_triple[2])
 
     tris.closePrimitive()
@@ -750,7 +750,7 @@ def createColoredParametricCurveGeomNode(
 #             p0_prime = p0
 
 #             while True:  # do while loop, changing p0_prime and delta_l_prime
-#                 import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 #                 delta_l_prime_vec = p0_prime - p1
 #                 delta_l_prime_sign = np.sign(np.dot(delta_l_vec, delta_l_prime_vec))  # delta_l_prime_sign = +-1 : parallel/antiparallel
 
@@ -927,7 +927,7 @@ def draw_dash(ls, draw_state, # from_point,
     draw_state: 1: draw and move
                 0: just move (don't draw)
     """
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
     if draw_state == 1:
         if (from_point != to_point).any():
             ls.moveTo(*tuple(from_point))
@@ -940,7 +940,7 @@ def draw_dash(ls, draw_state, # from_point,
         # ls.moveTo(*tuple(to_point))
         return to_point
     else:
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
         print("ERR in draw_dash: draw_state not defined")
         exit(1)
 

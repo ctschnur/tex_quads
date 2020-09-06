@@ -320,7 +320,7 @@ class Orbiter:
         self.camera_move_hooks.append(func)
 
     def run_camera_move_hooks(self):
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
         for c_hook in self.camera_move_hooks:
             # run the function
             c_hook()

@@ -25,6 +25,9 @@ import networkx as nx
 
 from simple_objects.simple_objects import Pinned2dLabel
 
+from interactive_tools import cameraray
+
+
 def sayhi():
     print("heylo ------- ######")
 
@@ -53,21 +56,17 @@ class Graph:
         dt = "Deatht" + chr(246) + "ngue"
 
         self.logical_graph.add_edge(hd, mh)
-        self.logical_graph.add_edge(mc, st)
-        self.logical_graph.add_edge(boc, mc)
-        self.logical_graph.add_edge(boc, dt)
-        self.logical_graph.add_edge(st, dt)
-        self.logical_graph.add_edge(q, st)
-        self.logical_graph.add_edge(dt, mh)
-        self.logical_graph.add_edge(st, mh)
+        # self.logical_graph.add_edge(mc, st)
+        # self.logical_graph.add_edge(boc, mc)
+        # self.logical_graph.add_edge(boc, dt)
+        # self.logical_graph.add_edge(st, dt)
+        # self.logical_graph.add_edge(q, st)
+        # self.logical_graph.add_edge(dt, mh)
+        # self.logical_graph.add_edge(st, mh)
 
-        # print(list(self.logical_graph.nodes()))
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         self.pos = nx.spring_layout(self.logical_graph)
 
         # get all their coordinates, and draw them
-
         self.coords = [*self.pos.values()]
 
         self.graph_points = []
@@ -99,7 +98,6 @@ class Graph:
             p = Point3d(
                 pos=Vec3(coord[0], coord[1], 0.),
                 scale=0.025)
-
             self.graph_points.append(p)
 
         # edges
@@ -149,15 +147,13 @@ class GraphEdge(Vector):
         self.nx_graph_edge = nx_graph_edge
 
         # plot a line between point1 and point2
-        Vector.__init__(self)
-        self.setTailPoint(point1_vec3)
-        self.setTipPoint(point2_vec3)
+        Vector.__init__(self, tail_point_logical=point1_vec3, tip_point_logical=point2_vec3)
+        # self.setTailPoint(point1_vec3)
+        # self.setTipPoint(point2_vec3)
 
 
 class DraggableGraph(Graph):
-    def __init__(self,
-                 camera_gear):
-
+    def __init__(self, camera_gear):
         Graph.__init__(self)
 
         self.camera_gear = camera_gear
@@ -181,7 +177,6 @@ class DraggableGraph(Graph):
 
         self.updateAfterPointCoordsChanged()
 
-
         # # -- add the update dragging tasks for each of the PickablePoints' draggers
         # for pp in self.graph_points:
         #     dragger = self.dragAndDropObjectsManager.get_dragger_from_nodePath(pp.nodePath):
@@ -194,24 +189,16 @@ class DraggableGraph(Graph):
     def plot(self):
         from functools import partial
 
-        # # nodes
-        # for coord in self.coords:
-        #     p = Point3d(pos=Vec3(
-        #         coord[0], coord[1], 0.
-        #     ), scale=0.025)
-
-        #     self.graph_points.append(p)
-
         # ---- go through the nodes
         for nx_node in (list) (self.logical_graph):
-            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
             auto_coord = self.pos[nx_node]  # the coordinate which is automatically generated, i.e. by a layout algorithm
 
             pt = GraphPickablePoint(self.logical_graph,
                                     nx_node,
                                     self.pickableObjectManager,
                                     pos=Vec3(auto_coord[0], auto_coord[1], 0.))
+
+            pt.nodePath.setScale(*(0.9*np.array([0.02, 0.02, 0.02])))
 
             pt_dragger = Dragger(pt, self.camera_gear)
             pt_dragger.add_on_state_change_function(sayhi)
@@ -224,7 +211,7 @@ class DraggableGraph(Graph):
             self.dragAndDropObjectsManager.add_dragger(pt_dragger)
 
             pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
-            pt.nodePath.showBounds()
+            # pt.nodePath.showBounds()
 
             self.graph_points.append(pt)
 
@@ -241,7 +228,6 @@ class DraggableGraph(Graph):
             self.graph_edges.append(e)
 
 
-
     def updateAfterPointCoordsChanged(self, dragged_graphpickablepoint=None):
         """ once a PickablePoint has been dragged, you need to update it's edges """
 
@@ -250,15 +236,11 @@ class DraggableGraph(Graph):
         if dragged_graphpickablepoint:
             connected_edges = (list) (self.logical_graph.edges([dragged_graphpickablepoint.nx_graph_node]))
 
-            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
             # what is happening here is that the
-
             for ge in self.graph_edges:
                 mycond = any([edges_equal_undirected(ge.nx_graph_edge, conn_edge) for conn_edge in connected_edges])
                 if mycond:
-                    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
                     # find out which node is the dragged node, number 1 or number 2
-
                     dp_pos = dragged_graphpickablepoint.getPos()  # new position of dragged point
                     if dragged_graphpickablepoint.nx_graph_node == ge.nx_graph_edge[0]:
                         print(dragged_graphpickablepoint.nx_graph_node, " is node 1 of ", ge.nx_graph_edge)
@@ -275,8 +257,6 @@ class DraggableGraph(Graph):
         self.coords = new_point_coords
 
 
-from interactive_tools import cameraray
-
 class GraphHoverer:
     """ give it a graph, it will register the necessary hover event and on each
         mouse shift recalculate the new situation, i.e. go through all lines, find the nearest one
@@ -288,10 +268,8 @@ class GraphHoverer:
         self.cameragear = cameragear
         # self.mouse = mouse
 
-        taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
+        # taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
         base.accept('mouse1', self.onPress)
-
-        print("graphhoverer")
 
         self.hoverindicatorpoint = Point3d()
 
@@ -299,22 +277,16 @@ class GraphHoverer:
 
         # self.c2point = Point3d()
 
-        self.shortest_distance_line = Line1dSolid(thickness=1, color=Vec4(1., 1., 1., 0.5))
-        # self.shortest_distance_line.setTailPoint(Vec3(1., 0., 0.))
-        # self.shortest_distance_line.setTipPoint(Vec3(0., 0., 0.))
+        self.shortest_distance_line = Line1dSolid(thickness=5, color=Vec4(1., 0., 1., 0.5))
 
-        self.initTimeLabel()
+        # self.initTimeLabel()
 
 
     def mouseMoverTask(self, task):
-        # print("onHover")
         self.renderHints()
         return task.cont
 
     def onPress(self):
-        # for edge in self.draggablegraph.graph_edges:
-        #     edge.nodePath.setColor((1., 0., 1., 1.), 1)
-
         self.renderHints()
         print("onPress")
 
@@ -382,7 +354,6 @@ class GraphHoverer:
                     # -- set the time label
                     # ---- set the position of the label to the position of the mouse cursor, but a bit higher
                     if closestedge is not None:
-                        print("hey there")
                         self.time_label.textNodePath.show()
                         self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
 
@@ -399,29 +370,22 @@ class GraphHoverer:
                     else:
                         self.time_label.textNodePath.hide()
 
-                # else:
-                #     closestedge = None
-                #     self.shortest_distance_line.nodePath.hide()
-
-            print("closest edge: ", closestedge)  # TODO: maybe take the absolute value ? is it ever negative?
-            print("d_min: ", d_min)
-
             # -- color edges
             if closestedge is not None:
                 for edge in self.draggablegraph.graph_edges:
                     # color all
-                    edge.nodePath.setColor((1., 1., 1., 1.), 1)
+                    edge.setColor((1., 1., 1., 1.), 1)
                     if edge is closestedge:
-                        edge.nodePath.setColor((1., 0., 0., 1.), 1)
+                        edge.setColor((1., 0., 0., 1.), 1)
             else:
                 # hide the connection line
                 self.shortest_distance_line.nodePath.hide()
 
                 # make all the same color
                 for edge in self.draggablegraph.graph_edges:
-                    edge.nodePath.setColor((1., 1., 1., 1.), 1)
+                    edge.setColor((1., 1., 1., 1.), 1)
 
-            self.hoverindicatorpoint.nodePath.setPos(ray_aufpunkt + ray_direction * 1.)
+            self.hoverindicatorpoint.nodePath.setPos(math_utils.np_to_p3d_Vec3(ray_aufpunkt + ray_direction * 1.))
 
             # -- color point
             # ---- find closest point,
@@ -441,8 +405,6 @@ class GraphHoverer:
                     d_min_point = d
                     closestpoint = point
 
-            print("closest point: ", closestpoint.getPos())
-
             # ---- color in point
             for point in self.draggablegraph.graph_points:
                 point.nodePath.setColor((1., 0., 1., 1.), 1)
@@ -451,8 +413,6 @@ class GraphHoverer:
                     point.nodePath.setColor((1., 0., 0., 1.), 1)
                 else:
                     point.nodePath.setColor((1., 1., 1., 1.), 1)
-
-
 
     def initTimeLabel(self):
         """ show a text label at the position of the cursor:
@@ -463,15 +423,7 @@ class GraphHoverer:
         pos_rel_to_world_x = Point3(1., 0., 0.)
 
         self.time_label = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="mytext",
-                                       xshift=0.02, yshift=0.02, font="fonts/arial.egg")
+                                        xshift=0.02, yshift=0.02, font="fonts/arial.egg")
 
         self.time_label.textNode.setTransform(
             math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
-
-# class GraphCursorDragger:
-#     """ This class saves the drag state of the cursor automatically advances it graphically. """
-#     def __init__(self, GraphHoverer):
-#         self.

@@ -47,7 +47,6 @@ class Polygon2dTestTriangles(Animator):
         # self.node = custom_geometry.create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries)
 
         self.nodePath = render.attachNewNode(self.node)
-        # self.nodePath.setRenderModeWireframe()
 
 
 class Polygon2dTestLineStrips(Animator):

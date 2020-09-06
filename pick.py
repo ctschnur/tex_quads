@@ -166,7 +166,7 @@ class MyApp(ShowBase):
             # check to see if indeed an object was picked, and which posiition it has
             if not picked_obj_with_tag.isEmpty():
                 picked_obj_pos = entry.getSurfacePoint(render)
-                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
                 print("picked object: ",
                       # picked_obj_with_tag.getTags(), " tag: ",
                       ", the object: ", picked_obj_with_tag, ", the position: ", picked_obj_pos)

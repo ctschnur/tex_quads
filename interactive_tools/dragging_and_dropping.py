@@ -297,7 +297,7 @@ class CollisionPicker:
                 # to retrieve the properties of the picked object associated with the dragging and dropping,
                 # search the DragAndDropObjectsManager's array for the picked NodePath
 
-                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
                 picked_dragger = self.dragAndDropObjectsManager.get_dragger_from_nodePath(picked_obj_with_tag)
 
                 if picked_dragger is None:

@@ -289,7 +289,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
 
                 self.mesh_points_logical.append(vd_cc_transformed)
 
-                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 
 
             if i > 1:  # after a change in the tangent vector, the normal vector is well-defined

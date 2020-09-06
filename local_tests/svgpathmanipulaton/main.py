@@ -17,7 +17,7 @@ def simplify_svg(filename_in, filename_out):
         PurePath(str(__file__)).parent /
         PurePath("svgcleaner/svgcleaner"))
 
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 
     cmd = [
         str(svgcleaner_path),

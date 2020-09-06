@@ -103,8 +103,6 @@ class Vector:
         else:
             self.arrowhead = ArrowHeadConeShaded(color=self.color, scale=arrowhead_scale)
 
-        # self.arrowhead.nodePath.setRenderModeWireframe()
-
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
             [self.line1.nodePath, self.arrowhead.nodePath])
@@ -112,19 +110,24 @@ class Vector:
         self.tip_point_logical = tip_point_logical
         self.tail_point_logical = tail_point_logical
 
-        self.setVectorTipPoint(self.tip_point_logical)
-        self.setVectorTailPoint(self.tail_point_logical)
+        self.setTipPoint(self.tip_point_logical)
+        self.setTailPoint(self.tail_point_logical)
 
-        self.setVectorColor(self.color)
+        self.setColor(self.color)
 
-    def setVectorColor(self, color):
+    def setColor(self, *args):
         """ set this color to all panda nodes """
         children = self.groupNode.get_children()
         for child in children:
-            child.setColor(color)
+            child.setColor(*args)
 
+    def getTipPoint(self):
+        return self.tip_point_logical
 
-    def setVectorTipPoint(self, point, param=False, adjust=True):
+    def getTailPoint(self):
+        return self.tail_point_logical
+
+    def setTipPoint(self, point, param=False, adjust=True):
         """ the group node might have an additional non-zero position:
             -> setPos of the groupnode determines the origin of the primed coorinate system, i.e. the tail of the vector, which is at it's origin
             -> the tip point is either specified in the primed coordinate system (primed=True). This already works and can be used to plot vector fields
@@ -133,10 +136,6 @@ class Vector:
                  and then the transformed tip point is used (this causes self.tip_point_logical to be different than the relative position of the tip point wrt the primed system)
                - as the arrowhead's orientation is wrt the primed system, it should still be ok.
         """
-
-        if param is True:
-            import ipdb
-            ipdb.set_trace()  # noqa BREAKPOINT
 
         self.tip_point_logical = point
 
@@ -153,19 +152,15 @@ class Vector:
             self.line1.setTailPoint(self.tail_point_logical)
 
         if adjust is True:
-            # import ipdb
-            # ipdb.set_trace()  # noqa BREAKPOINT
+
+
             # join ArrowHead and Line
             self._adjustArrowHead()
             self._adjustLine()
 
-    def setVectorTailPoint(self, point, param=False, adjust=True):
+    def setTailPoint(self, point, param=False, adjust=True):
         """ This sets the position of the local coordinate system that is the vector.
             If there is already a tip point, set the tail point and then set the tip point again """
-
-        if param is True:
-            import ipdb
-            ipdb.set_trace()  # noqa BREAKPOINT
 
         self.tail_point_logical = point
 
@@ -181,8 +176,8 @@ class Vector:
             self.line1.setTailPoint(self.tail_point_logical)
 
         if adjust is True:
-            # import ipdb
-            # ipdb.set_trace()  # noqa BREAKPOINT
+
+
             # join ArrowHead and Line
             self._adjustArrowHead()
             self._adjustLine()
@@ -244,7 +239,7 @@ class Vector:
         l_line_0 = self._get_length_logical()
         c_scaling =  (l_line_0 - l_arrowhead) / l_line_0
 
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 
         assert c_scaling <= 1.
 
@@ -343,7 +338,7 @@ class Axis:
         tip_point_logical = self.direction_vector * self.axis_length
 
         if self.axis_vector:
-            self.axis_vector.setVectorTipPoint(tip_point_logical)
+            self.axis_vector.setTipPoint(tip_point_logical)
         else:
             self.axis_vector = Vector(
                 tip_point_logical=tip_point_logical, thickness1dline=self.thickness1dline, color=self.color)
@@ -401,18 +396,6 @@ class Axis:
         # rebuild (reuse or delete and allocate new)
         self._build_vector()
         self._build_ticks()
-
-
-# class Tick:
-#     """ an axis has ticks
-#     """
-
-#     def __init__(self):
-#         # logical properties
-#         self.thickness = 0.5 * Line2dObject.width
-#         self.length = 4 * Line2dObject.width
-
-#     def _build_line(self):
 
 
 class CoordinateSystem:

@@ -46,6 +46,6 @@ def getCameraMouseRay(camera, mouse_pos):
 
     ray_direction = v_cam_forward
 
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 
     return ray_direction, ray_aufpunkt

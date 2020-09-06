@@ -131,7 +131,7 @@ def isPointBetweenTwoPoints(p1, p2, p):
         The 'between' condition is fulfilled if the distance from each point p1 and p2
         to p is less than the distance between p1 and p2
     """
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
     d_p1p2 = np.linalg.norm(p1 - p2)
     cond = np.linalg.norm(p1 - p) < d_p1p2 and np.linalg.norm(p2 - p) < d_p1p2
 

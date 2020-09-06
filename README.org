@@ -40,6 +40,7 @@ pip install -r ./requirements.txt
 ***** DONE on-hover highlighting of the closest finite straight line
 ***** TODO substitute Line1dSolid edges by vector edges
 ****** DONE Write a dynamic setTailPoint and setTipPoint for Vector
+****** TODO remove the artifact (1., 0., 0.) 
 *** WAITING implement on-hover highlighting of a particular bezier curve 
 **** WAITING curve picking
 Strategy to achieve curve picking: 

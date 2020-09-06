@@ -72,7 +72,7 @@ if __name__ == "__main__":
     vertices, triangle_indices = triangulate_outer_polygon_with_hole_polygons(
         outerPolygonWithInnerHolePolygons)
     
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 
     print("end")
     

@@ -117,7 +117,7 @@ def get_test_symbol_geometries():
     # order them into the datastructures
     symbol_geometries = get_symbol_geometries(svg_paths)
     
-    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 
     return symbol_geometries
 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     # now they are ready for the panda3d triangulator
     # for owip in outerPolygonWithInnerHolePolygonss:
-    #     import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
 
     #     # TODO: remove inner hole polygons, and it works, with them it
     #     # doesn't work yet.

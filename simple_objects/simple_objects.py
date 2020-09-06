@@ -33,9 +33,16 @@ class Point(IndicatorPrimitive):
 
         super(Point, self).__init__()
 
+
 class Point3d(Point):
     def __init__(self, scale=0.025, **kwargs):
         self.scale = scale
+
+        if 'pos' in kwargs:
+            self.pos = kwargs.get('pos')
+        else:
+            self.pos = None
+
         Point.__init__(self, **kwargs)
 
         self.makeObject()
@@ -49,6 +56,8 @@ class Point3d(Point):
         self.nodePath.setMat(self.form_from_primitive_trafo)
         self.setColor(self.color)
 
+        self.setPos(self.pos)
+
     def makeObject(self):
         # load a gltf file
         from panda3d.core import Filename
@@ -57,16 +66,31 @@ class Point3d(Point):
                 # root of project
                 os.path.abspath(sys.path[0])).getFullpath()
             + "/models/small_sphere_triangulated_with_face_normals.gltf")
+
         self.nodePath.reparentTo(render)
         self.node = self.nodePath.node()
 
-        # self.nodePath.setRenderModeWireFrame(False)
         self.nodePath.setRenderModeFilled()
 
         # override the vertex colors of the model
         self.nodePath.setColor(self.color)
 
         self.nodePath.setLightOff(1)
+
+
+    def setPos(self, pos):
+        self.pos = pos
+
+        if self.pos is not None:
+            self.nodePath.setPos(pos)
+            self.nodePath.show()
+        else:
+            self.nodePath.hide()
+
+    def getPos(self):
+        return self.nodePath.getPos()
+
+
 
 class PointPrimitive(Point):
     """ a pixel point (no real spatial extent for e.g. picking) """
@@ -81,7 +105,7 @@ class PointPrimitive(Point):
 
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setLightOff(1)
-        self.nodePath.setRenderModeThickness(5)
+        # self.nodePath.setRenderModeThickness(5)
 
 
 class Point2d(Point):
@@ -184,7 +208,7 @@ class Line1dPrimitive(LinePrimitive):
             self.nodePath.hide()
             return
         else:
-            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
             self.nodePath.show()
 
         self.nodePath.setPos(point)
@@ -207,21 +231,14 @@ class Line1dPrimitive(LinePrimitive):
 
 
 class Line1dSolid(Line1dPrimitive):
-    initial_length = 1.
-    # thickness is derived from Line1dPrimitive
-
     def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
-
         self._rotation_forrowvecs = Mat4()
 
         Line1dPrimitive.__init__(self, thickness=thickness, color=color)  # this also sets the position
 
-
-
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):
-        self.length = self.initial_length
         self.form_from_primitive_trafo = self.nodePath.getMat()
 
 
@@ -250,8 +267,6 @@ class LineDashedPrimitive(Animator):
 
 
 class Line1dDashed(LineDashedPrimitive):
-    initial_length = 1.
-
     def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), howmany_periods=5., **kwargs):
         super(Line1dDashed, self).__init__(
             thickness=thickness, color=color, howmany_periods=howmany_periods)
@@ -261,24 +276,12 @@ class Line1dDashed(LineDashedPrimitive):
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):
-        # if 'thickness' in kwargs:
-        #     self.thickness = kwargs.get('thickness')
-
-        self.length = self.initial_length
-        # self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(0.5, 0, 0)
-
-        # self.form_from_primitive_trafo = scaling * self.translation_to_xhat_forrowvecs
-        # self.nodePath.setMat(self.form_from_primitive_trafo)
-
         self.form_from_primitive_trafo = self.nodePath.getMat()
 
         self.setTipPoint(Vec3(1., 0., 0.))
 
 
 class Line2dObject(Box2dCentered):
-    width = 0.025
-    initial_length = 1.
-
     def __init__(self, **kwargs):
         super(Line2dObject, self).__init__()
         self.doInitialSetupTransformation(**kwargs)
@@ -286,9 +289,12 @@ class Line2dObject(Box2dCentered):
     def doInitialSetupTransformation(self, **kwargs):
         if 'width' in kwargs:
             self.width = kwargs.get('width')
+        else:
+            self.width = 0.025
 
         scaling = math_utils.getScalingMatrix3d_forrowvecs(1., 1., self.width)
-        self.length = self.initial_length
+
+        self.length = 1.
         self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
             0.5, 0, 0)
 
@@ -447,9 +453,6 @@ from panda3d.core import TextNode
 
 
 class Pinned2dLabel:
-    # from direct.gui.OnscreenText import OnscreenText
-    #     textObject = OnscreenText(text='my text string', pos=(-0.5, 0.02), scale=0.07)
-
     def __init__(self, refpoint3d=Point3(1., 1., 1.), text="pinned?", xshift=0., yshift=0.,
                  font="cmr12.egg"):
         self.refpoint3d = refpoint3d
@@ -532,8 +535,6 @@ class OrientedDisk(IndicatorPrimitive):
         self.nodePath.setLightOff(1)
         self.nodePath.setTwoSided(True)
 
-        # self.nodePath.setRenderModeThickness(5)
-
 
 class OrientedCircle(IndicatorPrimitive):
     """ a circle with a normal vector (rotation) and a radius
@@ -566,8 +567,6 @@ class OrientedCircle(IndicatorPrimitive):
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setLightOff(1)
         # self.nodePath.setTwoSided(True)
-
-        # self.nodePath.setRenderModeThickness(5)
 
         # ---- set orientation from normal vector
         # self.nodePath.setMat()

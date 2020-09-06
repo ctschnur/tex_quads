@@ -40,7 +40,7 @@ class MyApp(ShowBase):
         ob = Orbiter(base.cam, radius=3.)
         # cs = CoordinateSystem(ob)
 
-        csplain = CoordinateSystemP3dPlain()
+        # csplain = CoordinateSystemP3dPlain()
 
         # ob.set_view_to_yz_plane()
         ob.set_view_to_xy_plane()
@@ -48,30 +48,32 @@ class MyApp(ShowBase):
         from simple_objects.simple_objects import Pinned2dLabel
 
 
-        import matplotlib.pyplot as plt
-        import networkx as nx
+        # import matplotlib.pyplot as plt
+        # import networkx as nx
 
-        hd = "H" + chr(252) + "sker D" + chr(252)
-        mh = "Mot" + chr(246) + "rhead"
-        mc = "M" + chr(246) + "tley Cr" + chr(252) + "e"
-        st = "Sp" + chr(305) + "n" + chr(776) + "al Tap"
-        q = "Queensr" + chr(255) + "che"
-        boc = "Blue " + chr(214) + "yster Cult"
-        dt = "Deatht" + chr(246) + "ngue"
+        # hd = "H" + chr(252) + "sker D" + chr(252)
+        # mh = "Mot" + chr(246) + "rhead"
+        # mc = "M" + chr(246) + "tley Cr" + chr(252) + "e"
+        # st = "Sp" + chr(305) + "n" + chr(776) + "al Tap"
+        # q = "Queensr" + chr(255) + "che"
+        # boc = "Blue " + chr(214) + "yster Cult"
+        # dt = "Deatht" + chr(246) + "ngue"
 
-        G = nx.Graph()
-        G.add_edge(hd, mh)
-        G.add_edge(mc, st)
-        G.add_edge(boc, mc)
-        G.add_edge(boc, dt)
-        G.add_edge(st, dt)
-        G.add_edge(q, st)
-        G.add_edge(dt, mh)
-        G.add_edge(st, mh)
+        # G = nx.Graph()
+        # G.add_edge(hd, mh)
+        # G.add_edge(mc, st)
+        # G.add_edge(boc, mc)
+        # G.add_edge(boc, dt)
+        # G.add_edge(st, dt)
+        # G.add_edge(q, st)
+        # G.add_edge(dt, mh)
+        # G.add_edge(st, mh)
 
-        # dg = DraggableGraph(ob)
+        dg = DraggableGraph(ob)
         # gh = GraphHoverer(dg, ob)
 
+
+    def draw_vectors_demo():
         l = Line1dSolid()
 
         l.setTipPoint(Vec3(2.0, 0.1, 0.))
@@ -88,17 +90,17 @@ class MyApp(ShowBase):
 
         # a.groupNode.hide()
 
-        a.setVectorTipPoint(Vec3(1., 0., 0.)# , param=True
+        a.setTipPoint(Vec3(1., 0., 0.)# , param=True
         )
-        a.setVectorTailPoint(Vec3(0.5, 0., 0.) # , param=True
+        a.setTailPoint(Vec3(0.5, 0., 0.) # , param=True
         )
 
 
         a2 = Vector(color=Vec4(0., 1., 0., 1.))
 
-        a2.setVectorTipPoint(Vec3(0.5, 0.5, 0.)# , param=True
+        a2.setTipPoint(Vec3(0.5, 0.5, 0.)# , param=True
         )
-        a2.setVectorTailPoint(Vec3(1., 1.0, 0.) # , param=True
+        a2.setTailPoint(Vec3(1., 1.0, 0.) # , param=True
         )
 
 
@@ -111,24 +113,6 @@ class MyApp(ShowBase):
 
         l4.setTipPoint(Vec3(1., 1., 0.))
         l4.setTailPoint(Vec3(0.0, 1., 0.))
-
-        # ahcs = ArrowHeadConeShaded(color=Vec4(0., 1., 1., 1.), scale=1.0)
-        # ahcs.nodePath.setRenderModeWireframe()
-
-        # a.setVectorTipPoint(Vec3(0., 0., 0.))
-        # a.setVectorTipPoint(Vec3(1., 1., 0.)# , param=True
-        # )
-
-        # print("a.line1.pos: ", a.line1.pos)
-        # print("a.line1.getPos(): ", a.line1.getPos())
-        # print("a.line1.getTailPoint(): ", a.line1.getTailPoint())
-        # print("a.line1.tail_point_logical: ", a.line1.tail_point_logical)
-        # print("a.line1.getTipPoint(): ", a.line1.getTipPoint())
-
-        # a.setVectorTailPoint(Vec3(0., 1.05, 0.))
-        # a.setVectorTipPoint(Vec3(0., 1., 0.))
-
-        print("hi")
 
 
 app = MyApp()
