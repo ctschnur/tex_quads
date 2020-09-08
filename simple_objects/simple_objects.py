@@ -136,13 +136,13 @@ class LinePrimitive(IndicatorPrimitive):
         self.tail_point = None
 
         self.color = color
-        self.makeObject(thickness, color)
+        # self.makeObject(thickness, color)
 
-    def makeObject(self, thickness, color):
-        self.node = custom_geometry.createColoredUnitLineGeomNode(
-            thickness=thickness, color_vec4=self.color)
-        self.nodePath = render.attachNewNode(self.node)
-        self.nodePath.setLightOff(1)
+    # def makeObject(self, thickness, color):
+    #     self.node = custom_geometry.createColoredUnitLineGeomNode(
+    #         thickness=thickness, color_vec4=self.color)
+    #     self.nodePath = render.attachNewNode(self.node)
+    #     self.nodePath.setLightOff(1)
 
 
 class Line1dPrimitive(LinePrimitive):
@@ -518,6 +518,71 @@ class Pinned2dLabel:
         # parented by aspect2d
         from conventions.conventions import win_aspect_ratio
         self.textNodePath.setPos((p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1] + self.yshift)
+
+
+class Fixed2dLabel:
+    def __init__(self, # refpoint3d=Point3(1., 1., 1.),
+                 text="fixed?", xshift=0., yshift=0.,
+                 font="cmr12.egg"):
+        # self.refpoint3d = refpoint3d
+        self.text = text
+        self.nodeisattachedtoaspect2d = False
+
+        self.font = font
+        self.font_p3d = loader.loadFont(font)
+
+        self.xshift = xshift
+        self.yshift = yshift
+
+        self.update()
+
+    def setPos(self, x, y, z):
+        """ essentially sets the 3d position of the pinned label """
+        self.refpoint3d = Point3(x, y, z)
+        self.update()
+
+    def setText(self, text):
+        """ sets the text and updates the pinned label """
+        self.text = text
+        self.textNode.setText(self.text)
+        self.textNodePath.removeNode()
+        self.nodeisattachedtoaspect2d = False
+        self.update()
+
+    def update(self):
+        # pos_rel_to_cam = base.cam.get_relative_point(base.render,
+        #                                              self.refpoint3d)
+        # p2d = Point2()
+
+        if not self.nodeisattachedtoaspect2d:
+            self.textNode = TextNode('myFixed2dLabel')
+            self.textNode.setText(self.text)
+
+            # load a font
+            # cmr12 = loader.loadFont('cmr12.egg')
+
+            self.textNode.setFont(self.font_p3d)
+
+            # set a shadow
+            self.textNode.setShadow(0.05, 0.05)
+            self.textNode.setShadowColor(0, 0, 0, 1)
+            self.textNode_p3d_generated = self.textNode.generate()
+
+            self.textNodePath = aspect2d.attachNewNode(self.textNode_p3d_generated)
+
+            self.nodeisattachedtoaspect2d = True
+            self.textNodePath.setScale(0.07)
+            self.textNodePath.show()
+
+        # place text in x, z in [-1, 1] boundaries and
+        # the y coordinate gets ignored for the TextNode
+        # parented by aspect2d
+        from conventions.conventions import win_aspect_ratio
+        self.textNodePath.setPos(# (-1. + self.xshift) * win_aspect_ratio,
+                                 # 0.,
+                                 # 1. + self.yshift
+            (-1. + self.xshift) * win_aspect_ratio, 0., -1. + self.yshift
+        )
 
 
 class OrientedDisk(IndicatorPrimitive):

@@ -52,7 +52,10 @@ class Vector:
        it looks like a properly drawn vector
     """
 
-    def __init__(self, tail_point_logical=None, tip_point_logical=None, arrowhead_scale=1./15., **kwargs):
+    def __init__(self, tail_point_logical=None, tip_point_logical=None,
+                 arrowhead_scale=1./15.,
+                 **kwargs):
+
         if 'linetype' in kwargs:
             self.linetype = kwargs.get('linetype')
         else:
@@ -86,11 +89,11 @@ class Vector:
             else:
                 self.line1 = Line1dSolid(
                     thickness=self.thickness1dline, color=self.color)
-
         elif self.linetype == "2d":
             self.line1 = Line2dObject()
         else:
             print("Error: linetype " + self.linetype + " is invalid")
+
 
         if 'arrowheadstyle' in kwargs:
             self.arrowheadstyle = kwargs.get('arrowheadstyle')

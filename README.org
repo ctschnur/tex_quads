@@ -38,9 +38,13 @@ pip install -r ./requirements.txt
 ***** DONE on-hover highlighting of the closest infinite straight line
 ***** DONE pin text (parametric value between 0 and 1) to the hovering cursor
 ***** DONE on-hover highlighting of the closest finite straight line
-***** TODO substitute Line1dSolid edges by vector edges
+***** DONE substitute Line1dSolid edges by vector edges
 ****** DONE Write a dynamic setTailPoint and setTipPoint for Vector
-****** TODO remove the artifact (1., 0., 0.) 
+****** DONE remove the artifact (1., 0., 0.)
+***** TODO Toggle play/pause
+****** DONE render play/pause label and toggle using spacebar
+****** TODO render a play/pause cursor at a 'current position'
+
 *** WAITING implement on-hover highlighting of a particular bezier curve 
 **** WAITING curve picking
 Strategy to achieve curve picking: 

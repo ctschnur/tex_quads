@@ -2,7 +2,7 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel
 from simple_objects import primitives
 from local_utils import math_utils
 
@@ -28,7 +28,7 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
-from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
+from plot_utils.graph import Graph, DraggableGraph, GraphHoverer, GraphPlayer
 
 
 class MyApp(ShowBase):
@@ -70,49 +70,62 @@ class MyApp(ShowBase):
         # G.add_edge(st, mh)
 
         dg = DraggableGraph(ob)
-        # gh = GraphHoverer(dg, ob)
+        gh = GraphHoverer(dg, ob)
+
+        # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1, yshift=0.1)
+
+        gp = GraphPlayer(dg, ob)
+
+        # point1_vec3 = Vec3(1., 1., 0.)
+        # point2_vec3 = Vec3(2., 2., 0.)
+        # myvec = Vector(# tail_point_logical=point1_vec3, tip_point_logical=point2_vec3
+        # )
+        # myvec.setTailPoint(point1_vec3)
+        # myvec.setTipPoint(point2_vec3)
+
+        # the vector class has an artifact
 
 
-    def draw_vectors_demo():
-        l = Line1dSolid()
+    # def draw_vectors_demo():
+    #     l = Line1dSolid()
 
-        l.setTipPoint(Vec3(2.0, 0.1, 0.))
-        l.setTailPoint(Vec3(1.0, 0.1, 0.))
+    #     l.setTipPoint(Vec3(2.0, 0.1, 0.))
+    #     l.setTailPoint(Vec3(1.0, 0.1, 0.))
 
-        l2 = Line1dSolid()
+    #     l2 = Line1dSolid()
 
-        l2.setTipPoint(Vec3(0.5, 0.2, 0.))
-        l2.setTailPoint(Vec3(0.0, 0.2, 0.))
+    #     l2.setTipPoint(Vec3(0.5, 0.2, 0.))
+    #     l2.setTailPoint(Vec3(0.0, 0.2, 0.))
 
-        # a = Vector(tail_point_logical=Vec3(1., .7, 0.), tip_point_logical=Vec3(-0.5, -0.5, 0.0))
+    #     # a = Vector(tail_point_logical=Vec3(1., .7, 0.), tip_point_logical=Vec3(-0.5, -0.5, 0.0))
 
-        a = Vector()
+    #     a = Vector()
 
-        # a.groupNode.hide()
+    #     # a.groupNode.hide()
 
-        a.setTipPoint(Vec3(1., 0., 0.)# , param=True
-        )
-        a.setTailPoint(Vec3(0.5, 0., 0.) # , param=True
-        )
-
-
-        a2 = Vector(color=Vec4(0., 1., 0., 1.))
-
-        a2.setTipPoint(Vec3(0.5, 0.5, 0.)# , param=True
-        )
-        a2.setTailPoint(Vec3(1., 1.0, 0.) # , param=True
-        )
+    #     a.setTipPoint(Vec3(1., 0., 0.)# , param=True
+    #     )
+    #     a.setTailPoint(Vec3(0.5, 0., 0.) # , param=True
+    #     )
 
 
-        l3 = Line1dSolid()
+    #     a2 = Vector(color=Vec4(0., 1., 0., 1.))
 
-        l3.setTipPoint(Vec3(0.5, 0.5, 0.))
-        l3.setTailPoint(Vec3(0.0, 0.5, 0.))
+    #     a2.setTipPoint(Vec3(0.5, 0.5, 0.)# , param=True
+    #     )
+    #     a2.setTailPoint(Vec3(1., 1.0, 0.) # , param=True
+    #     )
 
-        l4 = Line1dSolid()
 
-        l4.setTipPoint(Vec3(1., 1., 0.))
-        l4.setTailPoint(Vec3(0.0, 1., 0.))
+    #     l3 = Line1dSolid()
+
+    #     l3.setTipPoint(Vec3(0.5, 0.5, 0.))
+    #     l3.setTailPoint(Vec3(0.0, 0.5, 0.))
+
+    #     l4 = Line1dSolid()
+
+    #     l4.setTipPoint(Vec3(1., 1., 0.))
+    #     l4.setTailPoint(Vec3(0.0, 1., 0.))
 
 
 app = MyApp()
