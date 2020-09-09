@@ -20,11 +20,13 @@ import numpy as np
 
 
 class Animator:
-    def initiateTranslationMovement(self, v_x=0., v_z=0., duration=0., delay=0.):
-        extraArgs = [duration, v_x, v_z]
+    def initiateTranslationMovement(self, v0_x=0., v0_y=0., v0_z=0., v_x=0., v_y=0., v_z=0., duration=0., delay=0., **kwargs):
+        extraArgs = [duration,
+                     v0_x, v0_y, v0_z,
+                     v_x, v_y, v_z]
         self.p3d_interval = LerpFunc(
             self.updatePosition, duration=duration, extraArgs=extraArgs)
-        Sequence(Wait(delay), self.p3d_interval).start()
+        Sequence(Wait(delay), self.p3d_interval).start(**kwargs)
 
     def initiateRotationMovement(self, h=0., p=0., r=0., duration=0., delay=0.):
         extraArgs = [duration, h, p, r]
@@ -33,8 +35,12 @@ class Animator:
         Sequence(Wait(delay), self.p3d_interval).start()
 
     # interval update functions
-    def updatePosition(self, t, duration, v_x, v_z):
-        self.nodePath.setPos(v_x * (t / duration), 1., v_z * (t / duration))
+    def updatePosition(self, t, duration,
+                       v0_x, v0_y, v0_z,
+                       v_x, v_y, v_z):
+        self.nodePath.setPos(v0_x + (v_x - v0_x) * (t / duration),
+                             v0_y + (v_y - v0_y) * (t / duration),
+                             v0_z * (v_z - v0_z) * (t / duration))
 
     def updateRotation(self, t, duration, h, p, r):
         self.nodePath.setHpr(h * (t / duration), p *

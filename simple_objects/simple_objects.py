@@ -611,26 +611,31 @@ class OrientedCircle(IndicatorPrimitive):
                  radius=1.,
                  scale=1.,
                  num_of_verts=10,
+                 with_hole=False,
+                 thickness=1.,
                  **kwargs):
 
         self.scale = scale
         self.normal_vector = normal_vector_vec3
 
         IndicatorPrimitive.__init__(self, **kwargs)
-        self.makeObject(num_of_verts, radius)
+        self.makeObject(num_of_verts, radius, with_hole=with_hole, thickness=thickness)
 
         self.nodePath.setMat(
             OrientedCircle.getSetupTransformation(normal_vector_vec3, origin_point, scale))
 
-    def makeObject(self, num_of_verts, radius):
+    def makeObject(self, num_of_verts, radius, with_hole, thickness):
+
         self.node = custom_geometry.createCircle(
             color_vec4=Vec4(1., 1., 1., 1.),
-            with_hole=True,
+            with_hole=with_hole,
             num_of_verts=num_of_verts,
             radius=radius)
 
         self.nodePath = render.attachNewNode(self.node)
         self.nodePath.setLightOff(1)
+        self.nodePath.setRenderModeThickness(thickness)
+
         # self.nodePath.setTwoSided(True)
 
         # ---- set orientation from normal vector

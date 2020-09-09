@@ -28,7 +28,7 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
-from plot_utils.graph import Graph, DraggableGraph, GraphHoverer, GraphPlayer
+from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
 
 
 class MyApp(ShowBase):
@@ -71,17 +71,7 @@ class MyApp(ShowBase):
 
         dg = DraggableGraph(ob)
         gh = GraphHoverer(dg, ob)
-
-        # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1, yshift=0.1)
-
-        gp = GraphPlayer(dg, ob)
-
-        # oc = OrientedCircle(
-        #     origin_point=Vec3(0., 0., 0.),
-        #     normal_vector_vec3=Vec3(0., 0., 1.),
-        #     radius=0.1,
-        #     num_of_verts=30,
-        #     with_hole=False)
+        gp = GraphPlayer(dg)
 
         # point1_vec3 = Vec3(1., 1., 0.)
         # point2_vec3 = Vec3(2., 2., 0.)

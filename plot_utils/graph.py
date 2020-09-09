@@ -455,6 +455,8 @@ class GraphPlayer:
 
         self.initPlayPauseLabel()
 
+        self.renderCursor()
+
     def toggle_play_pause(self, val=None):
         """ toggle or set the play/pause state, val=True for play, False for pause """
 
@@ -496,125 +498,50 @@ class GraphPlayer:
     #     self.renderHints()
     #     print("onPress")
 
+
     def renderCursor(self):
         """ render:
             - cursor of current time (disk perpendicular to edge)
             - current time label """
 
-        r1 = ray_aufpunkt
-        e1 = ray_direction
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
-        closestedge = None
-        d_min = float('inf')
+        # select an edge
+        self.active_edge = list(self.draggablegraph.graph_edges)[3]
 
-        # points of shortest distance
-        c1_min = None
-        c2_min = None
+        # current cursor time
+        t = 0.0
 
-        for edge in self.draggablegraph.graph_edges:
-            # find closest line (infinite straight)
-            r2 = edge.getTailPoint()
-            edge_p1 = r2
-            edge_p2 = edge.getTipPoint()
+        # get the coordinates of the points of the edge
+        A = self.active_edge.getTailPoint()
+        B = self.active_edge.getTipPoint()
 
-            e2 = edge_p2 - edge_p1  # direction vector for edge infinite straight line
+        assert A != B
 
-            d = np.abs(math_utils.shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2))
-            c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
-                r1, r2, e1, e2)
+        # calculate position at t
+        pos_t = A + (B - A) * t
 
-            # only count this edge if the vector of shortest distance lies in-between the
-            # start and end points of the line
-            # if d is not None:
-            # if d_min is None:
-            #     d_min = d
-            # if closestedge is None:
-            #     closestedge = edge
-            if c1_min is None:
-                c1_min = c1
-            if c2_min is None:
-                c2_min = c2
+        normal = (B - A)/np.linalg.norm(B - A)
 
-            # conditions for closest edge
-            # -    d < d_min
-            # -    the line segment of shortest distance touches the edge's line within the
-            #      two node points of the edge:
-            #
+        distance = np.linalg.norm(math_utils.p3d_to_np(B - A))
 
-            if d < d_min and math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1):
-                d_min = d
-                closestedge = edge
+        self.cursor_circle = OrientedCircle(
+            origin_point=pos_t,
+            normal_vector_vec3=Vec3(*normal),
+            radius=0.035,
+            num_of_verts=30,
+            with_hole=False,
+            thickness=3.)
 
-                c1_min = c1
-                c2_min = c2
+        self.cursor_circle.setColor(((1., 0., 0., 1.), 1))
 
-                self.shortest_distance_line.setTipPoint(math_utils.np_to_p3d_Vec3(c1))
-                self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
-                self.shortest_distance_line.nodePath.show()
+        self.cursor_circle.initiateTranslationMovement(v0_x=A[0], v0_y=A[1], v0_z=A[2],
+                                                       v_x=B[0], v_y=B[1], v_z=B[2],
+                                                       duration=1.,
+                                                       delay=0.,
+                                                       startT=0., endT=-distance, playRate=0.5)
 
-                # -- set the time label
-                # ---- set the position of the label to the position of the mouse cursor, but a bit higher
-                if closestedge is not None:
-                    self.time_label.textNodePath.show()
-                    self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
 
-                    # figure out the parameter t
-                    t = np.linalg.norm(closestedge.getTailPoint() - math_utils.np_to_p3d_Vec3(c2))/np.linalg.norm(closestedge.getTailPoint() - closestedge.getTipPoint())
-
-                    # print("t = np.linalg.norm(closestedge.getTailPoint() - math_utils.np_to_p3d_Vec3(c2))/np.linalg.norm(closestedge.getTailPoint() - closestedge.getTipPoint())")
-                    # print(t, "np.linalg.norm(", closestedge.getTailPoint(), " - ", math_utils.np_to_p3d_Vec3(c2), ")/, np.linalg.norm(", closestedge.getTailPoint(), " - ", closestedge.getTipPoint(), ")")
-
-                    self.time_label.setText("t = {0:.2f}".format(t))
-                    self.time_label.update()
-                    self.time_label.textNodePath.setScale(0.04)
-
-                else:
-                    self.time_label.textNodePath.hide()
-
-        # -- color edges
-        if closestedge is not None:
-            for edge in self.draggablegraph.graph_edges:
-                # color all
-                edge.setColor((1., 1., 1., 1.), 1)
-                if edge is closestedge:
-                    edge.setColor((1., 0., 0., 1.), 1)
-        else:
-            # hide the connection line
-            self.shortest_distance_line.nodePath.hide()
-
-            # make all the same color
-            for edge in self.draggablegraph.graph_edges:
-                edge.setColor((1., 1., 1., 1.), 1)
-
-        self.hoverindicatorpoint.nodePath.setPos(math_utils.np_to_p3d_Vec3(
-            ray_aufpunkt + ray_direction * 1.))
-
-        # -- color point
-        # ---- find closest point,
-        # within a certain radius (FIXME: automatically calculate that radius based on the
-        # sorroundings)
-
-        d_min_point = None
-        closestpoint = None
-        for point in self.draggablegraph.graph_points:
-            d = np.linalg.norm(math_utils.p3d_to_np(point.getPos())
-                               - math_utils.p3d_to_np(ray_aufpunkt))
-            if d_min_point is not None:
-                if d < d_min_point:
-                    d_min_point = d
-                    closestpoint = point
-            else:
-                d_min_point = d
-                closestpoint = point
-
-        # ---- color in point
-        for point in self.draggablegraph.graph_points:
-            point.nodePath.setColor((1., 0., 1., 1.), 1)
-
-            if point is closestpoint:
-                point.nodePath.setColor((1., 0., 0., 1.), 1)
-            else:
-                point.nodePath.setColor((1., 1., 1., 1.), 1)
 
     def initTimeLabel(self):
         """ show a text label at the position of the cursor:
