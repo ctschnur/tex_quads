@@ -280,18 +280,18 @@ class GraphHoverer:
 
         self.shortest_distance_line = Line1dSolid(thickness=5, color=Vec4(1., 0., 1., 0.5))
 
-        self.initTimeLabel()
+        self.init_time_label()
 
 
     def mouseMoverTask(self, task):
-        self.renderHints()
+        self.render_hints()
         return task.cont
 
     def onPress(self):
-        self.renderHints()
+        self.render_hints()
         print("onPress")
 
-    def renderHints(self):
+    def render_hints(self):
         """ render various on-hover things:
             - cursors
             - time labels """
@@ -307,7 +307,7 @@ class GraphHoverer:
             closestedge = None
             d_min = float('inf')
 
-            # points of shortest distance
+            # points of shortest edge_length
             c1_min = None
             c2_min = None
 
@@ -323,7 +323,7 @@ class GraphHoverer:
                 c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
                     r1, r2, e1, e2)
 
-                # only count this edge if the vector of shortest distance lies in-between the
+                # only count this edge if the vector of shortest edge_length lies in-between the
                 # start and end points of the line
                 # if d is not None:
                 # if d_min is None:
@@ -337,7 +337,7 @@ class GraphHoverer:
 
                 # conditions for closest edge
                 # -    d < d_min
-                # -    the line segment of shortest distance touches the edge's line within the
+                # -    the line segment of shortest edge_length touches the edge's line within the
                 #      two node points of the edge:
                 #
 
@@ -416,7 +416,7 @@ class GraphHoverer:
                 else:
                     point.nodePath.setColor((1., 1., 1., 1.), 1)
 
-    def initTimeLabel(self):
+    def init_time_label(self):
         """ show a text label at the position of the cursor:
             - set an event to trigger updating of the text on-hover
             - check if the active edge has changed """
@@ -431,6 +431,76 @@ class GraphHoverer:
             math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
 
 
+from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
+from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
+
+
+class EdgePlayerState:
+    """ You have an edge, and the states are
+        1. stopped at beginning
+        2. playing
+        3. paused
+        4. stopped at end
+    This class is just for checking and changing the state.
+    TODO: A class derived from EdgePlayerState will call it's functions and
+    add the specific sequence commands after executing the state change functions. """
+    def __init__(self):
+        # TODO: set predefined initial state
+        self.set_stopped_at_beginning()
+
+
+    def set_stopped_at_beginning(self):
+        self.a = 0.
+        self.stopped = True
+        self.paused = False  # undefined
+
+    def is_stopped_at_beginning(self):
+        return (self.a == 0. and self.stopped == True
+                # self.paused = False  # undefined
+        )
+
+
+    def set_stopped_at_end(self):
+        self.a = 1.
+        self.stopped = True
+        self.paused = False  # undefined
+
+    def is_stopped_at_end(self):
+        return (self.a == 1. and self.stopped == True
+                # self.paused = False  # undefined
+        )
+
+
+    def set_playing(self, a_to_start_from=None):
+        if a_to_start_from is None:
+            a_to_start_from = self.a
+
+        assert (a_to_start_from >= 0. and a_to_start_from <= 1.)
+        self.a = a_to_start_from
+
+        self.stopped = False
+        self.paused = False
+
+    def is_playing(self):
+        return (a >= 0. and a <= 1. and self.stopped == False and self.paused == False)
+
+
+    def set_paused(self, a_to_set_paused_at=None):
+        if a_to_set_paused_at is None:
+            a_to_set_paused_at = self.a
+
+        assert (a_to_set_paused_at >= 0. and a_to_set_paused_at <= 1.)
+        self.a = a_to_set_paused_at
+
+        self.stopped = False  # in a stopped state, you can't pause
+        self.paused = True
+
+
+    def is_paused(self):
+        return (a >= 0. and a <= 1. and self.stopped == False and self.paused == True)
+
+
+
 class GraphPlayer:
     """
         - Plot a play/pause text and toggle it with space
@@ -439,7 +509,7 @@ class GraphPlayer:
     """
 
     def __init__(self, draggablegraph, cameragear):
-        self.play_p = True  # play is true, pause is false
+        # self.play_p = False  # play is true, pause is false
 
         # register event for onmousemove
         self.draggablegraph = draggablegraph
@@ -453,106 +523,226 @@ class GraphPlayer:
 
         # self.shortest_distance_line = Line1dSolid(thickness=5, color=Vec4(1., 0., 1., 0.5))
 
-        self.initPlayPauseLabel()
+        self.v1 = Vec3(0., 0., 0.)
+        self.v2 = Vec3(2., 0., 0.)
+        self.duration = 3.  # a relatively high number
+        self.a = 0.  # a parameter between 0 and 1
+        self.delay = 0.
 
-        self.renderCursor()
+        self.v_c = self.v1  # initially
 
-    def toggle_play_pause(self, val=None):
+        self.p1 = Point3d(scale=0.01, pos=self.v1)
+        self.p2 = Point3d(scale=0.01, pos=self.v2)
+
+        self.p_c = Point3d(scale=0.0125, pos=self.v1)
+        self.p_c.setColor(((1., 0., 0., 1.), 1))
+
+        self.l = Line1dSolid()
+        self.l.setTailPoint(self.v1)
+        self.l.setTipPoint(self.v2)
+
+        self.extraArgs = [# self.duration,
+                     self.v1, self.v2, self.v_c, # self.p1, self.p2,
+            self.p_c]
+
+        # self.p3d_interval = LerpFunc(
+        #     GraphPlayer.update_position_func, duration=self.duration, extraArgs=self.extraArgs)
+        # self.play_cursor_sequence = Sequence(Wait(self.delay), self.p3d_interval)
+        self.play_cursor_sequence = None
+
+        self.stopped_at_end = False
+        self.stopped_at_beginning = True
+
+        # self.starting_edge = list(self.draggablegraph.graph_edges)[3]
+        # self.active_edge = self.starting_edge
+
+        # self.starting_time = 0.
+        # self.a = self.starting_time
+
+        self.paused_cursor_color = ((1., 0., 0., 1.), 1)
+        self.playing_cursor_color = ((0., 1., 0., 1.), 1)
+
+        # -- init play/pause actions
+        # register space key to toggle play/pause
+        play_pause_toggle_direct_object = DirectObject.DirectObject()
+        play_pause_toggle_direct_object.accept('space', self.toggle_play_pause)
+
+        # init the textNode (there is one text node)
+        self.play_pause_label = (
+            Fixed2dLabel(text="paused", font="fonts/arial.egg", xshift=0.1, yshift=0.1))
+
+        self.pause_cursor()
+        # self.init_cursor()
+
+
+    # def get_cursor_data_from_edge(self, edge, t):
+    #     """ t in [0, 1] """
+    #     # t = 0.0
+
+    #     # get the coordinates of the points of the edge
+    #     edge_start_point = self.active_edge.getTailPoint()
+    #     edge_end_point = self.active_edge.getTipPoint()
+
+    #     assert edge_start_point != edge_end_point
+
+    #     # calculate position at t
+    #     pos_t = edge_start_point + (edge_end_point - edge_start_point) * t
+
+    #     direction_vec = (edge_end_point - edge_start_point)/np.linalg.norm(edge_end_point - edge_start_point)
+
+    #     edge_length = np.linalg.norm(math_utils.p3d_to_np(edge_end_point - edge_start_point))
+
+    #     return edge_start_point, edge_end_point, pos_t, direction_vec, edge_length
+
+
+    def toggle_play_pause(self):
         """ toggle or set the play/pause state, val=True for play, False for pause """
 
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        if val is None:
-            val = self.play_p
-
-        if val is True:
+        if self.play_p is True:
             self.play_p = False
-            self.play_pause_label.setText("pause")
-        elif val is False:
+            self.play_pause_label.setText("paused")
+            self.pause_cursor()
+
+        elif self.play_p is False:
             self.play_p = True
-            self.play_pause_label.setText("play")
+            self.play_pause_label.setText("playing")
+            self.play_cursor()
         else:
             print("Error: play_p has invalid value")
 
-        # self.time_label.setText("t = {0:.2f}".format(t))
 
-    def initPlayPauseLabel(self):
-        """ show a text label at the side of the screen
-            - set an event to trigger play/pause of the text on pressing p
-        """
-        # init the textNode (there is one text node)
-        self.play_pause_label = (
-            Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1, yshift=0.1))
+    # def init_cursor(self):
+    #     """ render:
+    #         - cursor of current time (disk perpendicular to edge)
+    #         - current time label """
 
-        # self.play_pause_label.textNode.setTransform(
-        #     math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
+    #     edge_start_point, edge_end_point, pos_t, direction_vec, edge_length = (
+    #         self.get_cursor_data_from_edge(self.active_edge, self.a))
 
-        # register space key to toggle play/pause
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('space', self.toggle_play_pause)
+    #     self.p_c = OrientedCircle(
+    #         origin_point=pos_t,
+    #         normal_vector_vec3=Vec3(*direction_vec),
+    #         radius=0.035,
+    #         num_of_verts=30,
+    #         with_hole=False,
+    #         thickness=3.)
+
+    #     self.p_c.setColor(self.paused_cursor_color)
+
+        # self.play_cursor()
+
+
+    def play_cursor(self):
+        self.play_p = True
+        if self.a == 1.0:
+            self.play_cursor_sequence.finish()
+            return
+        # assert self.play_p is True
+
+        # edge_start_point, edge_end_point, pos_t, direction_vec, edge_length = (
+        #     self.get_cursor_data_from_edge(self.active_edge, self.a))
+
+        self.p_c.setColor(self.playing_cursor_color)
+
+        # start or continue the sequence
+        if self.play_cursor_sequence is None:
+            # create it
+            self.p3d_interval = LerpFunc(
+                GraphPlayer.update_position_func, duration=self.duration, extraArgs=self.extraArgs)
+            self.play_cursor_sequence = Sequence(Wait(self.delay), self.p3d_interval, Func(self.finish_cursor))
+
+            self.a = 0.
+        else:
+            if self.play_p is False:
+                self.play_cursor_sequence.start(playRate=1.)
+            else:
+                self.play_cursor_sequence.resume()
+
+            # assumption: returns value between 0 and 1
+            self.a = self.play_cursor_sequence.get_t()/self.duration
+
+            assert (self.a >= 0.0 and self.a <= 1.0)
+
+    def pause_cursor(self):
+        self.play_p = False
+        if self.a == 1.0:
+            self.play_cursor_sequence.finish()
+            return
+        # assert self.play_p is False
+
+        self.p_c.setColor(self.paused_cursor_color)
+
+        if self.play_cursor_sequence is None:
+            # create the cursor
+            self.p3d_interval = LerpFunc(
+                GraphPlayer.update_position_func, duration=self.duration, extraArgs=self.extraArgs)
+            self.play_cursor_sequence = Sequence(Wait(self.delay), self.p3d_interval, Func(self.finish_cursor))
+            self.a = 0.
+            # print("this should never occurr")
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+            # print("")
+        else:
+            self.a = self.play_cursor_sequence.get_t()/self.duration
+            print("get_t(): ", self.a)
+            print("paused at ", self.a)
+            self.play_cursor_sequence.pause()
+
+    def finish_cursor(self):
+        if self.stopped_at_end is True:
+            return
+
+        self.play_p = False
+        self.pause_cursor()
+
+        self.p_c.setColor(self.paused_cursor_color)
+
+        self.stopped_at_end = True
+        # self.a = self.play_cursor_sequence.get_t()/self.duration
+        self.a = self.play_cursor_sequence.set_t(self.duration)
+        # print("get_t(): ", self.a)
+        print("stopped at end: ", self.a)
+        # self.play_cursor_sequence.pause()
+        self.play_cursor_sequence.finish()
+
+        self.play_cursor_sequence = None
+
+
+# self.stopped_at_end = False
+# self.stopped_at_beginning = True
+
+    # def init_time_label(self):
+    #     """ show a text label at the position of the cursor:
+    #         - set an event to trigger updating of the text on-hover
+    #         - check if the active edge has changed """
+
+    #     # init the textNode (there is one text node)
+    #     pos_rel_to_world_x = Point3(1., 0., 0.)
+
+    #     self.time_label = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="mytext",
+    #                                     xshift=0.02, yshift=0.02, font="fonts/arial.egg")
+
+    #     self.time_label.textNode.hide()
+
+    #     self.time_label.textNode.setTransform(
+    #         math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
+
+    @staticmethod
+    def update_position_func(a, # duration,
+                             v1, v2, v_c, # p1, p2,
+                             p_c):
+            # assumption: t is a parameter between 0 and self.duration
+            v21 = v2 - v1
+            # a = t# /self.duration
+            v_c = v1 + v21 * a
+            p_c.nodePath.setPos(v_c)
+            print(# "t = ", t,
+                  # "; duration = ", duration,
+                  "; a = ", a)
 
     # def mouseMoverTask(self, task):
-    #     self.renderHints()
+    #     self.render_hints()
     #     return task.cont
 
     # def onPress(self):
-    #     self.renderHints()
+    #     self.render_hints()
     #     print("onPress")
-
-
-    def renderCursor(self):
-        """ render:
-            - cursor of current time (disk perpendicular to edge)
-            - current time label """
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
-        # select an edge
-        self.active_edge = list(self.draggablegraph.graph_edges)[3]
-
-        # current cursor time
-        t = 0.0
-
-        # get the coordinates of the points of the edge
-        A = self.active_edge.getTailPoint()
-        B = self.active_edge.getTipPoint()
-
-        assert A != B
-
-        # calculate position at t
-        pos_t = A + (B - A) * t
-
-        normal = (B - A)/np.linalg.norm(B - A)
-
-        distance = np.linalg.norm(math_utils.p3d_to_np(B - A))
-
-        self.cursor_circle = OrientedCircle(
-            origin_point=pos_t,
-            normal_vector_vec3=Vec3(*normal),
-            radius=0.035,
-            num_of_verts=30,
-            with_hole=False,
-            thickness=3.)
-
-        self.cursor_circle.setColor(((1., 0., 0., 1.), 1))
-
-        self.cursor_circle.initiateTranslationMovement(v0_x=A[0], v0_y=A[1], v0_z=A[2],
-                                                       v_x=B[0], v_y=B[1], v_z=B[2],
-                                                       duration=1.,
-                                                       delay=0.,
-                                                       startT=0., endT=-distance, playRate=0.5)
-
-
-
-    def initTimeLabel(self):
-        """ show a text label at the position of the cursor:
-            - set an event to trigger updating of the text on-hover
-            - check if the active edge has changed """
-
-        # init the textNode (there is one text node)
-        pos_rel_to_world_x = Point3(1., 0., 0.)
-
-        self.time_label = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="mytext",
-                                        xshift=0.02, yshift=0.02, font="fonts/arial.egg")
-
-        self.time_label.textNode.setTransform(
-            math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))

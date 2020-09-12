@@ -43,7 +43,10 @@ pip install -r ./requirements.txt
 ****** DONE remove the artifact (1., 0., 0.)
 ***** TODO Toggle play/pause
 ****** DONE render play/pause label and toggle using spacebar
+****** DONE figure out how a sequence works
 ****** TODO render a play/pause cursor at a 'current position'
+******* TODO write a class that gets and sets the state appropriately, together with a state machine
+Write EdgePlayer, inheriting EdgePlayerState. 
 
 *** WAITING implement on-hover highlighting of a particular bezier curve 
 **** WAITING curve picking

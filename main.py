@@ -30,6 +30,46 @@ from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay
 
 from plot_utils.graph import Graph, DraggableGraph, GraphHoverer, GraphPlayer
 
+class CursorPlayer:
+    def __init__(self):
+        self.v1 = Vec3(0., 0., 0.)
+        self.v2 = Vec3(2., 0., 0.)
+        self.duration = 3.  # a relatively high number
+        self.a = 0.  # a parameter between 0 and 1
+        self.delay = 0.
+
+        self.v_c = self.v1  # initially
+
+        self.p1 = Point3d(scale=0.01, pos=self.v1)
+        self.p2 = Point3d(scale=0.01, pos=self.v2)
+        self.p_c = Point3d(scale=0.0125, pos=self.v1)
+        self.p_c.setColor(((1., 0., 0., 1.), 1))
+
+        l = Line1dSolid()
+        l.setTailPoint(Vec3(0., 0., 0.))
+        l.setTipPoint(Vec3(2., 0., 0.))
+
+        extraArgs = [# self.duration,
+                     self.v1, self.v2, self.v_c, # self.p1, self.p2,
+            self.p_c]
+
+        p3d_interval = LerpFunc(
+            CursorPlayer.update_position_func, duration=self.duration, extraArgs=extraArgs)
+        seq = Sequence(Wait(self.delay), p3d_interval)
+        seq.start(playRate=1.)
+
+    @staticmethod
+    def update_position_func(a, # duration,
+                             v1, v2, v_c, # p1, p2,
+                             p_c):
+            # assumption: t is a parameter between 0 and self.duration
+            v21 = v2 - v1
+            # a = t# /self.duration
+            v_c = v1 + v21 * a
+            p_c.nodePath.setPos(v_c)
+            print(# "t = ", t,
+                  # "; duration = ", duration,
+                  "; a = ", a)
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -75,6 +115,11 @@ class MyApp(ShowBase):
         # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1, yshift=0.1)
 
         gp = GraphPlayer(dg, ob)
+
+
+        # cp = CursorPlayer()
+
+
 
         # oc = OrientedCircle(
         #     origin_point=Vec3(0., 0., 0.),
