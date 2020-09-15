@@ -118,11 +118,12 @@ class Vector:
 
         self.setColor(self.color)
 
-    def setColor(self, *args):
+    def setColor(self, color):
         """ set this color to all panda nodes """
         children = self.groupNode.get_children()
         for child in children:
-            child.setColor(*args)
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+            child.setColor(*color)
 
     def getTipPoint(self):
         return self.tip_point_logical

@@ -482,7 +482,7 @@ class EdgePlayerState:
         self.paused = False
 
     def is_playing(self):
-        return (a >= 0. and a <= 1. and self.stopped == False and self.paused == False)
+        return (self.a >= 0. and self.a <= 1. and self.stopped == False and self.paused == False)
 
 
     def set_paused(self, a_to_set_paused_at=None):
@@ -497,7 +497,206 @@ class EdgePlayerState:
 
 
     def is_paused(self):
-        return (a >= 0. and a <= 1. and self.stopped == False and self.paused == True)
+        return (self.a >= 0. and self.a <= 1. and self.stopped == False and self.paused == True)
+
+    def __repr__(self):
+        # return '{name:'+self.name+', age:'+str(self.age)+ '}'
+        return "{a: " + str(self.a) + ", stopped: " + str(self.stopped) + ", paused: " + str(self.paused) + " }"
+
+
+stopped_at_beginning_cursor_color = ((1., 0., 0., 1.), 1)
+stopped_at_beginning_line_color = ((1., 0., 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
+stopped_at_end_cursor_color = ((1., .5, 0., 1.), 1)
+stopped_at_end_line_color = ((1., .5, 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
+
+playing_cursor_color = ((.5, .5, 0., 1.), 1)
+playing_line_color = ((.5, .5, 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
+
+paused_cursor_color = ((0., .5, .5, 1.), 1)
+paused_line_color = ((0., .5, .5, 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
+
+
+
+class EdgePlayer(EdgePlayerState):
+    """ Adds the graphics and the p3d sequence operations to the logic of EdgePlayerState """
+
+    def __init__(self):
+        # -- do geometry logic
+        self.v1 = Vec3(.5, 0., 0.)
+        self.v2 = Vec3(1., 0., 0.)
+        self.v_c = self.v1  # cursor; initially at stopped_at_beginning state
+        self.duration = 3.  # a relatively high number
+        # self.a = 0.  # a parameter between 0 and 1   # already gets initialized in the EdgePlayerState
+        self.delay = 0.
+
+        # -- do graphics stuff
+        self.p1 = Point3d(scale=0.01, pos=self.v1)
+        self.p2 = Point3d(scale=0.01, pos=self.v2)
+
+        self.p_c = Point3d(scale=0.0125, pos=self.v1)
+
+        self.line = Line1dSolid()
+        self.line.setTipPoint(self.v1)
+        self.line.setTailPoint(self.v2)
+
+        # self.line = Vector()
+        # self.line.setTailPoint(self.v1)
+        # self.line.setTipPoint(self.v2)
+
+        # setup the spacebar
+        self.space_direct_object = DirectObject.DirectObject()
+        self.space_direct_object.accept('space', self.react_to_spacebar)
+
+        # setup keys for jumping to beginning/end
+        self.set_stopped_at_beginning_direct_object = DirectObject.DirectObject()
+        self.set_stopped_at_beginning_direct_object.accept('a', self.react_to_a)
+
+        self.set_stopped_at_end_direct_object = DirectObject.DirectObject()
+        self.set_stopped_at_end_direct_object.accept('e', self.react_to_e)
+
+
+
+        self.extraArgs = [# a, # duration,
+                             self.v1, self.v2, self.v_c, # p1, p2,
+                             self.p_c]
+
+        # -- do p3d sequence stuff
+        # ---- initialize the sequence
+        self.p3d_interval = LerpFunc(
+            self.update_position_func, duration=self.duration, extraArgs=self.extraArgs)
+        self.p3d_cursor_sequence = Sequence(Wait(self.delay), self.p3d_interval, Func(self.on_finish_cursor_sequence))
+
+
+        EdgePlayerState.__init__(self)
+
+        # do the
+
+        # self.p_c.setColor(stopped_at_beginning_cursor_color)
+
+
+    def update_position_func(self,
+                         a, # duration,
+                         v1, v2, v_c, # p1, p2,
+                         p_c):
+        self.a = a
+        # assumption: t is a parameter between 0 and self.duration
+        v21 = v2 - v1
+        # a = t# /self.duration
+        v_c = v1 + v21 * a
+        p_c.nodePath.setPos(v_c)
+        print(# "t = ", t,
+              # "; duration = ", duration,
+              " a = ", a)
+
+
+    def react_to_a(self):
+        """ unconditionally jump to the beginning and stop """
+        self.set_stopped_at_beginning()
+
+    def react_to_e(self):
+        """ unconditionally jump to the beginning and stop """
+        self.set_stopped_at_end()
+
+
+    def react_to_spacebar(self):
+        """ spacebar will either:
+        - start playing from beginning if it's stopped at the beginning
+        - start playing from beginning of the next edge if it's stopped at the end (print 'start at next edge')
+        - pause if it's playing
+        - play if it's paused
+        """
+
+        print("before spacebar")
+        print("is_stopped_at_beginning(): ", self.is_stopped_at_beginning(), ", ",
+              "is_stopped_at_end(): ", self.is_stopped_at_end(), ", ",
+              "is_playing(): ", self.is_playing(), ", ",
+              "is_paused(): ", self.is_paused())
+        print(self)
+
+        if self.is_stopped_at_beginning():
+            self.set_playing(a_to_start_from=0.)
+        elif self.is_stopped_at_end():
+            self.set_playing(a_to_start_from=0., after_finish=True)
+            print("start at next edge (if no next edge, start from beginning of last edge)")
+        elif self.is_playing():
+            self.set_paused()
+        elif self.is_paused():
+            self.set_playing()
+        else:
+            print("situation matches no state!")
+
+        print("after spacebar")
+        print("is_stopped_at_beginning(): ", self.is_stopped_at_beginning(), ", ",
+              "is_stopped_at_end(): ", self.is_stopped_at_end(), ", ",
+              "is_playing(): ", self.is_playing(), ", ",
+              "is_paused(): ", self.is_paused())
+        print(self)
+
+    def on_finish_cursor_sequence(self):
+        self.set_stopped_at_end()
+
+
+    def set_stopped_at_beginning(self):
+        EdgePlayerState.set_stopped_at_beginning(self)
+        # -- do p3d sequence stuff
+        # p3d only really has a finish() function, not a 'stopped at start'
+        self.p3d_cursor_sequence.pause()
+        self.p3d_cursor_sequence.setT(self.a)
+
+        # -- do graphics stuff
+        self.p_c.setColor(stopped_at_beginning_cursor_color)
+        self.line.setColor(stopped_at_beginning_line_color)
+
+
+    def set_stopped_at_end(self, # already_at_end=False
+    ):
+        EdgePlayerState.set_stopped_at_end(self)
+
+        # if already_at_end is False:
+
+        print("stopped at end ", self)
+
+        self.p3d_cursor_sequence.finish()
+
+        # setting pause() is undefined behaviour, if it's already finished.
+        # self.p3d_cursor_sequence.pause()
+        # self.p3d_cursor_sequence.setT(self.a)
+        # print("stopped at end point 2: ", self)
+        # else:
+        #     print("already_at_end = ", already_at_end, " no need to set T again. ")  # right?
+
+        self.p_c.setColor(stopped_at_end_cursor_color)
+        self.line.setColor(stopped_at_end_line_color)
+
+
+    def set_playing(self, a_to_start_from=None, after_finish=False):
+        EdgePlayerState.set_playing(self, a_to_start_from=a_to_start_from)
+
+        if a_to_start_from:
+            self.p3d_cursor_sequence.setT(self.a)
+
+        if after_finish is True:
+            # it needs to be restarted at a=0. Usually this is called after the interval has finished once, to restart the Sequence
+            print("attempting to restart the sequence after finish", self)
+            self.p3d_cursor_sequence.start()
+            print("after restart: ", self)
+        else:
+            # merely resume, since it is already started (standard state)
+            self.p3d_cursor_sequence.resume()
+
+        self.p_c.setColor(playing_cursor_color)
+        self.line.setColor(playing_line_color)
+
+
+    def set_paused(self, a_to_set_paused_at=None):
+        EdgePlayerState.set_paused(self, a_to_set_paused_at=a_to_set_paused_at)
+
+        if a_to_set_paused_at:
+            self.p3d_cursor_sequence.setT(self.a)
+        self.p3d_cursor_sequence.pause()
+
+        self.p_c.setColor(paused_cursor_color)
+        self.line.setColor(paused_line_color)
 
 
 
@@ -726,8 +925,8 @@ class GraphPlayer:
     #     self.time_label.textNode.setTransform(
     #         math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
 
-    @staticmethod
-    def update_position_func(a, # duration,
+    def update_position_func(self,
+                             a, # duration,
                              v1, v2, v_c, # p1, p2,
                              p_c):
             # assumption: t is a parameter between 0 and self.duration

@@ -109,16 +109,24 @@ class MyApp(ShowBase):
         # G.add_edge(dt, mh)
         # G.add_edge(st, mh)
 
-        dg = DraggableGraph(ob)
-        gh = GraphHoverer(dg, ob)
+        # dg = DraggableGraph(ob)
+        # gh = GraphHoverer(dg, ob)
 
         # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1, yshift=0.1)
 
-        gp = GraphPlayer(dg, ob)
+        # gp = GraphPlayer(dg, ob)
 
 
         # cp = CursorPlayer()
 
+        from plot_utils.graph import EdgePlayer
+
+        ep = EdgePlayer()
+
+
+        # self.line = Line1dSolid()
+        # self.line.setTailPoint(Vec3(1., 1., 1.))
+        # self.line.setTipPoint(Vec3(0., 0., 0.))
 
 
         # oc = OrientedCircle(
@@ -137,47 +145,50 @@ class MyApp(ShowBase):
 
         # the vector class has an artifact
 
-
-    # def draw_vectors_demo():
-    #     l = Line1dSolid()
-
-    #     l.setTipPoint(Vec3(2.0, 0.1, 0.))
-    #     l.setTailPoint(Vec3(1.0, 0.1, 0.))
-
-    #     l2 = Line1dSolid()
-
-    #     l2.setTipPoint(Vec3(0.5, 0.2, 0.))
-    #     l2.setTailPoint(Vec3(0.0, 0.2, 0.))
-
-    #     # a = Vector(tail_point_logical=Vec3(1., .7, 0.), tip_point_logical=Vec3(-0.5, -0.5, 0.0))
-
-    #     a = Vector()
-
-    #     # a.groupNode.hide()
-
-    #     a.setTipPoint(Vec3(1., 0., 0.)# , param=True
-    #     )
-    #     a.setTailPoint(Vec3(0.5, 0., 0.) # , param=True
-    #     )
+        # self.draw_vectors_demo()
 
 
-    #     a2 = Vector(color=Vec4(0., 1., 0., 1.))
+    def draw_vectors_demo(self):
+        l = Line1dSolid()
 
-    #     a2.setTipPoint(Vec3(0.5, 0.5, 0.)# , param=True
-    #     )
-    #     a2.setTailPoint(Vec3(1., 1.0, 0.) # , param=True
-    #     )
+        l.setTipPoint(Vec3(2.0, 0.1, 0.))
+        l.setTailPoint(Vec3(1.0, 0.1, 0.))
+
+        l2 = Line1dSolid()
+
+        l2.setTipPoint(Vec3(0.5, 0.2, 0.))
+        l2.setTailPoint(Vec3(0.0, 0.2, 0.))
+
+        # a = Vector(tail_point_logical=Vec3(1., .7, 0.), tip_point_logical=Vec3(-0.5, -0.5, 0.0))
+
+        a = Vector()
+
+        # a.groupNode.hide()
+
+        a.setTipPoint(Vec3(1., 0., 0.)# , param=True
+        )
+        a.setTailPoint(Vec3(0.5, 0., 0.) # , param=True
+        )
 
 
-    #     l3 = Line1dSolid()
+        a2 = Vector(color=Vec4(0., 1., 0., 1.))
 
-    #     l3.setTipPoint(Vec3(0.5, 0.5, 0.))
-    #     l3.setTailPoint(Vec3(0.0, 0.5, 0.))
 
-    #     l4 = Line1dSolid()
+        a2.setTailPoint(Vec3(1., 1.0, 0.) # , param=True
+        )
+        a2.setTipPoint(Vec3(0.5, 0.5, 0.)# , param=True
+        )
 
-    #     l4.setTipPoint(Vec3(1., 1., 0.))
-    #     l4.setTailPoint(Vec3(0.0, 1., 0.))
+        l3 = Line1dSolid()
+
+        l3.setTipPoint(Vec3(0.5, 0.5, 0.))
+        l3.setTailPoint(Vec3(0.0, 0.5, 0.))
+
+
+        l4 = Line1dSolid()
+
+        l4.setTipPoint(Vec3(1., 1., 0.))
+        l4.setTailPoint(Vec3(0.0, 1., 0.))
 
 
 app = MyApp()
