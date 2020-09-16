@@ -199,7 +199,10 @@ class Line1dPrimitive(LinePrimitive):
 
         self.nodePath.setMat(self.form_from_primitive_trafo * scaling_and_rotation_forrowvecs * translation_forrowvecs)
 
-    def setTailPoint(self, point):
+        # for some weird reason, I have to run setTailPoint again ...
+        self.setTailPoint(self.tail_point, run_setTipPoint_again=False)
+
+    def setTailPoint(self, point, run_setTipPoint_again=True):
         """ this sets the tailpoint (self.nodePath.getPos()), keeping the tip point at it's original position """
 
         self.tail_point = point
@@ -220,7 +223,10 @@ class Line1dPrimitive(LinePrimitive):
         #   if you want to set the rotation using a matrix, then you have to set the position as well using a matrix
         #   to do that, implement the affine transformation in math_utils
         # must take into account the tailpoint
-        self.setTipPoint(self.tip_point)
+
+        if run_setTipPoint_again is True:
+            print("tip_point rerun after setTailPoint: ", self.tip_point)
+            self.setTipPoint(self.tip_point)
 
 
     def getRotation_forrowvecs(self):

@@ -80,7 +80,7 @@ class MyApp(ShowBase):
         ob = Orbiter(base.cam, radius=3.)
         # cs = CoordinateSystem(ob)
 
-        # csplain = CoordinateSystemP3dPlain()
+        csplain = CoordinateSystemP3dPlain()
 
         # ob.set_view_to_yz_plane()
         ob.set_view_to_xy_plane()
@@ -124,10 +124,21 @@ class MyApp(ShowBase):
         ep = EdgePlayer()
 
 
-        # self.line = Line1dSolid()
-        # self.line.setTailPoint(Vec3(1., 1., 1.))
-        # self.line.setTipPoint(Vec3(0., 0., 0.))
+        self.line = Line1dSolid()
 
+        # self.line.setTailPoint(Vec3(1., 1., 0.))
+        # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
+
+        self.line.setTailPoint(Vec3(1., 1., 0.))
+        self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
+
+
+        self.myvec = Vector()
+        self.myvec.setTipPoint(Vec3(1., 1., 0.))
+        self.myvec.setTailPoint(Vec3(1.5, 1.5, 0.))
+
+        # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
+        # self.line.setTailPoint(Vec3(1., 1., 0.))
 
         # oc = OrientedCircle(
         #     origin_point=Vec3(0., 0., 0.),
