@@ -203,7 +203,8 @@ class Line1dPrimitive(LinePrimitive):
         self.setTailPoint(self.tail_point, run_setTipPoint_again=False)
 
     def setTailPoint(self, point, run_setTipPoint_again=True):
-        """ this sets the tailpoint (self.nodePath.getPos()), keeping the tip point at it's original position """
+        """ this sets the tailpoint (self.nodePath.getPos()), keeping the tip point at it's original
+            position """
 
         self.tail_point = point
 
@@ -211,7 +212,6 @@ class Line1dPrimitive(LinePrimitive):
             self.nodePath.hide()
             return
         else:
-
             self.nodePath.show()
 
         self.nodePath.setPos(point)

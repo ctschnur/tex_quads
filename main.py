@@ -28,7 +28,8 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
-from plot_utils.graph import Graph, DraggableGraph, GraphHoverer, GraphPlayer
+from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
+# , GraphPlayer
 
 class CursorPlayer:
     def __init__(self):
@@ -134,8 +135,8 @@ class MyApp(ShowBase):
 
 
         self.myvec = Vector()
-        self.myvec.setTipPoint(Vec3(1., 1., 0.))
-        self.myvec.setTailPoint(Vec3(1.5, 1.5, 0.))
+        self.myvec.setTailPoint(Vec3(1., 1., 0.))
+        self.myvec.setTipPoint(Vec3(1.5, 1.5, 0.))
 
         # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
         # self.line.setTailPoint(Vec3(1., 1., 0.))
