@@ -124,7 +124,7 @@ class GraphPlayer:
 
     #     self.p_c = OrientedCircle(
     #         origin_point=pos_t,
-    #         normal_vector_vec3=Vec3(*direction_vec),
+    #         normal_vector=Vec3(*direction_vec),
     #         radius=0.035,
     #         num_of_verts=30,
     #         with_hole=False,

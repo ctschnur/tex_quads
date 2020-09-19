@@ -613,7 +613,7 @@ class OrientedCircle(IndicatorPrimitive):
 
     def __init__(self,
                  origin_point=Vec3(1., 1., 1.),
-                 normal_vector_vec3=Vec3(1., 1., 1.),
+                 normal_vector=Vec3(1., 1., 1.),
                  radius=1.,
                  scale=1.,
                  num_of_verts=10,
@@ -621,14 +621,15 @@ class OrientedCircle(IndicatorPrimitive):
                  thickness=1.,
                  **kwargs):
 
+        self.origin_point = origin_point
+        self.normal_vector = normal_vector
         self.scale = scale
-        self.normal_vector = normal_vector_vec3
 
         IndicatorPrimitive.__init__(self, **kwargs)
         self.makeObject(num_of_verts, radius, with_hole=with_hole, thickness=thickness)
 
         self.nodePath.setMat(
-            OrientedCircle.getSetupTransformation(normal_vector_vec3, origin_point, scale))
+            OrientedCircle.getSetupTransformation(normal_vector, origin_point, scale))
 
     def makeObject(self, num_of_verts, radius, with_hole, thickness):
 
@@ -647,14 +648,22 @@ class OrientedCircle(IndicatorPrimitive):
         # ---- set orientation from normal vector
         # self.nodePath.setMat()
 
+    def setPos(self, origin_point):
+        self.origin_point = origin_point
+
+        self.nodePath.setMat(
+            OrientedCircle.getSetupTransformation(self.normal_vector,
+                                                  self.origin_point,
+                                                  self.scale))
+
     @staticmethod
-    def getSetupTransformation(normal_vector_vec3=np.array([0., 0., 1.]),
+    def getSetupTransformation(normal_vector=np.array([0., 0., 1.]),
                                origin_point=np.array([0., 0., 0.]),
                                scale=1.):
         """ return forrowvecs matrix """
-        normal_vector_vec3 = np.array([normal_vector_vec3[0], normal_vector_vec3[1], normal_vector_vec3[2]])
+        normal_vector = np.array([normal_vector[0], normal_vector[1], normal_vector[2]])
 
-        rotation = math_utils.getMat4by4_to_rotate_xhat_to_vector(normal_vector_vec3, a=np.array([0., 0., 1.]))
+        rotation = math_utils.getMat4by4_to_rotate_xhat_to_vector(normal_vector, a=np.array([0., 0., 1.]))
         rotation_forrowvecs = math_utils.math_convention_to_p3d_mat4(rotation)
 
         scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(scale, scale, scale))

@@ -46,10 +46,15 @@ pip install -r ./requirements.txt
 ****** DONE figure out how a sequence works
 ****** TODO render a play/pause cursor at a 'current position'
 ******* TODO write a class that gets and sets the state appropriately, together with a state machine
+******** DONE write state machine for a single edge
+******** DONE accentuate the cursor by drawing a black and white circle around it
+******** TODO implement cursor dragging along a line
+******** TODO extend single-edge state machine to multi-edge
 ******** DONE Write EdgePlayer, inheriting EdgePlayerState
 ******** DONE Write a state machine for a single edge for playback
-******** TODO Fix the Line drawing upon reversal of the order setTipPoint <-> setTailPoint
+******** DONE Fix the Line drawing upon reversal of the order setTipPoint <-> setTailPoint
 ******** TODO Fix the immediate coloring-in of the vector constituents by setColor
+***** TODO Fix the vector coordinate system
 
 *** WAITING implement on-hover highlighting of a particular bezier curve 
 **** WAITING curve picking

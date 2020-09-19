@@ -2,6 +2,8 @@ from interactive_tools.dragging_and_dropping import PickableObjectManager, Picka
 
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
 
+from composed_objects.composed_objects import Point3dCursor
+
 from local_utils import math_utils
 
 from simple_objects.simple_objects import Line1dSolid, PointPrimitive, Fixed2dLabel
@@ -534,7 +536,9 @@ class EdgePlayer(EdgePlayerState):
         self.p1 = Point3d(scale=0.01, pos=self.v1)
         self.p2 = Point3d(scale=0.01, pos=self.v2)
 
-        self.p_c = Point3d(scale=0.0125, pos=self.v1)
+        # self.p_c = Point3d(scale=0.0125, pos=self.v1)
+
+        self.p_c = Point3dCursor(Vec3(0., 0., 0.))
 
         self.line = Line1dSolid()
         self.line.setTipPoint(self.v1)
@@ -588,7 +592,8 @@ class EdgePlayer(EdgePlayerState):
         v21 = v2 - v1
         # a = t# /self.duration
         v_c = v1 + v21 * a
-        p_c.nodePath.setPos(v_c)
+        # p_c.nodePath.setPos(v_c)
+        p_c.setPos(v_c)
         print(# "t = ", t,
               # "; duration = ", duration,
               " a = ", a)

@@ -3,7 +3,7 @@ from simple_objects import custom_geometry
 from local_utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from simple_objects.animator import Animator
-from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded
+from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedCircle
 
 from simple_objects.simple_objects import Point3d
 
@@ -26,6 +26,39 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 
+class GroupNode(Animator):
+    """ Documentation for GroupNode
+    """
+
+    def __init__(self):
+        super(GroupNode, self).__init__()
+        self.nodePath = NodePath("empty")
+        self.nodePath.reparentTo(render)
+
+    def addChildNodePaths(self, NodePaths):
+        for np in NodePaths:
+            np.reparentTo(self.nodePath)
+
+    def removeChildNodePaths(self, NodePaths):
+        for np in NodePaths:
+            np.removeNode()
+
+    def hide(self):
+        """ hide every child node in the group node """
+        children = self.nodePath.get_children()
+
+        for child in children:
+            child.hide()
+
+    def show(self):
+        """ hide every child node in the group node """
+        children = self.nodePath.get_children()
+        for child in children:
+            child.show()
+
+    def get_children(self):
+        return self.nodePath.get_children()
+
 
 class ParallelLines:
     """ Draw Parallel Lines
@@ -44,6 +77,60 @@ class ParallelLines:
         for idx, line1 in enumerate(self.lines):
             line1.nodePath.setScale(line1.nodePath, 1., 1., 1.)
             line1.nodePath.setPos(0., 0, idx * self.spacing)
+
+
+class Point3dCursor():
+    """ a white Point3d with a
+    black and a white circle aroud it for accentuation """
+
+    def __init__(self, origin_point, scale=0.05):
+        self.origin_point = origin_point
+
+        self.scale_total = scale
+        self.rel_scale_point_center = 0.4
+        self.rel_scale_circle_outer_first = 0.6
+        self.rel_scale_circle_outer_second = 0.9
+        self.num_of_verts = 20
+
+        self.color_point_center = Vec4(1., 1., 1., 1.)
+        self.color_circle_outer_first = Vec4(0., 0., 0., 1.)
+        self.color_circle_outer_second = Vec4(1., 1., 1., 1.)
+
+        self.point_center = Point3d(
+            scale=self.scale_total * self.rel_scale_point_center)
+        self.circle_outer_first = OrientedCircle(
+            normal_vector=Vec3(0., 0., 1.),
+            scale=self.scale_total * self.rel_scale_circle_outer_first,
+            num_of_verts=self.num_of_verts,
+            thickness=3.)
+        self.circle_outer_second = OrientedCircle(
+            normal_vector=Vec3(0., 0., 1.),
+            scale=self.scale_total * self.rel_scale_circle_outer_second,
+            num_of_verts=self.num_of_verts,
+            thickness=3.)
+
+        self._adjust()
+
+    def _adjust(self):
+        # TODO: reorient towards the camera
+        # TODO: keep it the same size w.r.t. the camera (on zooming)
+        self.point_center.setPos(self.origin_point)
+        self.point_center.setColor(self.color_point_center)
+
+        self.circle_outer_first.setPos(self.origin_point)
+        self.circle_outer_first.setColor(self.color_circle_outer_first)
+
+        self.circle_outer_second.setPos(self.origin_point)
+        self.circle_outer_second.setColor(self.color_circle_outer_second)
+
+    def setPos(self, position):
+        self.origin_point = position
+        self._adjust()
+
+    def setColor(self, primary_color):
+        # self.color_point_center = primary_color
+        self.color_circle_outer_second = primary_color
+        self._adjust()
 
 
 class Vector:
@@ -271,40 +358,6 @@ class Vector:
              ))
 
 
-class GroupNode(Animator):
-    """ Documentation for GroupNode
-    """
-
-    def __init__(self):
-        super(GroupNode, self).__init__()
-        self.nodePath = NodePath("empty")
-        self.nodePath.reparentTo(render)
-
-    def addChildNodePaths(self, NodePaths):
-        for np in NodePaths:
-            np.reparentTo(self.nodePath)
-
-    def removeChildNodePaths(self, NodePaths):
-        for np in NodePaths:
-            np.removeNode()
-
-    def hide(self):
-        """ hide every child node in the group node """
-        children = self.nodePath.get_children()
-
-        for child in children:
-            child.hide()
-
-    def show(self):
-        """ hide every child node in the group node """
-        children = self.nodePath.get_children()
-        for child in children:
-            child.show()
-
-    def get_children(self):
-        return self.nodePath.get_children()
-
-
 
 class Axis:
     """ An axis is a vector with ticks
@@ -312,7 +365,8 @@ class Axis:
     TODO: prevent drawing of ticks in the axis' arrow head
     """
 
-    def __init__(self, direction_vector, axis_length=1., ticksperunitlength=4, thickness1dline=2., color=Vec4(1., 0., 0., 1.)):
+    def __init__(self, direction_vector, axis_length=1.,
+                 ticksperunitlength=4, thickness1dline=2., color=Vec4(1., 0., 0., 1.)):
         # logical properties
         self.axis_length = axis_length
         self.direction_vector = direction_vector.normalized()
@@ -332,7 +386,7 @@ class Axis:
 
         # build and connect the building blocks according to logical properties
         self._build_vector()
-        self._build_ticks()
+        # self._build_ticks()
 
         # # add everything together to a transform node
         # self.groupNode.addChildNodePaths([self.axis_vector.groupNode.nodePath,
@@ -344,8 +398,11 @@ class Axis:
         if self.axis_vector:
             self.axis_vector.setTipPoint(tip_point_logical)
         else:
-            self.axis_vector = Vector(
-                tip_point_logical=tip_point_logical, thickness1dline=self.thickness1dline, color=self.color)
+            self.axis_vector = Vector(thickness1dline=self.thickness1dline, color=self.color)
+
+            self.axis_vector.setTailPoint(Vec3(0., 0., 0.))
+            self.axis_vector.setTipPoint(tip_point_logical)
+
             self.groupNode.addChildNodePaths(
                 [self.axis_vector.groupNode.nodePath])
 

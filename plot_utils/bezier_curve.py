@@ -261,7 +261,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
                 # --- draw oriented circle
                 oc = OrientedCircle(
                     origin_point=points[i],
-                    normal_vector_vec3=Vec3(*tuple(t_vec)),
+                    normal_vector=Vec3(*tuple(t_vec)),
                     radius=radius)
 
                 oc.nodePath.hide()

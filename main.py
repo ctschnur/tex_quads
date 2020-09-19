@@ -1,7 +1,7 @@
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel
 from simple_objects import primitives
 from local_utils import math_utils
@@ -79,15 +79,16 @@ class MyApp(ShowBase):
         render.setAntialias(AntialiasAttrib.MAuto)
 
         ob = Orbiter(base.cam, radius=3.)
-        # cs = CoordinateSystem(ob)
+        cs = CoordinateSystem(ob)
 
-        csplain = CoordinateSystemP3dPlain()
+        # ax = Axis(Vec3(1., 0., 0.), thickness1dline=5, color=Vec4(1., 1., 1., 1.))
+
+        # csplain = CoordinateSystemP3dPlain()
 
         # ob.set_view_to_yz_plane()
-        ob.set_view_to_xy_plane()
+        # ob.set_view_to_xy_plane()
 
         from simple_objects.simple_objects import Pinned2dLabel
-
 
         # import matplotlib.pyplot as plt
         # import networkx as nx
@@ -117,21 +118,19 @@ class MyApp(ShowBase):
 
         # gp = GraphPlayer(dg, ob)
 
-
         # cp = CursorPlayer()
 
         from plot_utils.graph import EdgePlayer
 
         ep = EdgePlayer()
 
-
-        self.line = Line1dSolid()
+        # self.line = Line1dSolid()
 
         # self.line.setTailPoint(Vec3(1., 1., 0.))
         # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
 
-        self.line.setTailPoint(Vec3(1., 1., 0.))
-        self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
+        # self.line.setTailPoint(Vec3(1., 1., 0.))
+        # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
 
 
         self.myvec = Vector()
@@ -143,10 +142,13 @@ class MyApp(ShowBase):
 
         # oc = OrientedCircle(
         #     origin_point=Vec3(0., 0., 0.),
-        #     normal_vector_vec3=Vec3(0., 0., 1.),
+        #     normal_vector=Vec3(0., 0., 1.),
         #     radius=0.1,
         #     num_of_verts=30,
         #     with_hole=False)
+
+
+        # cursor = Point3dCursor(Vec3(1., 0., 0.))
 
         # point1_vec3 = Vec3(1., 1., 0.)
         # point2_vec3 = Vec3(2., 2., 0.)
