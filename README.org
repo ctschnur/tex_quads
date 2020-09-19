@@ -48,6 +48,7 @@ pip install -r ./requirements.txt
 ******* TODO write a class that gets and sets the state appropriately, together with a state machine
 ******** DONE write state machine for a single edge
 ******** DONE accentuate the cursor by drawing a black and white circle around it
+******** DONE implement cursor clicking
 ******** TODO implement cursor dragging along a line
 ******** TODO extend single-edge state machine to multi-edge
 ******** DONE Write EdgePlayer, inheriting EdgePlayerState

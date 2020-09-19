@@ -28,8 +28,8 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
-from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
-from plot_utils.graphplayer import GraphPlayer
+# from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
+# from plot_utils.graphplayer import GraphPlayer
 
 
 from simple_objects.simple_objects import Pinned2dLabel
@@ -42,10 +42,10 @@ class EdgeHoverer:
         mouse shift recalculate the new situation,
         i.e. either show a connecting line or not. """
 
-    def __init__(self, edge_player, cameragear):
+    def __init__(self, edge_player, camera_gear):
         # register event for onmousemove
         self.edge_player = edge_player
-        self.cameragear = cameragear
+        self.camera_gear = camera_gear
         # self.mouse = mouse
 
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
@@ -68,61 +68,52 @@ class EdgeHoverer:
     #     self.render_hints()
     #     print("onPress")
 
+    def get_hover_points(self):
+
+        mouse_pos = None
+
+        if base.mouseWatcherNode.hasMouse():
+            mouse_pos = base.mouseWatcherNode.getMouse()
+        else:
+            return False, None, None, None, None, None, None
+
+        ray_direction, ray_aufpunkt = cameraray.getCameraMouseRay(
+            self.camera_gear.camera, mouse_pos)
+        r1 = ray_aufpunkt
+        e1 = ray_direction
+
+        # -- check if this line qualifies to render a hover cursor
+        r2 = self.edge_player.v1
+        edge_p1 = r2
+        edge_p2 = self.edge_player.v2
+        e2 = edge_p2 - edge_p1  # direction vector for edge infinite straight line
+        d = np.abs(math_utils.shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2))
+        c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
+            r1, r2, e1, e2)
+
+        return True, ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2
+
+    def get_a_param(self, c2):
+        """
+        a is between 0 and 1 and represents a time if multiplied by the duration.
+        FIXME: replace getTail/TipPoints with other stuff. """
+        t = 1. - (
+            np.linalg.norm(
+                self.edge_player.line.getTailPoint() - math_utils.np_to_p3d_Vec3(c2)) /
+            np.linalg.norm(
+                self.edge_player.line.getTailPoint() - self.edge_player.line.getTipPoint()))
+        return t
+
     def render_hints(self):
         """ render various on-hover things:
             - cursors
             - time labels """
-        if base.mouseWatcherNode.hasMouse():
-            mpos = base.mouseWatcherNode.getMouse()
 
-            ray_direction, ray_aufpunkt = cameraray.getCameraMouseRay(
-                self.cameragear.camera, base.mouseWatcherNode.getMouse())
-            r1 = ray_aufpunkt
-            e1 = ray_direction
+        get_hover_points_success, ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2 = (
+            self.get_hover_points())
 
-
-            # self.edge_player.line = None
-            d_min = float('inf')
-
-                        # for edge in self.draggablegraph.graph_edges:
-
-
-            # -- check if this line qualifies to render a hover cursor
-            # # find closest line (infinite straight)
-            # r2 = edge.getTailPoint()
-            r2 = self.edge_player.v1
-            edge_p1 = r2
-            # edge_p2 = edge.getTipPoint()
-            edge_p2 = self.edge_player.v2
-
-            e2 = edge_p2 - edge_p1  # direction vector for edge infinite straight line
-
-            d = np.abs(math_utils.shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2))
-            c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
-                r1, r2, e1, e2)
-
-            # only count this edge if the vector of shortest edge_length lies in-between the
-            # start and end points of the line
-            # if d is not None:
-            # if d_min is None:
-            #     d_min = d
-            # if self.edge_player.line is None:
-            #     self.edge_player.line = edge
-            # if c1_min is None:
-            # c1_min = c1
-            # if c2_min is None:
-            # c2_min = c2
-
-            # conditions for closest edge
-            # -    d < d_min
-            # -    the line segment of shortest edge_length touches the edge's line within the
-            #      two node points of the edge:
-            #
-
-            Line1dSolid.setTipPoint
-            if (  # d < d_min and
-                math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1)):
-
+        if get_hover_points_success is True:
+            if math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1):
                 self.shortest_distance_line.setTipPoint(math_utils.np_to_p3d_Vec3(c1))
                 self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
                 self.shortest_distance_line.nodePath.show()
@@ -134,14 +125,7 @@ class EdgeHoverer:
                 self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
 
                 # figure out the parameter t
-                t = (
-                    np.linalg.norm(
-                        self.edge_player.line.getTailPoint() - math_utils.np_to_p3d_Vec3(c2)) /
-                    np.linalg.norm(
-                        self.edge_player.line.getTailPoint() - self.edge_player.line.getTipPoint()))
-
-                # print("t = np.linalg.norm(self.edge_player.line.getTailPoint() - math_utils.np_to_p3d_Vec3(c2))/np.linalg.norm(self.edge_player.line.getTailPoint() - self.edge_player.line.getTipPoint())")
-                # print(t, "np.linalg.norm(", self.edge_player.line.getTailPoint(), " - ", math_utils.np_to_p3d_Vec3(c2), ")/, np.linalg.norm(", self.edge_player.line.getTailPoint(), " - ", self.edge_player.line.getTipPoint(), ")")
+                t = self.get_a_param(c2)
 
                 self.time_label.setText("t = {0:.2f}".format(t))
                 self.time_label.update()
@@ -166,7 +150,7 @@ class EdgeHoverer:
                 self.edge_player.set_primary_color(new_color,
                                                    change_logical_primary_color=False)
 
-                print("### COLOR: ", self.edge_player.line.nodePath.getColor())
+                # print("### COLOR: ", self.edge_player.line.nodePath.getColor())
                 # lighten up the color that they have a bit
             else:
                 self.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))  # when not hovered-over
@@ -226,3 +210,48 @@ class EdgeHoverer:
 
         self.time_label.textNode.setTransform(
             math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
+
+
+class EdgeMouseClicker:
+    """ encapsulates the resources one needs for holding down the mouse and dragging
+        the cursor along a single edge. """
+
+    def __init__(self, edge_player):
+        self.edge_player = edge_player
+
+        # -- register mouse event
+        # taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
+        base.accept('mouse1', self.on_press)
+
+    def on_press(self):
+        """ get the t parameter of the active edge (from the edge_hoverer)
+            and set the position of the cursor to the time """
+        print("on_press")
+
+        get_hover_points_success, ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2 = (
+            self.edge_player.edge_hoverer.get_hover_points())
+
+        if get_hover_points_success is True:
+            if math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1):
+                a = self.edge_player.edge_hoverer.get_a_param(c2)
+                print("a: ", a, "; self.edge_player.duration: ", self.edge_player.duration)
+
+                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+                if self.edge_player.is_stopped_at_beginning():
+                    self.edge_player.set_paused(a_to_set_paused_at=a)
+                elif self.edge_player.is_stopped_at_end():
+                    self.edge_player.set_paused(a_to_set_paused_at=a  # , after_finish=True
+                    )
+                elif self.edge_player.is_playing():
+                    self.edge_player.set_playing(a_to_start_from=a)
+                elif self.edge_player.is_paused():
+                    self.edge_player.set_paused(a_to_set_paused_at=a)
+                else:
+                    print("situation matches no state!")
+                    exit(1)
+
+
+    # def mouseMoverTask(self, task):
+    #     self.render_hints()
+    #     return task.cont

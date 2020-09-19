@@ -122,11 +122,10 @@ class MyApp(ShowBase):
 
         from plot_utils.graph import EdgePlayer
 
-        ep = EdgePlayer()
+        ep = EdgePlayer(ob)
 
         from plot_utils.edgehoverer import EdgeHoverer
 
-        lh = EdgeHoverer(ep, ob)
 
         # self.line = Line1dSolid()
 

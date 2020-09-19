@@ -225,7 +225,7 @@ class Line1dPrimitive(LinePrimitive):
         # must take into account the tailpoint
 
         if run_setTipPoint_again is True:
-            print("tip_point rerun after setTailPoint: ", self.tip_point)
+            # print("tip_point rerun after setTailPoint: ", self.tip_point)
             self.setTipPoint(self.tip_point)
 
 

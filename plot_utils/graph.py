@@ -31,6 +31,8 @@ from interactive_tools import cameraray
 
 from functools import partial
 
+from plot_utils.edgehoverer import EdgeHoverer, EdgeMouseClicker
+
 
 def sayhi():
     print("heylo ------- ######")
@@ -529,7 +531,7 @@ class EdgePlayer(EdgePlayerState):
     paused_cursor_color = ((0., .5, .5, 1.), 1)
     paused_line_color = ((0., .5, .5, 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
 
-    def __init__(self):
+    def __init__(self, camera_gear):
         # -- do geometry logic
         self.v1 = Vec3(-.5, -.5, 0.)
         self.v2 = Vec3(-1.5, -1.5, 0.)
@@ -583,8 +585,16 @@ class EdgePlayer(EdgePlayerState):
         # ---- initialize the sequence
         self.p3d_interval = LerpFunc(
             self.update_position_func, duration=self.duration, extraArgs=self.extraArgs)
-        self.p3d_cursor_sequence = Sequence(Wait(self.delay), self.p3d_interval, Func(self.on_finish_cursor_sequence))
+        self.p3d_cursor_sequence = Sequence(Wait(self.delay), self.p3d_interval,
+                                            Func(self.on_finish_cursor_sequence))
 
+
+        # -- init hover and click actions
+        self.camera_gear = camera_gear
+
+        self.edge_hoverer = EdgeHoverer(self, self.camera_gear)
+
+        self.edge_mouse_clicker = EdgeMouseClicker(self)
 
         EdgePlayerState.__init__(self)
 
