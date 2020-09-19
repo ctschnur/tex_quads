@@ -235,6 +235,12 @@ class Line1dPrimitive(LinePrimitive):
         assert self._rotation_forrowvecs
         return self._rotation_forrowvecs
 
+    def getTipPoint(self):
+        return self.tip_point
+
+    def getTailPoint(self):
+        return self.tail_point
+
 
 class Line1dSolid(Line1dPrimitive):
     def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):

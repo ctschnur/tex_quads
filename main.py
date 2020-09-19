@@ -29,7 +29,7 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
 from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
-# , GraphPlayer
+from plot_utils.graphplayer import GraphPlayer
 
 class CursorPlayer:
     def __init__(self):
@@ -111,8 +111,8 @@ class MyApp(ShowBase):
         # G.add_edge(dt, mh)
         # G.add_edge(st, mh)
 
-        # dg = DraggableGraph(ob)
-        # gh = GraphHoverer(dg, ob)
+        dg = DraggableGraph(ob)
+        gh = GraphHoverer(dg, ob)
 
         # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1, yshift=0.1)
 
@@ -123,6 +123,10 @@ class MyApp(ShowBase):
         from plot_utils.graph import EdgePlayer
 
         ep = EdgePlayer()
+
+        from plot_utils.edgehoverer import EdgeHoverer
+
+        lh = EdgeHoverer(ep, ob)
 
         # self.line = Line1dSolid()
 

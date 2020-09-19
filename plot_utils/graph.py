@@ -284,7 +284,6 @@ class GraphHoverer:
 
         self.init_time_label()
 
-
     def mouseMoverTask(self, task):
         self.render_hints()
         return task.cont
@@ -377,16 +376,16 @@ class GraphHoverer:
             if closestedge is not None:
                 for edge in self.draggablegraph.graph_edges:
                     # color all
-                    edge.setColor((1., 1., 1., 1.), 1)
+                    edge.setColor(((1., 1., 1., 1.), 1))
                     if edge is closestedge:
-                        edge.setColor((1., 0., 0., 1.), 1)
+                        edge.setColor(((1., 0., 0., 1.), 1))
             else:
                 # hide the connection line
                 self.shortest_distance_line.nodePath.hide()
 
                 # make all the same color
                 for edge in self.draggablegraph.graph_edges:
-                    edge.setColor((1., 1., 1., 1.), 1)
+                    edge.setColor(((1., 1., 1., 1.), 1))
 
             self.hoverindicatorpoint.nodePath.setPos(math_utils.np_to_p3d_Vec3(
                 ray_aufpunkt + ray_direction * 1.))
@@ -431,6 +430,10 @@ class GraphHoverer:
 
         self.time_label.textNode.setTransform(
             math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
+
+
+
+
 
 
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
@@ -506,21 +509,25 @@ class EdgePlayerState:
         return "{a: " + str(self.a) + ", stopped: " + str(self.stopped) + ", paused: " + str(self.paused) + " }"
 
 
-stopped_at_beginning_cursor_color = ((1., 0., 0., 1.), 1)
-stopped_at_beginning_line_color = ((1., 0., 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
-stopped_at_end_cursor_color = ((1., .5, 0., 1.), 1)
-stopped_at_end_line_color = ((1., .5, 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
-
-playing_cursor_color = ((.5, .5, 0., 1.), 1)
-playing_line_color = ((.5, .5, 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
-
-paused_cursor_color = ((0., .5, .5, 1.), 1)
-paused_line_color = ((0., .5, .5, 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
-
-
 
 class EdgePlayer(EdgePlayerState):
     """ Adds the graphics and the p3d sequence operations to the logic of EdgePlayerState """
+
+    stopped_at_beginning_primary_color = ((1., 0., 0., 1.), 1)
+    stopped_at_beginning_cursor_color = ((1., 0., 0., 1.), 1)
+    stopped_at_beginning_line_color = ((1., 0., 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
+
+    stopped_at_end_primary_color = ((1., .5, 0., 1.), 1)
+    stopped_at_end_cursor_color = ((1., .5, 0., 1.), 1)
+    stopped_at_end_line_color = ((1., .5, 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
+
+    playing_primary_color = ((.5, .5, 0., 1.), 1)
+    playing_cursor_color = ((.5, .5, 0., 1.), 1)
+    playing_line_color = ((.5, .5, 0., 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
+
+    paused_primary_color = ((0., .5, .5, 1.), 1)
+    paused_cursor_color = ((0., .5, .5, 1.), 1)
+    paused_line_color = ((0., .5, .5, 1.), 1)  # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
 
     def __init__(self):
         # -- do geometry logic
@@ -547,6 +554,9 @@ class EdgePlayer(EdgePlayerState):
         # self.line = Vector()
         # self.line.setTailPoint(self.v1)
         # self.line.setTipPoint(self.v2)
+
+        self.primary_color = None
+        self.set_primary_color(self.stopped_at_beginning_primary_color)  # initially
 
         # setup the spacebar
         self.space_direct_object = DirectObject.DirectObject()
@@ -577,10 +587,6 @@ class EdgePlayer(EdgePlayerState):
 
 
         EdgePlayerState.__init__(self)
-
-        # do the
-
-        # self.p_c.setColor(stopped_at_beginning_cursor_color)
 
 
     def update_position_func(self,
@@ -774,8 +780,8 @@ class EdgePlayer(EdgePlayerState):
         self.p3d_cursor_sequence.set_t(self.a * self.duration)
 
         # -- do graphics stuff
-        self.p_c.setColor(stopped_at_beginning_cursor_color)
-        self.line.setColor(stopped_at_beginning_line_color)
+
+        self.set_primary_color(self.stopped_at_beginning_primary_color)
 
 
     def set_stopped_at_end(self, # already_at_end=False
@@ -795,8 +801,7 @@ class EdgePlayer(EdgePlayerState):
         # else:
         #     print("already_at_end = ", already_at_end, " no need to set T again. ")  # right?
 
-        self.p_c.setColor(stopped_at_end_cursor_color)
-        self.line.setColor(stopped_at_end_line_color)
+        self.set_primary_color(self.stopped_at_end_primary_color)
 
 
     def set_playing(self, a_to_start_from=None, after_finish=False):
@@ -815,8 +820,8 @@ class EdgePlayer(EdgePlayerState):
             # merely resume, since it is already started (standard state)
             self.p3d_cursor_sequence.resume()
 
-        self.p_c.setColor(playing_cursor_color)
-        self.line.setColor(playing_line_color)
+
+        self.set_primary_color(self.playing_primary_color)
 
 
     def set_paused(self, a_to_set_paused_at=None):
@@ -828,8 +833,40 @@ class EdgePlayer(EdgePlayerState):
 
         self.p3d_cursor_sequence.pause()
 
-        self.p_c.setColor(paused_cursor_color)
-        self.line.setColor(paused_line_color)
+        self.set_primary_color(self.paused_primary_color)
 
 
+    def set_primary_color(self, primary_color, cursor_color_special=None, line_color_special=None,
+                          change_logical_primary_color=True):
+        """ A part of the cursor and the line get by default
+            the primary color. Optionally, they can be changed individually.
 
+        Args:
+            change_logical_primary_color:
+               if False, the logical primary_color is not modified, if True, it is.
+               This is good for e.g. on-hover short and temporary modifications of the
+               primary color. """
+
+        if change_logical_primary_color is True:
+            self.primary_color = primary_color
+
+        cursor_color = None
+        line_color = None
+
+        if cursor_color_special:
+            cursor_color = cursor_color_special
+        else:
+            cursor_color = primary_color
+
+        if line_color_special:
+            line_color = line_color_special
+        else:
+            line_color = primary_color
+
+
+        self.p_c.setColor(cursor_color)
+        self.line.setColor(line_color)
+
+
+    def get_primary_color(self):
+        return self.primary_color
