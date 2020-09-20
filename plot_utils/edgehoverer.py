@@ -28,7 +28,7 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
-# from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
+# from plot_utils.graph import EdgePlayerState
 # from plot_utils.graphplayer import GraphPlayer
 
 
@@ -56,7 +56,7 @@ class EdgeHoverer:
         # self.c1point = Point3d()
         # self.c2point = Point3d()
 
-        self.shortest_distance_line = Line1dSolid(thickness=5, color=Vec4(1., 0., 1., 0.5))
+        self.shortest_distance_line = Line1dSolid(thickness=2, color=Vec4(1., 0., 1., 0.5))
 
         self.init_time_label()
 
@@ -219,39 +219,104 @@ class EdgeMouseClicker:
     def __init__(self, edge_player):
         self.edge_player = edge_player
 
+        self.mouse_pressed_and_locked_on_p = None
+        self.state_snapshot_before_pressing = None
+
         # -- register mouse event
-        # taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
+        taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
         base.accept('mouse1', self.on_press)
+        base.accept('mouse1-up', self.on_release)
 
     def on_press(self):
         """ get the t parameter of the active edge (from the edge_hoverer)
             and set the position of the cursor to the time """
         print("on_press")
 
+        isPointBetweenTwoPoints_success, get_hover_points_success, *_ = (
+            self.get_press_successfully_locked_on())
+
+        if (isPointBetweenTwoPoints_success, get_hover_points_success) == (True, True):
+            self.mouse_pressed_and_locked_on_p = True
+
+        # save a state snapshot (playing/paused/stopped_at_beginning/end, a) before pressing
+
+        self.state_snapshot_before_pressing = self.edge_player.get_state_snapshot()
+
+
+
+
+    def get_press_successfully_locked_on(self):
+        
         get_hover_points_success, ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2 = (
             self.edge_player.edge_hoverer.get_hover_points())
 
-        if get_hover_points_success is True:
-            if math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1):
+        if get_hover_points_success == True:
+            isPointBetweenTwoPoints_success = math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1)
+            return (isPointBetweenTwoPoints_success, get_hover_points_success,
+                    ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2)
+        else:
+            return (None, False,
+                    ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2)
+
+    def on_release(self):
+        """ when releasing the mouse, do this """
+        print("on_release")
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        (isPointBetweenTwoPoints_success, get_hover_points_success,
+         ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2) = (
+             self.get_press_successfully_locked_on())
+
+        if (get_hover_points_success == True and isPointBetweenTwoPoints_success == True
+            and self.mouse_pressed_and_locked_on_p == True):
+
+            a = self.edge_player.edge_hoverer.get_a_param(c2)
+
+            # -- recover the state snapshot it was in before, just with changed time
+            state_snapshot = self.state_snapshot_before_pressing.copy()
+
+            # FIXME: separate EdgePlayer and EdgePlayerState, so that this EdgePlayerState
+            # can be edited and assigned separately by calling the appropriate functions
+
+            if state_snapshot["is_stopped_at_beginning"]:
+                # self.edge_player.set_playing(a_to_start_from=a)
+                self.edge_player.set_paused(a_to_set_paused_at=a)
+            elif state_snapshot["is_stopped_at_end"]:
+                self.edge_player.set_playing(a_to_start_from=a)
+            elif state_snapshot["is_playing"]:
+                self.edge_player.set_playing(a_to_start_from=a)
+            elif state_snapshot["is_paused"]:
+                self.edge_player.set_paused(a_to_set_paused_at=a)
+
+                self.edge_player.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
+
+            else:
+                print("snapshot matches no valid state, could not be restored!")
+                exit(1)
+
+            self.state_snapshot_before_pressing = None
+
+        self.mouse_pressed_and_locked_on_p = False
+
+    def mouseMoverTask(self, task):
+        # self.render_hints()
+        if self.mouse_pressed_and_locked_on_p is True:
+            print("self.mouse_pressed_and_locked_on_p: ", self.mouse_pressed_and_locked_on_p)
+            # move the cursor position to the corresponding t
+
+            # on press: color the line red
+            self.edge_player.edge_hoverer.shortest_distance_line.setColor(
+                self.edge_player.get_primary_color())
+
+            (isPointBetweenTwoPoints_success, get_hover_points_success,
+             ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2) = (
+                 self.get_press_successfully_locked_on())
+
+            if (get_hover_points_success == True and isPointBetweenTwoPoints_success == True
+                and self.mouse_pressed_and_locked_on_p == True):
+
                 a = self.edge_player.edge_hoverer.get_a_param(c2)
-                print("a: ", a, "; self.edge_player.duration: ", self.edge_player.duration)
+                self.edge_player.set_paused(a_to_set_paused_at=a)
 
-                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
-                if self.edge_player.is_stopped_at_beginning():
-                    self.edge_player.set_paused(a_to_set_paused_at=a)
-                elif self.edge_player.is_stopped_at_end():
-                    self.edge_player.set_paused(a_to_set_paused_at=a  # , after_finish=True
-                    )
-                elif self.edge_player.is_playing():
-                    self.edge_player.set_playing(a_to_start_from=a)
-                elif self.edge_player.is_paused():
-                    self.edge_player.set_paused(a_to_set_paused_at=a)
-                else:
-                    print("situation matches no state!")
-                    exit(1)
-
-
-    # def mouseMoverTask(self, task):
-    #     self.render_hints()
-    #     return task.cont
+        else:
+            self.edge_player.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
+        return task.cont

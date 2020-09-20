@@ -880,3 +880,34 @@ class EdgePlayer(EdgePlayerState):
 
     def get_primary_color(self):
         return self.primary_color
+
+    def get_state_snapshot(self):
+        """ get a snapshot of a state (FIXME?: incomplete information, i.e. not a deep copy of
+            the parent class `EdgePlayerState` of the `EdgePlayer`) """
+        state_snapshot = {
+            "is_stopped_at_beginning": self.is_stopped_at_beginning(),
+            "is_stopped_at_end": self.is_stopped_at_end(),
+            "is_playing": self.is_playing(),
+            "is_paused": self.is_paused(),
+            "a": self.a
+        }
+        return state_snapshot
+
+    def set_state_from_state_snapshot(self, state_snapshot):
+        """ state taken from get_state_snapshot """
+
+        a = state_snapshot["a"]
+
+        if state_snapshot["is_stopped_at_beginning"]:
+            self.set_stopped_at_beginning()
+        elif state_snapshot["is_stopped_at_end"]:
+            self.set_stopped_at_end()
+        elif state_snapshot["is_playing"]:
+            self.set_playing(a_to_start_from=a)
+        elif state_snapshot["is_paused"]:
+            self.set_paused(a_to_set_paused_at=a)
+        else:
+            print("snapshot matches no valid state, could not be restored!")
+            exit(1)
+
+    # def set_state_from_state_snapshot_to_playing_or_paused(self, state_snapshot):

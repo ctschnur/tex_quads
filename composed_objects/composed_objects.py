@@ -90,11 +90,13 @@ class Point3dCursor():
         self.rel_scale_point_center = 0.4
         self.rel_scale_circle_outer_first = 0.6
         self.rel_scale_circle_outer_second = 0.9
+        # self.rel_scale_circle_outer_third = 1.2
         self.num_of_verts = 20
 
         self.color_point_center = Vec4(1., 1., 1., 1.)
         self.color_circle_outer_first = Vec4(0., 0., 0., 1.)
         self.color_circle_outer_second = Vec4(1., 1., 1., 1.)
+        # self.color_circle_outer_third = Vec4(0., 0., 0., 1.)
 
         self.point_center = Point3d(
             scale=self.scale_total * self.rel_scale_point_center)
@@ -108,6 +110,11 @@ class Point3dCursor():
             scale=self.scale_total * self.rel_scale_circle_outer_second,
             num_of_verts=self.num_of_verts,
             thickness=3.)
+        # self.circle_outer_third = OrientedCircle(
+        #     normal_vector=Vec3(0., 0., 1.),
+        #     scale=self.scale_total * self.rel_scale_circle_outer_third,
+        #     num_of_verts=self.num_of_verts,
+        #     thickness=3.)
 
         self._adjust()
 
@@ -123,13 +130,22 @@ class Point3dCursor():
         self.circle_outer_second.setPos(self.origin_point)
         self.circle_outer_second.setColor(self.color_circle_outer_second)
 
+        # self.circle_outer_third.setPos(self.origin_point)
+        # # self.circle_outer_third.setColor(self.color_circle_outer_third)
+
     def setPos(self, position):
         self.origin_point = position
         self._adjust()
 
-    def setColor(self, primary_color):
-        # self.color_point_center = primary_color
+    def setColor(self, primary_color, color_point_center=False):
+        if color_point_center == True:
+            self.color_point_center = primary_color
+
         self.color_circle_outer_second = primary_color
+        self._adjust()
+
+    def setColor_point_center(self, color):
+        self.color_point_center = color
         self._adjust()
 
 
