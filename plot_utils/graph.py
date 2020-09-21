@@ -911,3 +911,14 @@ class EdgePlayer(EdgePlayerState):
             exit(1)
 
     # def set_state_from_state_snapshot_to_playing_or_paused(self, state_snapshot):
+
+
+class EdgeRecorder:
+    """ This is just a line that grows with time, from one point in space to another, annotated with a Rec. label and a time """
+    def __init__(self, camera_gear):
+        self.p_c = Point3dCursor(Vec3(0., 0., 0.))
+        self.rec_label = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="Rec.",
+                                        xshift=0.02, yshift=0.02, font="fonts/arial.egg")
+        self.duration
+
+        self.camera_gear = camera_gear

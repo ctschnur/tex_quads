@@ -41,21 +41,24 @@ pip install -r ./requirements.txt
 ***** DONE substitute Line1dSolid edges by vector edges
 ****** DONE Write a dynamic setTailPoint and setTipPoint for Vector
 ****** DONE remove the artifact (1., 0., 0.)
-***** TODO Toggle play/pause
+***** DONE Toggle play/pause
 ****** DONE render play/pause label and toggle using spacebar
 ****** DONE figure out how a sequence works
-****** TODO render a play/pause cursor at a 'current position'
-******* TODO write a class that gets and sets the state appropriately, together with a state machine
-******** DONE write state machine for a single edge
-******** DONE accentuate the cursor by drawing a black and white circle around it
-******** DONE implement cursor clicking
-******** TODO implement cursor dragging along a line
-******** TODO extend single-edge state machine to multi-edge
-******** DONE Write EdgePlayer, inheriting EdgePlayerState
-******** DONE Write a state machine for a single edge for playback
-******** DONE Fix the Line drawing upon reversal of the order setTipPoint <-> setTailPoint
-******** TODO Fix the immediate coloring-in of the vector constituents by setColor
-***** TODO Fix the vector coordinate system
+****** DONE render a play/pause cursor at a 'current position'
+****** DONE write a class that gets and sets the state appropriately, together with a state machine
+***** DONE write state machine for a single edge
+****** DONE accentuate the cursor by drawing a black and white circle around it
+****** DONE implement cursor clicking
+****** DONE implement cursor dragging along a line
+****** DONE Write EdgePlayer, inheriting EdgePlayerState
+****** DONE Write a state machine for a single edge for playback
+****** DONE Fix the Line drawing upon reversal of the order setTipPoint <-> setTailPoint
+***** TODO Make a recording function for an EdgePlayer
+****** TODO make a line that grows from just a point and on stop-recording makes a loose edge
+******* TODO Implement EdgeRecorder and EdgeRecorderState
+****** TODO Record an audio file using python
+***** TODO Extend the EdgePlayer To a GraphPlayer made of many edges and one EdgePlayer at a time
+
 
 *** WAITING implement on-hover highlighting of a particular bezier curve 
 **** WAITING curve picking

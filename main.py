@@ -135,7 +135,6 @@ class MyApp(ShowBase):
         # self.line.setTailPoint(Vec3(1., 1., 0.))
         # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
 
-
         self.myvec = Vector()
         self.myvec.setTailPoint(Vec3(1., 1., 0.))
         self.myvec.setTipPoint(Vec3(1.5, 1.5, 0.))
