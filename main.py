@@ -31,6 +31,7 @@ from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay
 from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
 from plot_utils.graphplayer import GraphPlayer
 
+
 class CursorPlayer:
     def __init__(self):
         self.v1 = Vec3(0., 0., 0.)
@@ -50,8 +51,8 @@ class CursorPlayer:
         l.setTailPoint(Vec3(0., 0., 0.))
         l.setTipPoint(Vec3(2., 0., 0.))
 
-        extraArgs = [# self.duration,
-                     self.v1, self.v2, self.v_c, # self.p1, self.p2,
+        extraArgs = [  # self.duration,
+            self.v1, self.v2, self.v_c,  # self.p1, self.p2,
             self.p_c]
 
         p3d_interval = LerpFunc(
@@ -60,17 +61,18 @@ class CursorPlayer:
         seq.start(playRate=1.)
 
     @staticmethod
-    def update_position_func(a, # duration,
-                             v1, v2, v_c, # p1, p2,
+    def update_position_func(a,  # duration,
+                             v1, v2, v_c,  # p1, p2,
                              p_c):
-            # assumption: t is a parameter between 0 and self.duration
-            v21 = v2 - v1
-            # a = t# /self.duration
-            v_c = v1 + v21 * a
-            p_c.nodePath.setPos(v_c)
-            print(# "t = ", t,
-                  # "; duration = ", duration,
-                  "; a = ", a)
+        # assumption: t is a parameter between 0 and self.duration
+        v21 = v2 - v1
+        # a = t# /self.duration
+        v_c = v1 + v21 * a
+        p_c.nodePath.setPos(v_c)
+        print(  # "t = ", t,
+            # "; duration = ", duration,
+            "; a = ", a)
+
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -80,6 +82,8 @@ class MyApp(ShowBase):
 
         ob = Orbiter(base.cam, radius=3.)
         cs = CoordinateSystem(ob)
+
+        cs.attachScatter
 
         # ax = Axis(Vec3(1., 0., 0.), thickness1dline=5, color=Vec4(1., 1., 1., 1.))
 
@@ -114,6 +118,8 @@ class MyApp(ShowBase):
         dg = DraggableGraph(ob)
         gh = GraphHoverer(dg, ob)
 
+        gh = GraphHoverer()
+
         # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1, yshift=0.1)
 
         # gp = GraphPlayer(dg, ob)
@@ -125,7 +131,6 @@ class MyApp(ShowBase):
         ep = EdgePlayer(ob)
 
         from plot_utils.edgehoverer import EdgeHoverer
-
 
         # self.line = Line1dSolid()
 
@@ -149,7 +154,6 @@ class MyApp(ShowBase):
         #     num_of_verts=30,
         #     with_hole=False)
 
-
         # cursor = Point3dCursor(Vec3(1., 0., 0.))
 
         # point1_vec3 = Vec3(1., 1., 0.)
@@ -162,7 +166,6 @@ class MyApp(ShowBase):
         # the vector class has an artifact
 
         # self.draw_vectors_demo()
-
 
     def draw_vectors_demo(self):
         l = Line1dSolid()
@@ -181,25 +184,22 @@ class MyApp(ShowBase):
 
         # a.groupNode.hide()
 
-        a.setTipPoint(Vec3(1., 0., 0.)# , param=True
-        )
-        a.setTailPoint(Vec3(0.5, 0., 0.) # , param=True
-        )
-
+        a.setTipPoint(Vec3(1., 0., 0.)  # , param=True
+                      )
+        a.setTailPoint(Vec3(0.5, 0., 0.)  # , param=True
+                       )
 
         a2 = Vector(color=Vec4(0., 1., 0., 1.))
 
-
-        a2.setTailPoint(Vec3(1., 1.0, 0.) # , param=True
-        )
-        a2.setTipPoint(Vec3(0.5, 0.5, 0.)# , param=True
-        )
+        a2.setTailPoint(Vec3(1., 1.0, 0.)  # , param=True
+                        )
+        a2.setTipPoint(Vec3(0.5, 0.5, 0.)  # , param=True
+                       )
 
         l3 = Line1dSolid()
 
         l3.setTipPoint(Vec3(0.5, 0.5, 0.))
         l3.setTailPoint(Vec3(0.0, 0.5, 0.))
-
 
         l4 = Line1dSolid()
 
