@@ -168,9 +168,10 @@ class Line1dPrimitive(LinePrimitive):
 
         self.tip_point = point
 
-        if (self.tip_point is None or self.tail_point is None):
+        if (self.tip_point is None or self.tail_point is None or self.tip_point == self.tail_point):
             # set vector status to hidden
             self.nodePath.hide()
+            print("Warning: setTipPoint exception: transformation skipped")
             return
         else:
             self.nodePath.show()
@@ -466,9 +467,11 @@ from panda3d.core import TextNode
 
 class Pinned2dLabel:
     def __init__(self, refpoint3d=Point3(1., 1., 1.), text="pinned?", xshift=0., yshift=0.,
-                 font="cmr12.egg"):
+                 font="cmr12.egg", color=(1., 1., 1., 1.)):
+        """ """
         self.refpoint3d = refpoint3d
         self.text = text
+        self.color = color
         self.nodeisattachedtoaspect2d = False
 
         self.font = font
@@ -492,6 +495,17 @@ class Pinned2dLabel:
         self.nodeisattachedtoaspect2d = False
         self.update()
 
+    def setColor(self, color):
+        """ set the text color
+
+            Args: color is a Vec4(., ., ., .) """
+
+        self.color = color
+
+        self.textNodePath.removeNode()
+        self.nodeisattachedtoaspect2d = False
+        self.update()
+
     def update(self):
         pos_rel_to_cam = base.cam.get_relative_point(base.render,
                                                      self.refpoint3d)
@@ -500,6 +514,7 @@ class Pinned2dLabel:
         if not self.nodeisattachedtoaspect2d:
             self.textNode = TextNode('myPinned2dLabel')
             self.textNode.setText(self.text)
+            self.textNode.setTextColor(self.color)
 
             # load a font
             # cmr12 = loader.loadFont('cmr12.egg')
@@ -530,6 +545,10 @@ class Pinned2dLabel:
         # parented by aspect2d
         from conventions.conventions import win_aspect_ratio
         self.textNodePath.setPos((p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1] + self.yshift)
+
+    def remove(self):
+        """ removes all p3d nodes """
+        self.textNodePath.removeNode()
 
 
 class Fixed2dLabel:

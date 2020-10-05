@@ -300,3 +300,6 @@ def get_circle_vertices(num_of_verts=10, radius=1.):
         verts = np.append(verts, np.array([x, y, z]))
 
     return np.reshape(verts, (-1, 3))
+
+def equal_up_to_epsilon(num1, num2, epsilon=0.001):
+    return np.abs(num1 - num2) <= epsilon

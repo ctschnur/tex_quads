@@ -84,6 +84,7 @@ class Point3dCursor():
     black and a white circle aroud it for accentuation """
 
     def __init__(self, origin_point, scale=0.05):
+        """ """
         self.origin_point = origin_point
 
         self.scale_total = scale
@@ -137,6 +138,9 @@ class Point3dCursor():
         self.origin_point = position
         self._adjust()
 
+    def getPos(self):
+        return self.origin_point
+
     def setColor(self, primary_color, color_point_center=False):
         if color_point_center == True:
             self.color_point_center = primary_color
@@ -147,6 +151,22 @@ class Point3dCursor():
     def setColor_point_center(self, color):
         self.color_point_center = color
         self._adjust()
+
+    def hide(self):
+        self.point_center.nodePath.hide()
+        self.circle_outer_first.nodePath.hide()
+        self.circle_outer_second.nodePath.hide()
+
+    def show(self):
+        self.point_center.nodePath.show()
+        self.circle_outer_first.nodePath.show()
+        self.circle_outer_second.nodePath.show()
+
+    def remove(self):
+        self.point_center.nodePath.removeNode()
+        self.circle_outer_first.nodePath.removeNode()
+        self.circle_outer_second.nodePath.removeNode()
+
 
 
 class Vector:
@@ -225,7 +245,6 @@ class Vector:
         """ set this color to all panda nodes """
         children = self.groupNode.get_children()
         for child in children:
-            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
             child.setColor(*color)
 
     def getTipPoint(self):

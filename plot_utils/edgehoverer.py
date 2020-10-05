@@ -28,9 +28,6 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
-# from plot_utils.graph import EdgePlayerState
-# from plot_utils.graphplayer import GraphPlayer
-
 
 from simple_objects.simple_objects import Pinned2dLabel
 
@@ -85,7 +82,7 @@ class EdgeHoverer:
         # -- check if this line qualifies to render a hover cursor
         r2 = self.edge_player.v1
         edge_p1 = r2
-        edge_p2 = self.edge_player.v2
+        edge_p2 = self.edge_player.get_v2()
         e2 = edge_p2 - edge_p1  # direction vector for edge infinite straight line
         d = np.abs(math_utils.shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2))
         c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
@@ -124,10 +121,10 @@ class EdgeHoverer:
                 self.time_label.textNodePath.show()
                 self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
 
-                # figure out the parameter t
-                t = self.get_a_param(c2)
+                a = self.get_a_param(c2)
+                t = a * self.edge_player.duration
 
-                self.time_label.setText("t = {0:.2f}".format(t))
+                self.time_label.setText("t = {0:.2f}, a = {1:.2f}".format(t, a))
                 self.time_label.update()
                 self.time_label.textNodePath.setScale(0.04)
 
@@ -144,21 +141,13 @@ class EdgeHoverer:
                     primary_color[0][2]]) * darkening_factor
                 new_color = ((new_rgb_v3[0], new_rgb_v3[1], new_rgb_v3[2], 1.), 1)
 
-                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
                 # when hovered-over
                 self.edge_player.set_primary_color(new_color,
                                                    change_logical_primary_color=False)
-
-                # print("### COLOR: ", self.edge_player.line.nodePath.getColor())
-                # lighten up the color that they have a bit
             else:
                 self.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))  # when not hovered-over
 
                 self.edge_player.set_primary_color(self.edge_player.get_primary_color())
-
-                # self.edge_player.p1.setColor(((1., 1., 1., 1.), 1))  # when not hovered-over
-                # self.edge_player.p1.setColor(((1., 1., 1., 1.), 1))  # when not hovered-over
 
                 self.shortest_distance_line.nodePath.hide()
                 self.time_label.textNodePath.hide()
@@ -173,29 +162,29 @@ class EdgeHoverer:
             d_min_point = None
             closestpoint = None
 
-            playerline_limiting_points = [self.edge_player.p1, self.edge_player.p2]
+            playerline_limiting_positions = [self.edge_player.get_v1(), self.edge_player.get_v2()]
 
-            for point in playerline_limiting_points:
+            for pos in playerline_limiting_positions:
                 d = np.linalg.norm(
-                    math_utils.p3d_to_np(point.getPos())
+                    math_utils.p3d_to_np(pos)
                     - math_utils.p3d_to_np(ray_aufpunkt))
 
                 if d_min_point is not None:
                     if d < d_min_point:
                         d_min_point = d
-                        closestpoint = point
+                        closestpoint = pos
                 else:
                     d_min_point = d
-                    closestpoint = point
+                    closestpoint = pos
 
-            # ---- color in point
-            for point in playerline_limiting_points:
-                point.nodePath.setColor((1., 0., 1., 1.), 1)
+            # # ---- color in pos
+            # for pos in playerline_limiting_positions:
+            #     # pos.nodePath.setColor((1., 0., 1., 1.), 1)
 
-                if point is closestpoint:
-                    point.nodePath.setColor((1., 0., 0., 1.), 1)
-                else:
-                    point.nodePath.setColor((1., 1., 1., 1.), 1)
+            #     if pos is closestpoint:
+            #         pos.nodePath.setColor((1., 0., 0., 1.), 1)
+            #     else:
+            #         pos.nodePath.setColor((1., 1., 1., 1.), 1)
 
     def init_time_label(self):
         """ show a text label at the position of the cursor:
@@ -261,7 +250,6 @@ class EdgeMouseClicker:
     def on_release(self):
         """ when releasing the mouse, do this """
         print("on_release")
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         (isPointBetweenTwoPoints_success, get_hover_points_success,
          ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2) = (
              self.get_press_successfully_locked_on())

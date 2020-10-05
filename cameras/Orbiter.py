@@ -319,6 +319,10 @@ class Orbiter:
         the hook by just using a lambda function """
         self.camera_move_hooks.append(func)
 
+    def remove_camera_move_hook(self, func):
+        """ remove the hook """
+        self.camera_move_hooks.remove(func)
+
     def run_camera_move_hooks(self):
 
         for c_hook in self.camera_move_hooks:

@@ -33,16 +33,13 @@ from functools import partial
 
 from plot_utils.edgehoverer import EdgeHoverer, EdgeMouseClicker
 
+from plot_utils.edgeplayer import EdgePlayer
 
-# class EdgeRecorder:
-#     """ This is just a line that grows with time, from one point in space to another, annotated with a Rec. label and a time """
-#     def __init__(self, camera_gear):
-#         self.p_c = Point3dCursor(Vec3(0., 0., 0.))
-#         self.rec_label = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="Rec.",
-#                                         xshift=0.02, yshift=0.02, font="fonts/arial.egg")
-#         self.duration
+from plot_utils.edgeplayerrecorderspawner import EdgePlayerRecorderSpawner
 
-#         self.camera_gear = camera_gear
+from sequence.sequence import Sequence
+
+# TODO: write a SequenceRepeater class to automatically continue a finite sequence (provided by p3d) when it has ended
 
 
 class EdgeRecorderState:
@@ -57,30 +54,78 @@ class EdgeRecorderState:
 
     def __init__(self):
         # TODO: set predefined initial state
-        self.set_recording()
+        self.set_stopped_at_beginning()
+
+        self.recording_finished = False
 
     def set_recording(self):
         """ continue recording from a paused state """
-
         self.recording = True
         self.paused = False
+        self.stopped_at_beginning = False
+        self.recording_finished = False
 
     def is_recording(self):
-        return (self.recording == True and self.paused == False)
+        return (self.recording == True and self.paused == False and self.stopped_at_beginning == False and self.recording_finished == False)
 
     def set_paused(self):
         self.recording = False
         self.paused = True
+        self.stopped_at_beginning = False
+        self.recording_finished = False
 
     def is_paused(self):
-        return (self.recording == False and self.paused == True)
+        return (self.recording == False and self.paused == True and self.stopped_at_beginning == False and self.recording_finished == False)
 
-    def __repr__(self):
-        return "{recording: " + str(self.recording) + ", paused: " + str(self.paused) + " }"
+    def set_stopped_at_beginning(self):
+        """ """
+        self.s_a = 0.
+        self.recording = False
+        self.paused = False
+        self.stopped_at_beginning = True
+        self.recording_finished = False
+
+    def is_stopped_at_beginning(self):
+        """ """
+        return (self.recording == False and self.paused == False and self.stopped_at_beginning == True and self.recording_finished == False)
+
+    def set_recording_finished(self):
+        """ this the (for now inescapable) end state of the lifecycle of a recording.
+            If it's finished, you can just kill it
+            The recorder technically doesn't even have to enter this state before the recorder is killed """
+
+        # things don't need to be defined any more
+        self.s_a = None
+        self.recording = None
+        self.paused = None
+        self.stopped_at_beginning = None
+        self.recording_finished = True
+
+    def is_recording_finished(self):
+        """ """
+        return (self.recording is None and self.paused is None and self.stopped_at_beginning is None and self.recording_finished == True)
+
+    def print_states(self):
+        """ debugging """
+        print("--- States: ---")
+        print("is_stopped_at_beginning(): ", self.is_stopped_at_beginning(), ", ",
+              "is_recording(): ", self.is_recording(), ", ",
+              "is_paused(): ", self.is_paused(), ", ",
+              "is_recording_finished(): ", self.is_recording_finished())
+        print("s_a: ", self.s_a, ", ",
+              "stopped_at_beginning: ", self.stopped_at_beginning, ", ",
+              "recording: ", self.recording, ", ",
+              "paused: ", self.paused, ", ",
+              "recording_finished: ", self.recording_finished)
 
 
-class EdgeRecorder(EdgeRecorderState):
-    """ Adds the graphics and the p3d sequence operations to the logic of EdgeRecorderState """
+class EdgeRecorder:
+    """ Adds the graphics and the p3d sequence operations to the logic of EdgeRecorderState
+    """
+
+    stopped_at_beginning_primary_color = ((.75, .25, 0., 1.), 1)
+    stopped_at_beginning_cursor_color = ((.75, .25, 0., 1.), 1)
+    stopped_at_beginning_line_color = ((.75, .25, 0., 1.), 1)
 
     recording_primary_color = ((.5, .5, 0., 1.), 1)
     recording_cursor_color = ((.5, .5, 0., 1.), 1)
@@ -90,41 +135,32 @@ class EdgeRecorder(EdgeRecorderState):
     paused_cursor_color = ((0., .5, .5, 1.), 1)
     paused_line_color = ((0., .5, .5, 1.), 1)
 
-    def __init__(self, camera_gear):
+    s_l = 50.  # length of a template sequence
+    # (of a finite sequence, todo: chain a series of finite sequences while recording)
+
+    s_dur = s_l / EdgePlayer.lps_rate  # the duration of a template sequence
+
+    time_ind = 0.5
+
+    def __init__(self, camera_gear, edge_player_recorder_spawner=None):
+
+        self.camera_gear = camera_gear
+        self.edge_player_recorder_spawner = edge_player_recorder_spawner
+
+        self.state = EdgeRecorderState()
+
         # -- do geometry logic
         # make the line small, but pick initial direction
 
-        self.v1_initial = Vec3(-.25, -.25, 0.)
-        self.v2_initial = Vec3(+1.5, -1.5, 0.)
-
-        self.direction = math_utils.normalize(math_utils.p3d_to_np(
-            self.v2_initial) - math_utils.p3d_to_np(self.v1_initial))
-
-        self.v1 = v1_initial
-        self.v2 = v2_initial  # this will change as a function of time
-
-        self.v_c = self.v1  # cursor; initially at beginning, idea: initially at v2_initial, then growing from when it reaches over that
-        # self.duration = 0.  # this will grow with time
-
-        self.delay = 0.
-
         # -- do graphics stuff
-        # self.p1 = Point3d(scale=0.03, pos=self.v1)
-        # self.p2 = Point3d(scale=0.03, pos=self.v2)
-
-        # self.p_c = Point3d(scale=0.0125, pos=self.v1)
-        self.p_c = Point3dCursor()
+        tail_init_point = Vec3(0., 0., 0.)
+        self.p_c = Point3dCursor(tail_init_point)
 
         self.line = Line1dSolid()
-        self.line.setTipPoint(self.v1)
-        self.line.setTailPoint(self.v2)
+        tip_init_point = tail_init_point + Vec3(2., 2., 2.)
 
-        # self.line = Vector()
-        # self.line.setTailPoint(self.v1)
-        # self.line.setTipPoint(self.v2)
-
-        self.primary_color = None
-        self.set_primary_color(self.recording_primary_color)  # initially
+        self.line.setTipPoint(tip_init_point)
+        self.line.setTailPoint(tail_init_point)
 
         # actions: record, pause, kill
 
@@ -132,67 +168,67 @@ class EdgeRecorder(EdgeRecorderState):
         self.space_direct_object = DirectObject.DirectObject()
         self.space_direct_object.accept('space', self.react_to_spacebar)
 
-        # kill
-        self.set_stopped_at_beginning_direct_object = DirectObject.DirectObject()
-        self.set_stopped_at_beginning_direct_object.accept(
-            'k', self.react_to_k)
+        self.set_recording_direct_object = DirectObject.DirectObject()
+        self.set_recording_direct_object.accept(
+            'r', self.react_to_r)
 
         # -- do p3d sequence stuff
         # ---- initialize the sequence
-        # self.extraArgs = [# a, # duration,
-        #     self.v1_initial, self.v2_initial, self.v_c, self.direction,
-        #     self.p1, self.p2, self.p_c, self.line,
-        #     self.p3d_cursor_sequence_intermediate_duration]
 
-        self.s_l = 3.  #, self.s_dur = 1.,
-        self.time_ind = 0.5,
-        self.vi1 = Vec3(0.5, 0.5, 0.), self.v_dir = Vec3(1., 1., 0.)/np.linalg.norm(Vec3(1., 1., 0.)),
-        self.lps_rate = 0.5/1.,  # length per second
-        # p1, p2,
-        # self.p_c, self.line
+        self.v1 = Vec3(0.5, 0.5, 0.)
+        self.v_dir = Vec3(1., 1., 0.)/np.linalg.norm(Vec3(1., 1., 0.))
 
         self.extraArgs = [
-            self.s_l, # self.s_dur,
-            self.time_ind,
-            self.vi1, self.v_dir,
-            self.lps_rate,
-            # p1, p2,
+            math_utils.p3d_to_np(self.v1), math_utils.p3d_to_np(self.v_dir),
             self.p_c, self.line
         ]
 
-        s_dur = self.s_l / self.lps_rate
+        self.init_recorder_label()
 
-        self.p3d_interval = LerpFunc(
-            self.update_graphics_function, duration=s_dur, extraArgs=self.extraArgs)
-        self.p3d_cursor_sequence = Sequence(Wait(self.delay), self.p3d_interval,
-                                            Func(self.on_finish_cursor_sequence))
+        self.cursor_sequence = Sequence()
+        self.cursor_sequence.set_sequence_params(
+            duration=EdgeRecorder.s_dur,
+            extraArgs=self.extraArgs,
+            update_while_moving_function=self.update_while_moving_function,
+            on_finish_function=self.on_finish_cursor_sequence)
 
+        # --- additional ui stuff ---
         # -- init hover and click actions
-        self.camera_gear = camera_gear
 
-        self.edge_hoverer = EdgeHoverer(self, self.camera_gear)
+        # self.edge_hoverer = EdgeHoverer(self, self.camera_gear)
+        # self.edge_mouse_clicker = EdgeMouseClicker(self)
 
-        self.edge_mouse_clicker = EdgeMouseClicker(self)
+        # make a pinned label saying Rec. in thick red letters
 
-        EdgeRecorderState.__init__(self)
+        # --- set initial state ----
 
-    def update_graphics_function(self,
-                                 s_a,
-                                 s_l, # s_dur,
-                                 time_ind,
-                                 vi1, v_dir,
-                                 lps_rate,
-                                 # p1, p2,
-                                 p_c, line):
-        # TODO: CONTINUE going through from top down, adapting an edgeplayer to be an edgerecorder instead
+        self.set_stopped_at_beginning()
 
+    def init_recorder_label(self):
+        """ Pin this `Rec.` label to the position of the recorder cursor """
+
+        self.recorder_label = Pinned2dLabel(
+            refpoint3d=Point3(0., 0., 0.), text="Rec.",
+            xshift=0.02, yshift=0.02, font="fonts/arial.egg")
+
+        self.camera_gear.add_camera_move_hook(self.recorder_label.update)
+
+        self.recorder_label.setColor(Vec4(1., 0., 0., 1.))  # red
+
+        # self.recorder_label.textNode.setTransform(
+        #     math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(0.5, 0.5, 0.5)))
+
+    def update_while_moving_function(self,
+                                     s_a,
+                                     v1, v_dir,
+                                     p_c, line):
         # logical, given:
         # for the current sequence:
         # s_a: parameter between 0 and 1 for the time between the sequence's current start and end points
         # s_l: fixed length of what length a sequence should have (choose a reasonable length, corresponding to a time of maybe 10 seconds, after that, start a new (always finite) sequence)
         # s_dur: fixed duration of the sequence
-        # time_ind=1 (s), (time corresponding to the length of the hint line at start of recording),
-        # vi1 (branch point),
+        # EdgeRecorder.time_ind=1 (s), (time corresponding to the length of the hint line at start of recording),
+        # v1 (branch point),
         # v_dir (direction of branching),
         # lps_rate (length per second rate of the player/recorder)
 
@@ -200,155 +236,159 @@ class EdgeRecorder(EdgeRecorderState):
 
         # asked (logical):
         # the length of the line at the covered_time (line always just keeps increasing in size, not separate segments). Time in seconds is extracted from s_a (given)
-        covered_time = s_a * (s_l/lps_rate)
-        covered_length = s_l * s_a
 
-        len_ind = time_ind * lps_rate
+        self.state.s_a = s_a  # update s_a
 
-        # minimal line length: length corresponding to time_ind
-        # if covered_time <= time_ind:
-        #     s_a_min = time_ind * lps_rate / s_l
-        #     s_a = s_a_min
+        covered_time = s_a * (EdgeRecorder.s_l/EdgePlayer.lps_rate)
+        covered_length = EdgeRecorder.s_l * s_a
 
-        s_a_ind = time_ind * lps_rate / s_l
+        len_ind = EdgeRecorder.time_ind * EdgePlayer.lps_rate
+        s_a_ind = EdgeRecorder.time_ind * EdgePlayer.lps_rate / EdgeRecorder.s_l
 
         if s_a <= s_a_ind:
-            line.setTipPoint(len_ind * v_dir + vi1)
+            line.setTipPoint(math_utils.np_to_p3d_Vec3(len_ind * v_dir + v1))
         elif s_a > s_a_ind:
-            line.setTipPoint(covered_length * v_dir + vi1)
+            line.setTipPoint(math_utils.np_to_p3d_Vec3(
+                covered_length * v_dir + v1))
         else:
             print("invalid value of s_a: ", s_a)
             exit(1)
 
-        line.setTailPoint(vi1)
+        line.setTailPoint(math_utils.np_to_p3d_Vec3(v1))
 
         # set cursor point:
-        p_c.setPos(covered_length * v_dir + vi1)
+        cursor_pos = math_utils.np_to_p3d_Vec3(covered_length * v_dir + v1)
+        p_c.setPos(cursor_pos)
 
-        # # v21 = v2 - v1
-        # vi21 = v2_initial - v1_initial
-        # vi21_length = np.linalg.norm(math_utils.p3d_to_np(vi21))
+        # update the label position (which should be pinned to the (self.p_c), which gets set one line above)
 
-        # line_length =
-        # if line_length < vi21_length:
-        #     line_length = vi21_length
+        self.recorder_label.setPos(*tuple(cursor_pos))
+        # self.recorder_label.update()
 
-        # v_c = v1 + v21 * a
-        # # p_c.nodePath.setPos(v_c)
-        # p_c.setPos(v_c)
-        # line.setTailPoint(v1_initial)
-        # line.setTipPoint(direction * math_utils.p3d_to_np(self.v2_initial) - math_utils.p3d_to_np(self.v1_initial))
-        # print(# "t = ", t,
-        #       # "; duration = ", duration,
-        #       " a = ", a)
+    def react_to_r(self):
+        """ starts or finishes a recording (does't pause or resume, that's what spacebar does) """
+        print("before r")
+        self.state.print_states()
 
-    def react_to_k(self):
-        """ unconditionally jump to the beginning and stop """
-        self.set_stopped_at_beginning()
+        if self.state.is_recording() or self.state.is_paused():
+            self.set_recording_finished()
+        elif self.state.is_stopped_at_beginning():
+            self.set_recording()
+        else:
+            print("Error: not (recording or paused), nor stopped at beginning")
+            exit(1)
 
-    def react_to_e(self):
-        """ unconditionally jump to the beginning and stop """
-        self.set_stopped_at_end()
+        print("after r")
+        self.state.print_states()
 
     def react_to_spacebar(self):
-        """ spacebar will either:
-        - start recording from beginning if it's stopped at the beginning
-        - start recording from beginning of the next edge if it's stopped at the end (print 'start at next edge')
+        """ spacebar will:
         - pause if it's recording
-        - record if it's paused
+        - resume recording if it's paused
         """
 
         print("before spacebar")
-        print("is_stopped_at_beginning(): ", self.is_stopped_at_beginning(), ", ",
-              "is_stopped_at_end(): ", self.is_stopped_at_end(), ", ",
-              "is_recording(): ", self.is_recording(), ", ",
-              "is_paused(): ", self.is_paused())
-        print(self)
+        self.state.print_states()
 
-        if self.is_stopped_at_beginning():
-            self.set_recording(a_to_start_from=0.)
-        elif self.is_stopped_at_end():
-            self.set_recording(a_to_start_from=0., after_finish=True)
-            print(
-                "start at next edge (if no next edge, start from beginning of last edge)")
-        elif self.is_recording():
+        if self.state.is_recording():
             self.set_paused()
-        elif self.is_paused():
+        elif self.state.is_paused():
             self.set_recording()
         else:
-            print("situation matches no state!")
+            print("spacebar doesn't do anything here!")
 
         print("after spacebar")
-        print("is_stopped_at_beginning(): ", self.is_stopped_at_beginning(), ", ",
-              "is_stopped_at_end(): ", self.is_stopped_at_end(), ", ",
-              "is_recording(): ", self.is_recording(), ", ",
-              "is_paused(): ", self.is_paused())
-        print(self)
+        self.state.print_states()
 
     def on_finish_cursor_sequence(self):
-        self.set_stopped_at_end()
+        self.set_recording_finished()
 
     def set_stopped_at_beginning(self):
-        EdgeRecorderState.set_stopped_at_beginning(self)
+        self.state.set_stopped_at_beginning()
         # -- do p3d sequence stuff
         # p3d only really has a finish() function, not a 'stopped at start'
-        self.p3d_cursor_sequence.pause()
-        self.p3d_cursor_sequence.set_t(self.a * self.duration)
+
+        self.cursor_sequence.start()
+        self.cursor_sequence.set_t(0)
+        self.cursor_sequence.pause()
 
         # -- do graphics stuff
 
         self.set_primary_color(self.stopped_at_beginning_primary_color)
 
-    def set_stopped_at_end(self,  # already_at_end=False
-                           ):
-        EdgeRecorderState.set_stopped_at_end(self)
+    def set_recording_finished(self,  # already_at_end=False
+                               ):
 
-        # if already_at_end is False:
+        s_a_finished = self.state.s_a
+        self.state.set_recording_finished()
 
-        print("stopped at end ", self)
+        # self.cursor_sequence.pause()
 
-        self.p3d_cursor_sequence.finish()
+        # -- spawn the EdgePlayer
+        ep = EdgePlayer(self.camera_gear)
+        EdgePlayerRecorderSpawner.set_EdgePlayers_state_from_EdgeRecorder(
+            ep, self, s_a_finished)
 
-        # setting pause() is undefined behaviour, if it's already finished.
-        # self.p3d_cursor_sequence.pause()
-        # self.p3d_cursor_sequence.setT(self.a)
-        # print("stopped at end point 2: ", self)
-        # else:
-        #     print("already_at_end = ", already_at_end, " no need to set T again. ")  # right?
+        print("set_recording_finished")
+        self.state.print_states()
 
-        self.set_primary_color(self.stopped_at_end_primary_color)
+        # self.cursor_sequence.finish()
 
-    def set_recording(self, a_to_start_from=None, after_finish=False):
-        EdgeRecorderState.set_recording(self, a_to_start_from=a_to_start_from)
+        # TODO (later when recording audio):
+        # finish the recording of the audio in the other thread
+        # and schedule a callback function to adjust the graphics
+        # after the threads have combined
+        # self.set_primary_color(self.stopped_at_end_primary_color)
 
-        if a_to_start_from:
-            self.p3d_cursor_sequence.set_t(a_to_start_from * self.duration)
-            print("a_to_start_from: ", a_to_start_from)
-
-        if after_finish is True:
-            # it needs to be restarted at a=0. Usually this is called after the interval has finished once, to restart the Sequence
-            print("attempting to restart the sequence after finish", self)
-            self.p3d_cursor_sequence.start()
-            print("after restart: ", self)
+        # assign the EdgePlayer instance to the EdgePlayerRecorderSpawner
+        if self.edge_player_recorder_spawner is not None:
+            self.edge_player_recorder_spawner.set_edge_player(ep)
         else:
-            # merely resume, since it is already started (standard state)
-            self.p3d_cursor_sequence.resume()
+            print(
+                "self.edge_player_recorder_spawner is None, not transforming to an EdgePlayer")
+
+    def set_recording(self,  # a_to_start_from=None,
+                      after_finish=False):
+
+        tmp_is_stopped_at_beginning = self.state.is_stopped_at_beginning()
+        tmp_is_paused = self.state.is_paused()
+
+        self.state.set_recording()
+
+        if tmp_is_stopped_at_beginning:
+            self.cursor_sequence.start()
+            # print("a_to_start_from: ", a_to_start_from)
+        elif tmp_is_paused:
+            # assuming that the handle to the recorder was not destroyed on set_paused()
+            # otherwise, a recalculation and restart of the sequence would be required
+            self.cursor_sequence.resume()
+            print("resuming the recording")
+        else:
+            print("ERROR set_recording(): this state should not occur. ")
+            self.state.print_states()
+            exit(1)
 
         self.set_primary_color(self.recording_primary_color)
 
-    def set_paused(self, a_to_set_paused_at=None):
-        EdgeRecorderState.set_paused(
-            self, a_to_set_paused_at=a_to_set_paused_at)
+        # if after_finish is True:
+        #     # it needs to be restarted at a=0. Usually this is called after the interval has finished once, to restart the Sequence
+        #     print("attempting to restart the sequence after finish", self)
+        #     self.cursor_sequence.start()
+        #     print("after restart: ", self)
+        # else:
+        #     # merely resume, since it is already started (standard state)
+        #     self.cursor_sequence.resume()
 
-        if a_to_set_paused_at:
-            self.p3d_cursor_sequence.set_t(a_to_set_paused_at * self.duration)
-            print("a_to_set_paused_at: ", a_to_set_paused_at)
+    def set_paused(self  # , a_to_set_paused_at=None
+                   ):
+        self.state.set_paused()
 
-        self.p3d_cursor_sequence.pause()
-
+        print("set_paused")
+        self.cursor_sequence.pause()
         self.set_primary_color(self.paused_primary_color)
 
-    def set_primary_color(self, primary_color, cursor_color_special=None, line_color_special=None,
+    def set_primary_color(self, primary_color, cursor_color_special=None,
+                          line_color_special=None,
                           change_logical_primary_color=True):
         """ A part of the cursor and the line get by default
             the primary color. Optionally, they can be changed individually.
@@ -385,11 +425,10 @@ class EdgeRecorder(EdgeRecorderState):
         """ get a snapshot of a state (FIXME?: incomplete information, i.e. not a deep copy of
             the parent class `EdgeRecorderState` of the `EdgeRecorder`) """
         state_snapshot = {
-            "is_stopped_at_beginning": self.is_stopped_at_beginning(),
-            "is_stopped_at_end": self.is_stopped_at_end(),
-            "is_recording": self.is_recording(),
-            "is_paused": self.is_paused(),
-            "a": self.a
+            "state.is_stopped_at_beginning": self.state.is_stopped_at_beginning(),
+            "state.is_recording": self.state.is_recording(),
+            "state.is_paused": self.state.is_paused(),
+            "a": self.state.s_a
         }
         return state_snapshot
 
@@ -401,7 +440,7 @@ class EdgeRecorder(EdgeRecorderState):
         if state_snapshot["is_stopped_at_beginning"]:
             self.set_stopped_at_beginning()
         elif state_snapshot["is_stopped_at_end"]:
-            self.set_stopped_at_end()
+            self.set_recording_finished()
         elif state_snapshot["is_recording"]:
             self.set_recording(a_to_start_from=a)
         elif state_snapshot["is_paused"]:
@@ -409,3 +448,52 @@ class EdgeRecorder(EdgeRecorderState):
         else:
             print("snapshot matches no valid state, could not be restored!")
             exit(1)
+
+    def remove(self):
+        """ removes all
+        - sequences
+        - p3d nodes (detaches them from render)
+        - p3d events (directobjects)
+            their references. """
+
+        print("removing EdgeRecorder")
+
+        self.cursor_sequence.pause()  # remove it from the interval manager
+        del self.cursor_sequence  # remove the reference
+
+        self.line.nodePath.removeNode()
+        # self.p1.nodePath.removeNode()
+        # self.p2.nodePath.removeNode()
+        self.p_c.remove()
+
+        self.space_direct_object.ignoreAll()
+        self.space_direct_object.removeAllTasks()
+
+        self.set_recording_direct_object.ignoreAll()
+        self.set_recording_direct_object.removeAllTasks()
+
+        self.recorder_label.remove()
+        self.camera_gear.remove_camera_move_hook(self.recorder_label.update)
+
+    def set_v1(self, v1):
+        """ set the starting point of the edge
+        Args:
+        - v1: p3d Vec3 """
+        self.v1 = v1
+
+        self.line.setTipPoint(self.v1)
+        self.line.setTailPoint(self.get_v2())
+
+        # call update_while_moving_function manually
+        self.update_while_moving_function(
+            self.state.s_a, *tuple(self.extraArgs))
+
+    def get_v1(self):
+        return self.v1
+
+    def get_v2(self, s_a=None):
+        if s_a is None:
+            s_a = self.state.s_a
+
+        covered_time = s_a * (EdgeRecorder.s_l/EdgePlayer.lps_rate)
+        return self.v1 + self.v_dir * EdgePlayer.lps_rate * covered_time

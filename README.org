@@ -56,7 +56,13 @@ pip install -r ./requirements.txt
 ***** TODO Make a recording function for an EdgePlayer
 ****** TODO make a line that grows from just a point and on stop-recording makes a loose edge
 ******* TODO Implement EdgeRecorder and EdgeRecorderState
+******** DONE debug the state
+1. give EdgePlayer a new update_function (similar to the EdgeRecorder one) that depends on a speed, not just on two points and a parameter between [0, 1]
+   - make the standard rate of playing a constant in the EdgePlayer class
+2. make a function that changes the v1, a, duration and so on of the EdgePlayer to the values of the EdgeRecorder
 ****** TODO Record an audio file using python
+****** TODO make two simultaneous threads: one for rendering, one for audio recording
+the rendering thread (from which the recording thread is spawned) renders an animation while the recording thread records. The recording thread needs to be sent a signal to stop the recording, (p3d Directobject?)
 ***** TODO Extend the EdgePlayer To a GraphPlayer made of many edges and one EdgePlayer at a time
 
 

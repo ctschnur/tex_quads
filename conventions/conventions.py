@@ -14,7 +14,7 @@ print("Panda version:", PandaSystem.getVersionString())
 svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
 
 # p3d window
-winsize_scale_factor = 100
+winsize_scale_factor = 100 * 0.75
 winsizex = int(16. * winsize_scale_factor)
 winsizey = int(9. * winsize_scale_factor)
 
@@ -27,14 +27,8 @@ win_aspect_ratio = winsizex/winsizey
 
 # p3d window positon within OS gui in pixels; (0,0) is upper left of OS GUI
 # puts the upper left corner of the p3d window at that position
-loadPrcFileData('', 'win-origin 10 -2')
+loadPrcFileData('', 'win-origin 10 -1')
 
-# let's pretend we know the resolution (of the hardware monitor) in terms of
-# pixels
-
-screen_res_scale_factor = 1.
-screen_res_width = 1920. * screen_res_scale_factor
-screen_res_height = 1080. * screen_res_scale_factor
 
 def getMat4_scale_unit_quad_to_image_aspect_ratio(image_width_pixels, image_height_pixels):
     # the height stays constant (height of 1 in world coords)
