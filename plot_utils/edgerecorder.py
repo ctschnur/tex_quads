@@ -39,6 +39,8 @@ from plot_utils.edgeplayerrecorderspawner import EdgePlayerRecorderSpawner
 
 from sequence.sequence import Sequence
 
+from recording.recorder import Recorder
+
 # TODO: write a SequenceRepeater class to automatically continue a finite sequence (provided by p3d) when it has ended
 
 
@@ -204,6 +206,8 @@ class EdgeRecorder:
 
         self.set_stopped_at_beginning()
 
+        self.recorder = Recorder()
+
     def init_recorder_label(self):
         """ Pin this `Rec.` label to the position of the recorder cursor """
 
@@ -322,30 +326,59 @@ class EdgeRecorder:
         s_a_finished = self.state.s_a
         self.state.set_recording_finished()
 
-        # self.cursor_sequence.pause()
-
-        # -- spawn the EdgePlayer
-        ep = EdgePlayer(self.camera_gear)
-        EdgePlayerRecorderSpawner.set_EdgePlayers_state_from_EdgeRecorder(
-            ep, self, s_a_finished)
-
         print("set_recording_finished")
-        self.state.print_states()
 
-        # self.cursor_sequence.finish()
+        # add a task into the render loop for joining the rendering and audio threads,
+        # as soon as the audio thread is done
 
-        # TODO (later when recording audio):
-        # finish the recording of the audio in the other thread
-        # and schedule a callback function to adjust the graphics
-        # after the threads have combined
-        # self.set_primary_color(self.stopped_at_end_primary_color)
+        print("adding the task rendering_while_waiting_for_audio_thread_task")
 
-        # assign the EdgePlayer instance to the EdgePlayerRecorderSpawner
-        if self.edge_player_recorder_spawner is not None:
-            self.edge_player_recorder_spawner.set_edge_player(ep)
+        taskMgr.add(self.rendering_while_waiting_for_audio_thread_task,
+                    'rendering_while_waiting_for_audio_thread_task',
+                    extraArgs=[s_a_finished],
+                    appendTask=True)
+
+
+    def rendering_while_waiting_for_audio_thread_task(self, s_a_finished, task):
+        # make a p3d task to check for the audio recorder
+        # only after the file has been registered, an EdgePlayer should be created
+
+        print("rendering_while_waiting_for_audio_thread_task")
+        print("self.recorder.is_recorder_thread_done(): ",
+              self.recorder.is_recorder_thread_done())
+
+        if self.recorder.is_recorder_thread_done() is None:
+            print("ERR: self.recorder.is_recorder_thread_done() is None",
+                  "this task (rendering_while_waiting_for_audio_thread_task)",
+                  "should not even be registered in that situation!")
+            exit(1)
+            # return task.cont
+
+        if self.recorder.is_recorder_thread_done() == True:
+            print("wanting to join threads: audio thread is done",
+                  "your audio file should be at",
+                  self.recorder.output_filename)
+
+            # -- spawn the EdgePlayer
+            ep = EdgePlayer(self.camera_gear)
+            EdgePlayerRecorderSpawner.set_EdgePlayers_state_from_EdgeRecorder(
+                ep, self, s_a_finished)
+
+            self.state.print_states()
+
+            # assign the EdgePlayer instance to the EdgePlayerRecorderSpawner
+            if self.edge_player_recorder_spawner is not None:
+                self.edge_player_recorder_spawner.set_edge_player(ep)
+            else:
+                print("self.edge_player_recorder_spawner is None, ",
+                      "not transforming to an EdgePlayer")
+
+            return task.done
+        elif self.recorder.is_recorder_thread_done() == False:
+            print("wanting to join threads: recorder thread not yet done")
+            return task.cont
         else:
-            print(
-                "self.edge_player_recorder_spawner is None, not transforming to an EdgePlayer")
+            exit(1)
 
     def set_recording(self,  # a_to_start_from=None,
                       after_finish=False):
@@ -356,8 +389,17 @@ class EdgeRecorder:
         self.state.set_recording()
 
         if tmp_is_stopped_at_beginning:
+            # start a recording
             self.cursor_sequence.start()
-            # print("a_to_start_from: ", a_to_start_from)
+
+            # start the recording thread
+            self.recorder.do_record(
+                self.state.is_recording,
+                self.state.is_paused,
+                self.state.is_recording_finished)
+            # in set_recording_finished, register a task to check if
+            # the self.recorder thread is done or still alive
+
         elif tmp_is_paused:
             # assuming that the handle to the recorder was not destroyed on set_paused()
             # otherwise, a recalculation and restart of the sequence would be required
@@ -369,15 +411,6 @@ class EdgeRecorder:
             exit(1)
 
         self.set_primary_color(self.recording_primary_color)
-
-        # if after_finish is True:
-        #     # it needs to be restarted at a=0. Usually this is called after the interval has finished once, to restart the Sequence
-        #     print("attempting to restart the sequence after finish", self)
-        #     self.cursor_sequence.start()
-        #     print("after restart: ", self)
-        # else:
-        #     # merely resume, since it is already started (standard state)
-        #     self.cursor_sequence.resume()
 
     def set_paused(self  # , a_to_set_paused_at=None
                    ):
@@ -474,6 +507,8 @@ class EdgeRecorder:
 
         self.recorder_label.remove()
         self.camera_gear.remove_camera_move_hook(self.recorder_label.update)
+
+        # taskMgr.remove(self.rendering_while_waiting_for_audio_thread_task)
 
     def set_v1(self, v1):
         """ set the starting point of the edge

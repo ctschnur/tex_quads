@@ -60,10 +60,24 @@ pip install -r ./requirements.txt
 1. give EdgePlayer a new update_function (similar to the EdgeRecorder one) that depends on a speed, not just on two points and a parameter between [0, 1]
    - make the standard rate of playing a constant in the EdgePlayer class
 2. make a function that changes the v1, a, duration and so on of the EdgePlayer to the values of the EdgeRecorder
-****** TODO Record an audio file using python
-****** TODO make two simultaneous threads: one for rendering, one for audio recording
-the rendering thread (from which the recording thread is spawned) renders an animation while the recording thread records. The recording thread needs to be sent a signal to stop the recording, (p3d Directobject?)
+****** DONE Record an audio file using python
+This is easily done using pyaudio, which produces a ~.wav~ file
+****** DONE make two simultaneous threads: one for rendering, one for audio recording
+The rendering thread (from which the recording thread is spawned) renders an animation while the recording thread records. The recording thread needs to be sent a signal to stop the recording, (p3d Directobject?). 
+******* possible designs
+Both designs use both the p3d rendering thread and a separate audio recording thread from which to run the pyaudio boilerplate code
+******** DONE 1. Use the blocking pyaudio boilerplate code, and in a while loop query a global state variable if a ~stop_recording~ event occured
+Inside the while loop, fetch the frame data and just append it to a global ~recorded_frames~ array. After the ~stop_recording~ event this array gets saved (the whole recording) from within the audio recording thread to a ~.wav~ file and the thread ends. 
+********* DONE Cutting away spacebar sounds at beginning/end of recording section
+********* TODO figure out how to debug (see) a syntax error (e.g. NameError) in a different thread if another thread is constantly printing
+******** DEFERRED 2. Use a thread-safe queue in an additional thread to continuously write back fetched frames
+This could be better suited for handling the recording of large audio files and for converting between wave and mp3 before saving. 
+Here, one could would use a callback function (created by pyaudio, in yet another thread), which would ~.put(in_data)~ to a global queue which would then be accessed by another thread to write back larger chunks to an e.g. ~.wav~ file. 
+****** TODO Make the EdgePlayer load and play/pause a file given a filepath
+******* use pyaudio to do it
+
 ***** TODO Extend the EdgePlayer To a GraphPlayer made of many edges and one EdgePlayer at a time
+***** TODO The idea of 'Expanding Subspaces' could be great man!
 
 
 *** WAITING implement on-hover highlighting of a particular bezier curve 
