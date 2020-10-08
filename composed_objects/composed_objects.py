@@ -2,7 +2,7 @@ from conventions import conventions
 from simple_objects import custom_geometry
 from local_utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
-from simple_objects.animator import Animator
+from engine.graphics_object import GraphicsObject
 from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedCircle
 
 from simple_objects.simple_objects import Point3d
@@ -26,7 +26,7 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 
-class GroupNode(Animator):
+class GroupNode(GraphicsObject):
     """ Documentation for GroupNode
     """
 

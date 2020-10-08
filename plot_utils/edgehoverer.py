@@ -48,6 +48,7 @@ class EdgeHoverer:
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
         # base.accept('mouse1', self.onPress)
 
+
         self.hoverindicatorpoint = Point3d()
 
         # self.c1point = Point3d()
@@ -122,7 +123,7 @@ class EdgeHoverer:
                 self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
 
                 a = self.get_a_param(c2)
-                t = a * self.edge_player.duration
+                t = a * self.edge_player.get_duration()
 
                 self.time_label.setText("t = {0:.2f}, a = {1:.2f}".format(t, a))
                 self.time_label.update()

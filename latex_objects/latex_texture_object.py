@@ -3,7 +3,7 @@ from simple_objects.primitives import IndicatorPrimitive
 from local_utils import texture_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from conventions import conventions
-from simple_objects.animator import Animator
+from engine.graphics_object import GraphicsObject
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
@@ -22,8 +22,8 @@ import numpy as np
 
 
 class LatexTextureObject(IndicatorPrimitive):
-    def __init__(self, tex_expression):
-        Animator.__init__(self)
+    def __init__(self, tex_expression, **kwargs):
+        GraphicsObject.__init__(self, **kwargs)
 
         self.tex_expression = tex_expression
 
@@ -43,7 +43,7 @@ class LatexTextureObject(IndicatorPrimitive):
     def makeObject(self):
         """ only creates geometry (doesn't transform it) """
         self.node = custom_geometry.createTexturedUnitQuadGeomNode()
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
 
         def applyImageAndTexture():
             """assign the Texture() to the NodePath() that contains the Geom()

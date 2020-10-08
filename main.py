@@ -1,3 +1,4 @@
+
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
@@ -9,7 +10,7 @@ from local_utils import math_utils
 import numpy as np
 
 from direct.showbase.ShowBase import ShowBase, DirectObject
-from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
@@ -30,6 +31,14 @@ from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay
 
 from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
 
+from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
+
+from sequence.sequence import Sequence
+
+from plot_utils.quad import Quad
+
+from plot_utils.symbols.waiting_symbol import WaitingSymbol
+
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -48,7 +57,18 @@ class MyApp(ShowBase):
         # ob.set_view_to_yz_plane()
         # ob.set_view_to_xy_plane()
 
-        from simple_objects.simple_objects import Pinned2dLabel
+        # from simple_objects.simple_objects import Pinned2dLabel
+
+        # q = Quad(thickness=3.0, nodePath_creation_parent_node=aspect2d)
+
+        # q.set_pos_vec3(Vec3(0., 0., 0.))
+        # q.set_height(0.2)
+        # q.set_width(0.2)
+
+        def my_done_function():
+            return False
+
+        ws = WaitingSymbol(my_done_function, Vec3(-.5, 0., 0.), size=0.1)
 
         # import matplotlib.pyplot as plt
         # import networkx as nx
@@ -76,15 +96,20 @@ class MyApp(ShowBase):
 
         # gh = GraphHoverer()
 
-        # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1, yshift=0.1)
+        # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1,
+        #                     yshift=0.1, nodePath_creation_parent_node=aspect2d)
+
+        # self.line = Line1dSolid(nodePath_creation_parent_node=aspect2d)
+        # self.line.setTailPoint(Vec3(1., 0., 1.))
+        # self.line.setTipPoint(Vec3(0.5, 0., 0.))
 
         # cp = CursorPlayer()
-
 
         # from plot_utils.edgeplayer import EdgePlayer
 
         # ep = EdgePlayer(ob)
 
+        # --- loading symbol: line turning inside a quad
 
         # a simple edgerecorder, starting at an arbitrary point and ending on demand
 
@@ -93,12 +118,11 @@ class MyApp(ShowBase):
         #                                        np.random.rand(),
         #                                        0.)))
 
-        from plot_utils.edgeplayerrecorderspawner import EdgePlayerRecorderSpawner
-        from plot_utils.edgerecorder import EdgeRecorder
+        # from plot_utils.edgeplayerrecorderspawner import EdgePlayerRecorderSpawner
+        # from plot_utils.edgerecorder import EdgeRecorder
 
-        eprs = EdgePlayerRecorderSpawner()  # in the event of ending a recording, this will store a handle to the EdgePlayer
-        er = EdgeRecorder(ob, eprs)  # this will get removed from scope once the recording is done
-
+        # eprs = EdgePlayerRecorderSpawner()  # in the event of ending a recording, this will store a handle to the EdgePlayer
+        # er = EdgeRecorder(ob, eprs)  # this will get removed from scope once the recording is done
 
         # from plot_utils.edgehoverer import EdgeHoverer
 

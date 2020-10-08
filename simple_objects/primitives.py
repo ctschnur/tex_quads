@@ -2,7 +2,7 @@ from conventions import conventions
 
 from simple_objects import custom_geometry
 from local_utils import texture_utils
-from simple_objects.animator import Animator
+from engine.graphics_object import GraphicsObject
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
@@ -24,9 +24,9 @@ import numpy as np
 from simple_objects.custom_geometry import createColoredParametricDashedCurveGeomNode
 
 
-class IndicatorPrimitive(Animator):
-    def __init__(self):
-        Animator.__init__(self)
+class IndicatorPrimitive(GraphicsObject):
+    def __init__(self, **kwargs):
+        GraphicsObject.__init__(self, **kwargs)
 
     # a makeobject is pointless to define here, since it will get overridden anyway
     # for a specific object
@@ -38,18 +38,18 @@ class IndicatorPrimitive(Animator):
 
 class Box2dCentered(IndicatorPrimitive):
     def __init__(self):
-        super(Box2dCentered, self).__init__()
+        IndicatorPrimitive.__init__(self, **kwargs)
 
     def makeObject(self):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
 
 
-class ParametricLinePrimitive(Animator):
+class ParametricLinePrimitive(GraphicsObject):
     def __init__(self, func, param_interv=np.array([0, 1]),
-                 thickness=1., color=Vec4(1., 1., 1., 1.), howmany_points=50):
-        Animator.__init__(self)
+                 thickness=1., color=Vec4(1., 1., 1., 1.), howmany_points=50, **kwargs):
+        GraphicsObject.__init__(self, **kwargs)
         self.thickness = thickness
         self.color = color
         self.howmany_points = howmany_points
@@ -62,19 +62,19 @@ class ParametricLinePrimitive(Animator):
         self.node = createColoredParametricCurveGeomNode(
             func=func,
             param_interv=param_interv, thickness=thickness, color=color, howmany_points=howmany_points)
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
         self.nodePath.setLightOff(1)
 
 
-class ParametricDashedLinePrimitive(Animator):
+class ParametricDashedLinePrimitive(GraphicsObject):
     def __init__(self,
                  func,
                  param_interv=np.array([0,
                                         1]),
                  thickness=1.,
                  color=Vec4(1., 1., 1., 1.),
-                 howmany_points=50):
-        Animator.__init__(self)
+                 howmany_points=50, **kwargs):
+        GraphicsObject.__init__(self, **kwargs)
         self.makeObject(
             func,
             param_interv,
@@ -91,11 +91,11 @@ class ParametricDashedLinePrimitive(Animator):
             color=color,
             howmany_points=howmany_points)
 
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
         self.nodePath.setLightOff(1)
 
 
-class ConePrimitive(Animator):
+class ConePrimitive(GraphicsObject):
     def __init__(self):
         super(ConePrimitive, self).__init__()
 
@@ -103,5 +103,5 @@ class ConePrimitive(Animator):
         self.node = custom_geometry.create_GeomNode_Cone(
             color_vec4=Vec4(1., 1., 1., 1.))
 
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
         self.nodePath.setTwoSided(True)

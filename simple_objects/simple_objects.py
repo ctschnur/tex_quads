@@ -2,8 +2,8 @@ from conventions import conventions
 from simple_objects import custom_geometry
 
 from local_utils import math_utils
-from .primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
-from simple_objects.animator import Animator
+from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
+from engine.graphics_object import GraphicsObject
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
 from direct.showbase.ShowBase import ShowBase
@@ -31,7 +31,7 @@ class Point(IndicatorPrimitive):
         else:
             self.color = Vec4(1., 1., 1., 1.)
 
-        super(Point, self).__init__()
+        IndicatorPrimitive.__init__(self, **kwargs)
 
 
 class Point3d(Point):
@@ -103,7 +103,7 @@ class PointPrimitive(Point):
         self.node = custom_geometry.create_GeomNode_Single_Point(
             color_vec4=Vec4(1., 1., 1., 1.))
 
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
         self.nodePath.setLightOff(1)
         # self.nodePath.setRenderModeThickness(5)
 
@@ -117,7 +117,7 @@ class Point2d(Point):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
 
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
 
         self.nodePath.setTwoSided(True)
         self.nodePath.setLightOff(1)
@@ -126,8 +126,8 @@ class Point2d(Point):
 # ---- lines
 
 class LinePrimitive(IndicatorPrimitive):
-    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.)):
-        IndicatorPrimitive.__init__(self)
+    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.), **kwargs):
+        IndicatorPrimitive.__init__(self, **kwargs)
 
         # these are graphical values
         # for more complex, e.g. recessed lines for vectors, you need another set
@@ -159,7 +159,8 @@ class Line1dPrimitive(LinePrimitive):
         self.node = custom_geometry.createColoredUnitLineGeomNode(
             thickness=thickness,
             color_vec4=self.color)
-        self.nodePath = render.attachNewNode(self.node)
+
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
         self.nodePath.setLightOff(1)
 
     def setTipPoint(self, point):
@@ -242,22 +243,27 @@ class Line1dPrimitive(LinePrimitive):
     def getTailPoint(self):
         return self.tail_point
 
+    def remove(self):
+        """ remove the NodePath """
+        self.nodePath.removeNode()
+
 
 class Line1dSolid(Line1dPrimitive):
+    """ """
     def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
         self._rotation_forrowvecs = Mat4()
 
-        Line1dPrimitive.__init__(self, thickness=thickness, color=color)  # this also sets the position
+        Line1dPrimitive.__init__(self, thickness=thickness, color=color, **kwargs)  # this also sets the position
 
-        self.doInitialSetupTransformation(**kwargs)
+        self.doInitialSetupTransformation()
 
-    def doInitialSetupTransformation(self, **kwargs):
+    def doInitialSetupTransformation(self):
         self.form_from_primitive_trafo = self.nodePath.getMat()
 
 
-class LineDashedPrimitive(Animator):
-    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.), howmany_periods=5.):
-        Animator.__init__(self)
+class LineDashedPrimitive(GraphicsObject):
+    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.), howmany_periods=5., **kwargs):
+        GraphicsObject.__init__(self, **kwargs)
         self.thickness = thickness
         self.color = color
         self.howmany_periods = howmany_periods
@@ -266,7 +272,7 @@ class LineDashedPrimitive(Animator):
     def makeObject(self, thickness, color, howmany_periods):
         self.node = custom_geometry.createColoredUnitDashedLineGeomNode(
             thickness=thickness, color_vec4=self.color, howmany_periods=5.)
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
 
         self.nodePath.setLightOff(1)
 
@@ -348,7 +354,7 @@ class ArrowHead(Box2dCentered):
         """
         self.node = custom_geometry.createColoredArrowGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
 
         self.nodePath.setTwoSided(True)
 
@@ -357,12 +363,10 @@ class ArrowHeadCone(Box2dCentered):
     scale = .1
 
     def __init__(self, **kwargs):
-        super(ArrowHeadCone, self).__init__()
-        self.doInitialSetupTransformation(**kwargs)
+        Box2dCentered.__init__(**kwargs)
+        self.doInitialSetupTransformation()
 
-    def doInitialSetupTransformation(self, **kwargs):
-        # self.nodePath.setScale(self.scale, self.scale, self.scale)
-
+    def doInitialSetupTransformation(self):
         scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
             self.scale,
             self.scale,
@@ -382,7 +386,7 @@ class ArrowHeadCone(Box2dCentered):
         # typically, if the geometry isn't changed in-place,
         # only the NodePath is called at later times
 
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
         self.nodePath.setTwoSided(True)
 
 
@@ -551,11 +555,13 @@ class Pinned2dLabel:
         self.textNodePath.removeNode()
 
 
-class Fixed2dLabel:
+class Fixed2dLabel(IndicatorPrimitive):
+    """ """
     def __init__(self, # refpoint3d=Point3(1., 1., 1.),
                  text="fixed?", xshift=0., yshift=0.,
-                 font="cmr12.egg"):
-        # self.refpoint3d = refpoint3d
+                 font="cmr12.egg", **kwargs):
+        IndicatorPrimitive.__init__(self, **kwargs)
+
         self.text = text
         self.nodeisattachedtoaspect2d = False
 
@@ -581,17 +587,9 @@ class Fixed2dLabel:
         self.update()
 
     def update(self):
-        # pos_rel_to_cam = base.cam.get_relative_point(base.render,
-        #                                              self.refpoint3d)
-        # p2d = Point2()
-
         if not self.nodeisattachedtoaspect2d:
             self.textNode = TextNode('myFixed2dLabel')
             self.textNode.setText(self.text)
-
-            # load a font
-            # cmr12 = loader.loadFont('cmr12.egg')
-
             self.textNode.setFont(self.font_p3d)
 
             # set a shadow
@@ -599,7 +597,7 @@ class Fixed2dLabel:
             self.textNode.setShadowColor(0, 0, 0, 1)
             self.textNode_p3d_generated = self.textNode.generate()
 
-            self.textNodePath = aspect2d.attachNewNode(self.textNode_p3d_generated)
+            self.textNodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.textNode_p3d_generated)
 
             self.nodeisattachedtoaspect2d = True
             self.textNodePath.setScale(0.07)
@@ -609,11 +607,7 @@ class Fixed2dLabel:
         # the y coordinate gets ignored for the TextNode
         # parented by aspect2d
         from conventions.conventions import win_aspect_ratio
-        self.textNodePath.setPos(# (-1. + self.xshift) * win_aspect_ratio,
-                                 # 0.,
-                                 # 1. + self.yshift
-            (-1. + self.xshift) * win_aspect_ratio, 0., -1. + self.yshift
-        )
+        self.textNodePath.setPos((-1. + self.xshift) * win_aspect_ratio, 0., -1. + self.yshift)
 
 
 class OrientedDisk(IndicatorPrimitive):
@@ -627,7 +621,7 @@ class OrientedDisk(IndicatorPrimitive):
         self.node = custom_geometry.createColoredUnitDisk(
             color_vec4=Vec4(1., 1., 1., 1.))
 
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
         self.nodePath.setLightOff(1)
         self.nodePath.setTwoSided(True)
 
@@ -664,7 +658,7 @@ class OrientedCircle(IndicatorPrimitive):
             num_of_verts=num_of_verts,
             radius=radius)
 
-        self.nodePath = render.attachNewNode(self.node)
+        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
         self.nodePath.setLightOff(1)
         self.nodePath.setRenderModeThickness(thickness)
 

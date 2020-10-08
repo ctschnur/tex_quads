@@ -103,7 +103,7 @@ class EdgePlayerRecorderSpawner:
 
             edge_player.set_duration(s_a_finished * edge_recorder.s_dur)
 
-            print("duration of the recorded: ", edge_player.duration)
+            print("duration of the recorded: ", edge_player.get_duration())
 
             edge_player.set_v1(edge_recorder.get_v1())  # this will update v2 appropriately
 

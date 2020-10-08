@@ -74,11 +74,22 @@ Inside the while loop, fetch the frame data and just append it to a global ~reco
 This could be better suited for handling the recording of large audio files and for converting between wave and mp3 before saving. 
 Here, one could would use a callback function (created by pyaudio, in yet another thread), which would ~.put(in_data)~ to a global queue which would then be accessed by another thread to write back larger chunks to an e.g. ~.wav~ file. 
 ****** TODO Make the EdgePlayer load and play/pause a file given a filepath
-******* use pyaudio to do it
+Do not make an abstraction of an EdgePlayer into a Slider class yet!
+Get to what you want to do first, that is a working recording and playing functionality. 
+******* DONE use pyaudio to play audio in a separate thread
+******* DONE Make a loading symbol for threads that are processing in the background
+******* Implement the naive approach of calculating the edge length from the duration
+(worry about node dragging of nodes in re-merging paths later)
+and show the loading symbol while the wave file is being read and before the events are being registered
+******* Implement an approach where a manual parameter v2_manual can be set (set_v2_manual (overrides v_dir)), which when defined has precendence in get_v2() over the v2 calculated from the duration and direction vector
+Here, quite an amount of refactoring would be needed (for example also for the skipping back/forward functions)
 
 ***** TODO Extend the EdgePlayer To a GraphPlayer made of many edges and one EdgePlayer at a time
 ***** TODO The idea of 'Expanding Subspaces' could be great man!
+***** TODO The idea of drawing and importing vector images to attach to edges could be great!
 
+*** Notes
+- A ui element (like the ~EdgeRecorder~) should be able to be in a blocked state individually (while some supporting thread is still working in the background and wants to make a change to the ui element afterwards (say the recording thread)), during that waiting time, state change calls to that ui element (coming from e.g. key press events) should be ignored and a warning should be issued. The 0th order functionality is to block all inputs (all key presses) until the supporting threads have finished. How can this be achieved? By wrapping the directobject class and arming/unarming the directobjects and collecting all armed directobjects into an array which can be gotten e.g. from the global context. 
 
 *** WAITING implement on-hover highlighting of a particular bezier curve 
 **** WAITING curve picking

@@ -41,6 +41,8 @@ from sequence.sequence import Sequence
 
 from recording.recorder import Recorder
 
+from plot_utils.edgegraphics import EdgeGraphics
+
 # TODO: write a SequenceRepeater class to automatically continue a finite sequence (provided by p3d) when it has ended
 
 
@@ -121,7 +123,7 @@ class EdgeRecorderState:
               "recording_finished: ", self.recording_finished)
 
 
-class EdgeRecorder:
+class EdgeRecorder(EdgeGraphics):
     """ Adds the graphics and the p3d sequence operations to the logic of EdgeRecorderState
     """
 
@@ -331,31 +333,31 @@ class EdgeRecorder:
         # add a task into the render loop for joining the rendering and audio threads,
         # as soon as the audio thread is done
 
-        print("adding the task rendering_while_waiting_for_audio_thread_task")
+        print("adding the task rendering_while_waiting_for_audio_recording_thread_task")
 
-        taskMgr.add(self.rendering_while_waiting_for_audio_thread_task,
-                    'rendering_while_waiting_for_audio_thread_task',
+        taskMgr.add(self.rendering_while_waiting_for_audio_recording_thread_task,
+                    'rendering_while_waiting_for_audio_recording_thread_task',
                     extraArgs=[s_a_finished],
                     appendTask=True)
 
 
-    def rendering_while_waiting_for_audio_thread_task(self, s_a_finished, task):
+    def rendering_while_waiting_for_audio_recording_thread_task(self, s_a_finished, task):
         # make a p3d task to check for the audio recorder
         # only after the file has been registered, an EdgePlayer should be created
 
-        print("rendering_while_waiting_for_audio_thread_task")
+        print("rendering_while_waiting_for_audio_recording_thread_task")
         print("self.recorder.is_recorder_thread_done(): ",
               self.recorder.is_recorder_thread_done())
 
         if self.recorder.is_recorder_thread_done() is None:
             print("ERR: self.recorder.is_recorder_thread_done() is None",
-                  "this task (rendering_while_waiting_for_audio_thread_task)",
+                  "this task (rendering_while_waiting_for_audio_recording_thread_task)",
                   "should not even be registered in that situation!")
             exit(1)
             # return task.cont
 
         if self.recorder.is_recorder_thread_done() == True:
-            print("wanting to join threads: audio thread is done",
+            print("wanting to join threads: recording audio thread is done",
                   "your audio file should be at",
                   self.recorder.output_filename)
 
@@ -420,68 +422,6 @@ class EdgeRecorder:
         self.cursor_sequence.pause()
         self.set_primary_color(self.paused_primary_color)
 
-    def set_primary_color(self, primary_color, cursor_color_special=None,
-                          line_color_special=None,
-                          change_logical_primary_color=True):
-        """ A part of the cursor and the line get by default
-            the primary color. Optionally, they can be changed individually.
-
-        Args:
-            change_logical_primary_color:
-               if False, the logical primary_color is not modified, if True, it is.
-               This is good for e.g. on-hover short and temporary modifications of the
-               primary color. """
-
-        if change_logical_primary_color is True:
-            self.primary_color = primary_color
-
-        cursor_color = None
-        line_color = None
-
-        if cursor_color_special:
-            cursor_color = cursor_color_special
-        else:
-            cursor_color = primary_color
-
-        if line_color_special:
-            line_color = line_color_special
-        else:
-            line_color = primary_color
-
-        self.p_c.setColor(cursor_color)
-        self.line.setColor(line_color)
-
-    def get_primary_color(self):
-        return self.primary_color
-
-    def get_state_snapshot(self):
-        """ get a snapshot of a state (FIXME?: incomplete information, i.e. not a deep copy of
-            the parent class `EdgeRecorderState` of the `EdgeRecorder`) """
-        state_snapshot = {
-            "state.is_stopped_at_beginning": self.state.is_stopped_at_beginning(),
-            "state.is_recording": self.state.is_recording(),
-            "state.is_paused": self.state.is_paused(),
-            "a": self.state.s_a
-        }
-        return state_snapshot
-
-    def set_state_from_state_snapshot(self, state_snapshot):
-        """ state taken from get_state_snapshot """
-
-        a = state_snapshot["a"]
-
-        if state_snapshot["is_stopped_at_beginning"]:
-            self.set_stopped_at_beginning()
-        elif state_snapshot["is_stopped_at_end"]:
-            self.set_recording_finished()
-        elif state_snapshot["is_recording"]:
-            self.set_recording(a_to_start_from=a)
-        elif state_snapshot["is_paused"]:
-            self.set_paused(a_to_set_paused_at=a)
-        else:
-            print("snapshot matches no valid state, could not be restored!")
-            exit(1)
-
     def remove(self):
         """ removes all
         - sequences
@@ -508,23 +448,7 @@ class EdgeRecorder:
         self.recorder_label.remove()
         self.camera_gear.remove_camera_move_hook(self.recorder_label.update)
 
-        # taskMgr.remove(self.rendering_while_waiting_for_audio_thread_task)
-
-    def set_v1(self, v1):
-        """ set the starting point of the edge
-        Args:
-        - v1: p3d Vec3 """
-        self.v1 = v1
-
-        self.line.setTipPoint(self.v1)
-        self.line.setTailPoint(self.get_v2())
-
-        # call update_while_moving_function manually
-        self.update_while_moving_function(
-            self.state.s_a, *tuple(self.extraArgs))
-
-    def get_v1(self):
-        return self.v1
+        # taskMgr.remove(self.rendering_while_waiting_for_audio_recording_thread_task)
 
     def get_v2(self, s_a=None):
         if s_a is None:

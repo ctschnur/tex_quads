@@ -13,12 +13,10 @@ import sys
 import os
 
 class Recorder:
-    """ There should be one recording going on at a time in the program (so far).
-    Therefore, this is a class that encapsulates global variables and
-    static methods. """
+    """ Handling audio recording (thread in parallel to rendering). """
 
     CHUNK = 1024  # number of bytes in a buffer (a buffer is 'one frame')
-    FORMAT = pyaudio.paInt16  # 16 bit per sample (audio bit depth)
+    FORMAT = pyaudio.paInt16  # 16 bit per sample (audio bit depth?)
     CHANNELS = 2
     RATE = 44100  # sample rate (i.e. how many times per second is a sample produced)
     # a sample is a number (all samples make up the discrete approximate

@@ -5,6 +5,7 @@ import os
 import subprocess
 import hashlib
 import glob
+import os
 
 LATEX_SUBFOLDER = "latex_compiled"
 
@@ -107,11 +108,11 @@ class LatexImage:
                 str(expression_str).encode("utf-8")).hexdigest()
 
         # latex expression
-        # You have to escape dollar signs if passed as arguments as of this version
+        # You have to escape dollar signs if passed as arguments
         self.expression_str = expression_str
 
-        # spespecify all file paths
-        import os
+        # specify all file paths
+
         self.directory = os.getcwd() + "/" + LATEX_SUBFOLDER
         if not os.path.exists(self.directory):
             os.makedirs(self.directory)

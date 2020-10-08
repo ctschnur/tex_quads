@@ -23,15 +23,16 @@ from direct.showbase.ShowBase import ShowBase, DirectObject
 
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight
 
+from simple_objects.primitives import IndicatorPrimitive
 
 def sayhi():
     print("heylo ------- ######")
 
 
-class BezierCurve:
-    # plot a bezier curve in the yz plane
-
-    def __init__(self, P_arr):
+class BezierCurve(IndicatorPrimitive):
+    """ plot a bezier curve """
+    def __init__(self, P_arr, **kwargs):
+        IndicatorPrimitive.__init__(**kwargs)
 
         self.bez_points=P_arr
 
@@ -72,7 +73,7 @@ class DraggableBezierCurve(BezierCurve):
                                  [1., 1., 1.]])
     ):
 
-        BezierCurve.__init__(self, P_arr)
+        BezierCurve.__init__(self, P_arr, **kwargs)
 
         self.camera_gear = camera_gear
         # self.camera_gear.set_view_to_yz_plane()
@@ -357,7 +358,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
         if self.tube_mesh_nodePath:
             self.tube_mesh_nodePath.removeNode()
 
-        self.tube_mesh_nodePath = render.attachNewNode(gn)
+        self.tube_mesh_nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(gn)
         self.tube_mesh_nodePath.setRenderModeWireframe()
         self.tube_mesh_nodePath.setTwoSided(True)
         self.tube_mesh_nodePath.setLightOff(1)
