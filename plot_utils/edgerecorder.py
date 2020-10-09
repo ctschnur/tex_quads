@@ -43,6 +43,10 @@ from recording.recorder import Recorder
 
 from plot_utils.edgegraphics import EdgeGraphics
 
+import plot_utils.ui_thread_logger
+
+# plot_utils.ui_thread_logger.uiThreadLogger
+
 # TODO: write a SequenceRepeater class to automatically continue a finite sequence (provided by p3d) when it has ended
 
 
@@ -340,7 +344,6 @@ class EdgeRecorder(EdgeGraphics):
                     extraArgs=[s_a_finished],
                     appendTask=True)
 
-
     def rendering_while_waiting_for_audio_recording_thread_task(self, s_a_finished, task):
         # make a p3d task to check for the audio recorder
         # only after the file has been registered, an EdgePlayer should be created
@@ -401,6 +404,14 @@ class EdgeRecorder(EdgeGraphics):
                 self.state.is_recording_finished)
             # in set_recording_finished, register a task to check if
             # the self.recorder thread is done or still alive
+
+            print("------------ > uiThreadLogger: ",
+                  plot_utils.ui_thread_logger.uiThreadLogger)
+            # plot_utils.ui_thread_logger.uiThreadLogger.append_new_parallel_task("my desc 1", lambda: my_is_alive_function(1.))
+
+            plot_utils.ui_thread_logger.uiThreadLogger.append_new_parallel_task("recording ... ",  # lambda: my_is_alive_function(3.)
+                                                                                lambda: not self.state.is_recording_finished()
+                                                                                )
 
         elif tmp_is_paused:
             # assuming that the handle to the recorder was not destroyed on set_paused()

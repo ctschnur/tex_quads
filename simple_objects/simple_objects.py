@@ -556,10 +556,21 @@ class Pinned2dLabel:
 
 
 class Fixed2dLabel(IndicatorPrimitive):
-    """ """
-    def __init__(self, # refpoint3d=Point3(1., 1., 1.),
-                 text="fixed?", xshift=0., yshift=0.,
-                 font="cmr12.egg", **kwargs):
+    """ a text label attached to aspect2d,  """
+    def __init__(self,
+                 text="fixed?", x=0., y=0., z=0.,
+                 font="cmr12.egg"
+                 # , **kwargs
+    ):
+        """
+        Args:
+            x: x position in GUI-xy-plane
+            y: y position in GUI-xy-plane
+            z: 'z' (actually y) position when attaching to aspect2d """
+
+        kwargs = {}
+        kwargs['nodePath_creation_parent_node'] = aspect2d
+
         IndicatorPrimitive.__init__(self, **kwargs)
 
         self.text = text
@@ -568,14 +579,22 @@ class Fixed2dLabel(IndicatorPrimitive):
         self.font = font
         self.font_p3d = loader.loadFont(font)
 
-        self.xshift = xshift
-        self.yshift = yshift
+        self.x = x
+        self.y = y
+        self.z = z
 
         self.update()
 
-    def setPos(self, x, y, z):
-        """ essentially sets the 3d position of the pinned label """
-        self.refpoint3d = Point3(x, y, z)
+    def setPos(self, x, y, z=0.):
+        """ essentially sets the 3d position of the pinned label
+        Args:
+            x: x position in GUI-xy-plane
+            y: 'y' position in GUI-xy-plane
+            z: 'z' (actually y) position when attaching to aspect2d """
+
+        self.x = x
+        self.y = y
+        self.z = z
         self.update()
 
     def setText(self, text):
@@ -603,11 +622,14 @@ class Fixed2dLabel(IndicatorPrimitive):
             self.textNodePath.setScale(0.07)
             self.textNodePath.show()
 
-        # place text in x, z in [-1, 1] boundaries and
-        # the y coordinate gets ignored for the TextNode
-        # parented by aspect2d
-        from conventions.conventions import win_aspect_ratio
-        self.textNodePath.setPos((-1. + self.xshift) * win_aspect_ratio, 0., -1. + self.yshift)
+        # from conventions.conventions import win_aspect_ratio
+        self.textNodePath.setPos(self.x,
+                                 self.z,
+                                 self.y)
+
+    def remove(self):
+        """ removes all p3d nodes """
+        self.textNodePath.removeNode()
 
 
 class OrientedDisk(IndicatorPrimitive):

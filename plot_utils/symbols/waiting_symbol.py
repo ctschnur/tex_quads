@@ -26,10 +26,11 @@ class WaitingSymbol:
         self.frequency = frequency
         self.duration = 1.
 
+        self.a = None
+
         # -- supporting graphics
         self.quad = Quad(thickness=3.0, nodePath_creation_parent_node=aspect2d)
         self.quad.set_pos_vec3(self.position)
-
         self.quad.set_height(self.size)
         self.quad.set_width(self.size)
 
@@ -53,8 +54,14 @@ class WaitingSymbol:
     def _get_center(self):
         return Vec3(self.position[0] + 0.5 * self.size, 0., self.position[2] - 0.5 * self.size)
 
+    def set_position(self, vec3_pos):
+        self.position = vec3_pos
+        self.update(self.a)
+
     def update(self, a):
         """ a is in between 0 and 1 """
+
+        self.a = a
 
         if self.done_function() == True:
             self.remove()
@@ -75,8 +82,10 @@ class WaitingSymbol:
         self.line.setTailPoint(p1)
         self.line.setTipPoint(p2)
 
+        self.quad.set_pos_vec3(self.position)
+
     def remove(self):
         """ release all resources """
         self.anim_seq.remove()
-        # self.line.remove()
+        self.line.remove()
         self.quad.remove()

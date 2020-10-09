@@ -39,11 +39,22 @@ from plot_utils.quad import Quad
 
 from plot_utils.symbols.waiting_symbol import WaitingSymbol
 
+from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadLoggerElement
+
+
+from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
+
+import plot_utils.ui_thread_logger
+
+
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         base.setFrameRateMeter(True)
         render.setAntialias(AntialiasAttrib.MAuto)
+
+        # uiThreadLogger
+        plot_utils.ui_thread_logger.uiThreadLogger = UIThreadLogger()
 
         ob = Orbiter(base.cam, radius=3.)
         cs = CoordinateSystem(ob)
@@ -65,10 +76,39 @@ class MyApp(ShowBase):
         # q.set_height(0.2)
         # q.set_width(0.2)
 
-        def my_done_function():
-            return False
+        # import time
+        # initial_time = time.time()
 
-        ws = WaitingSymbol(my_done_function, Vec3(-.5, 0., 0.), size=0.1)
+        # def my_done_function():
+        #     return initial_time + 5. < time.time()
+
+        # ws = WaitingSymbol(my_done_function, Vec3(-.5, 0., 0.), size=0.1)
+
+        import time
+        initial_time = time.time()
+
+        def my_is_alive_function(time_offset):
+            cond = initial_time + time_offset > time.time()
+            # print(initial_time, time.time(), cond)
+            return cond
+
+        plot_utils.ui_thread_logger.uiThreadLogger.append_new_parallel_task(
+            "my desc 1", lambda: my_is_alive_function(1.))
+        plot_utils.ui_thread_logger.uiThreadLogger.append_new_parallel_task(
+            "my desc 2", lambda: my_is_alive_function(2.))
+        plot_utils.ui_thread_logger.uiThreadLogger.append_new_parallel_task(
+            "my desc 3", lambda: my_is_alive_function(3.))
+
+        # from plot_utils.ui_thread_logger import ProcessingBox
+        # pb = ProcessingBox(my_done_function)
+        # a = Sequence(duration=50., extraArgs=[pb], update_while_moving_function=lambda a, pb: pb.set_xy_pos(a, 0.)).start()
+
+        # uitle = UIThreadLoggerElement("my desk", lambda: not my_done_function())
+
+        # fl = Fixed2dLabel(text="MYTEXT", font="fonts/arial.egg",
+        #                   x=0.,
+        #                   y=0.5,
+        #                   nodePath_creation_parent_node=aspect2d)
 
         # import matplotlib.pyplot as plt
         # import networkx as nx
@@ -118,11 +158,24 @@ class MyApp(ShowBase):
         #                                        np.random.rand(),
         #                                        0.)))
 
-        # from plot_utils.edgeplayerrecorderspawner import EdgePlayerRecorderSpawner
-        # from plot_utils.edgerecorder import EdgeRecorder
+        from plot_utils.edgeplayerrecorderspawner import EdgePlayerRecorderSpawner
+        from plot_utils.edgerecorder import EdgeRecorder
 
-        # eprs = EdgePlayerRecorderSpawner()  # in the event of ending a recording, this will store a handle to the EdgePlayer
-        # er = EdgeRecorder(ob, eprs)  # this will get removed from scope once the recording is done
+        # in the event of ending a recording, this will store a handle to the EdgePlayer
+        eprs = EdgePlayerRecorderSpawner()
+        # this will get removed from scope once the recording is done
+        er = EdgeRecorder(ob, eprs)
+
+        #         import time
+        # initial_time = time.time()
+
+        # def my_is_alive_function(time_offset):
+        #     cond = initial_time + time_offset > time.time()
+        #     # print(initial_time, time.time(), cond)
+        #     return cond
+
+        # uiThreadLogger.append_new_parallel_task("my desc 1", lambda: my_is_alive_function(1.))
+        # uiThreadLogger.append_new_parallel_task("my desc 2", lambda: my_is_alive_function(2.))
 
         # from plot_utils.edgehoverer import EdgeHoverer
 

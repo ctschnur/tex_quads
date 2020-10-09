@@ -78,6 +78,11 @@ Do not make an abstraction of an EdgePlayer into a Slider class yet!
 Get to what you want to do first, that is a working recording and playing functionality. 
 ******* DONE use pyaudio to play audio in a separate thread
 ******* DONE Make a loading symbol for threads that are processing in the background
+******* DONE Make a queue of currently processing threads on the bottom left side of the screen
+Make a queue with the naming of the thread (what task is being done) and id, with a loading symbol and an animation of piling up and sliding down. 
+(so that the user can see what's happening in the background, i.e. the loading or saving of an audio file.)
+******** DONE ProcessingBox
+******** DONE find out how to speak to a global uithreadlogger
 ******* Implement the naive approach of calculating the edge length from the duration
 (worry about node dragging of nodes in re-merging paths later)
 and show the loading symbol while the wave file is being read and before the events are being registered

@@ -34,7 +34,6 @@ class Quad:
                                 )
         self.right = Line1dSolid(**kwargs  # nodePath_creation_parent_node=aspect2d
                                  )
-
         self.set_width(width)
         self.set_height(height)
 
