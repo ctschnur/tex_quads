@@ -1,143 +1,86 @@
 * tex_quads
-The first idea is to create another animation engine, so that I can put my own spin on mathematical visualization (maybe similar to [[https://github.com/3b1b/manim][manim]]).
+Animation engine to put my own spin on mathematical visualization and to experiment with novel ui ideas. 
+
 Afer early attempts at building [[https://github.com/ctschnur/first-graphics-engine][my own rendering engine]] in ~C++~, I am for now basing this on the much more complete [[https://github.com/panda3d/panda3d][panda3d]] game engine (initially developed by Disney, written in ~C++~, having DirectX and OpenGL backends and python bindings).
 
-So far, the functionality is still pretty basic. This is a sample (3d interactive Bezier Curves and extrusion of a parametric curve): 
+* Samples
+Have a look in the [[file:samples/][~samples~]] folder for some screenshots/gifs of renderings. 
 
-[[file:screenshots/Peek4.gif]]
+* Long-Term goals
+- an interactive branched podcast user interface and an associated file format
+- enable computer-assisted manipulation of mathematical expressions and parallel visualization
+- 3d interactive scratchpad (copy-pasting of images, text, on-screen freehand drawing, collapsable notes, all in 3d)
 
-This program can also display ~LaTeX~ equations on-screen. One long term goal is to enable computer-assisted manipulation of mathematical expressions and parallel visualization. 
+* Development Notes
+** Branched Podcast Interface
+- [X] Plot parametric curves
+- [X] Make blender-like side, top, front view (map to number keys)
+- [ ] Make a panning and centering view around selected objects functionality
+- [ ] Plot a dashed parametric curve
+- [X] Draw 2d bezier curve with handles
+*** Force-directed graph plotting
+- [X] draw a graph by using networkx for the layout generation
+- [X] make individual nodes of the graph draggable
+- [ ] implement your own force-direced graph drawing algorithm 
+  to optimally distribute the nodes and subnodes
+  - [ ] coulomb interaction of n particles in 3d
+    - [X] coulomb interaction of 2 particles in 2d
+  - [ ] add infinite potential wells and/or strong damping to confine the nodes (particles)
+*** on-hover cursor for a graph of finite-length edges
+- [X] on-hover highlighting of the closest infinite straight line
+- [X] pin text (parametric value between 0 and 1) to the hovering cursor
+- [X] on-hover highlighting of the closest finite straight line
+- [X] substitute Line1dSolid edges by vector edges
+- [X] write state machine and ui 
+  - [X] for a single edge player
+  - [X] for a single edge recorder
+- [X] accentuate the cursor
+- [X] select an edge and a [0,1] parameter by clicking the mouse
+- [X] implement dragging the cursor an edge
+
+*** Sync UI with audio recording/playback in parallel threads
+- [X] record an audio file using python
+  - [X] using pyaudio, which produces a ~.wav~ file
+- [X] implement audio recording parallel to ui
+- [ ] implement audio playback parallel to ui
+  - [ ] use the blocking pyaudio boilerplate code, and in a p3d task query if the recording thread has finished 
+  - [ ] optimization: use a thread-safe queue in an additional thread to continuously write back fetched frames. This could be better suited for handling the recording of large audio files and for converting between wave and mp3 before saving. Here, one could would use a callback function (created by pyaudio, in yet another thread), which would ~.put(in_data)~ to a global queue which would then be accessed by another thread to write back larger chunks to an e.g. ~.wav~ file. 
+  - [X] cutting away spacebar sounds at beginning/end of recording section
+  - [ ] debug ui failing after returning from thread
+- [ ] load and play an external file into an EdgePlayer
+  - [X] use pyaudio to play audio in a separate thread
+  - [X] Make a loading symbol for threads that are processing in the background
+    Make a queue with the naming of the thread (what task is being done) and id, with a loading symbol and an animation of piling up and sliding down. (so that the user can see what's happening in the background, i.e. the loading or saving of an audio file.)
+    - [X] implement ProcessingBox
+    - [X] implement UIThreadLogger (global object) to manage threads display them in the ui
+  - [ ] Implement the naive approach of calculating the edge length from the duration
+    worry about node dragging of nodes in re-merging paths later
+  - [ ] show the loading symbol while the wave file is being read and before the events are being registered
+  - [ ] implement an approach where a manual parameter ~v2_manual~ can be set (~set_v2_manual~ -> override ~v_dir~), which when defined has precendence in ~get_v2()~ over the ~v2~ calculated from the duration and direction vector. -> vary the weight of the line if it's artificially compressed/elongated
+*** Extend the EdgePlayer to a GraphPlayer made of many edges and one EdgePlayer at a time
+*** implement expanding subspaces
+select a node press expand -> show the lastest connection but hide everything else
+*** implement freehand drawing onto panes anchored to nodes and edges
+
+** Dropped/Deferred dev efforts
+- [ ] triangulation of latex characters. 
+  Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.
+- [ ] Draw a black circle and black dot as part of cone tips
+- [ ] parametric curve picking 
+  - build a tube mesh along an arbirary path: 
+    - advance in +equidistant path-length+ segments along the path of a smooth continuous curve and at each point
+      - plot a point, and a circle
+      - find the tangent vectors, generate the circles perpendicular to them, with naive choice of the start-vertex of each circle
+      - bulid the triangle mesh in a for loop (always accessing the last circle's coordinates last_circle_coords)
+    Fixable Problems: 
+    - the tube folds over when the curvature becomes much larger than the distance between two segments
+
 
 * Installation
 - Clone this repository
-- Create a =virtualenv= (e.g. named =venv=) with =python3=, (e.g. in your current folder =.=, the project's root folder): 
-#+BEGIN_SRC sh
-python3 -m venv .
-#+END_SRC
-
-- Activate the virtual environment, e.g.
-#+BEGIN_SRC sh
-source ./bin/activate
-#+END_SRC
-
+- Create a python virtual environment
+- Activate the virtual environment
 - install the dependencies listed in =requirements.txt=
 #+BEGIN_SRC sh
 pip install -r ./requirements.txt
 #+END_SRC
-
-* Notes
-** Branched Podcast Idea
-*** DONE Plot a parametric curve
-*** DONE Make blender-like side, top, front view (map to number keys)
-*** DONE Plot a dashed parametric curve
-*** DONE Draw 2d bezier curve with handles
-*** DONE implement force-directed graph plotting
-**** DONE draw a graph by using networkx for the layout generation
-**** DONE make individual nodes of the graph draggable
-**** on-hover highlighting of a line and plotting a cursor
-***** DONE on-hover highlighting of the closest infinite straight line
-***** DONE pin text (parametric value between 0 and 1) to the hovering cursor
-***** DONE on-hover highlighting of the closest finite straight line
-***** DONE substitute Line1dSolid edges by vector edges
-****** DONE Write a dynamic setTailPoint and setTipPoint for Vector
-****** DONE remove the artifact (1., 0., 0.)
-***** DONE Toggle play/pause
-****** DONE render play/pause label and toggle using spacebar
-****** DONE figure out how a sequence works
-****** DONE render a play/pause cursor at a 'current position'
-****** DONE write a class that gets and sets the state appropriately, together with a state machine
-***** DONE write state machine for a single edge
-****** DONE accentuate the cursor by drawing a black and white circle around it
-****** DONE implement cursor clicking
-****** DONE implement cursor dragging along a line
-****** DONE Write EdgePlayer, inheriting EdgePlayerState
-****** DONE Write a state machine for a single edge for playback
-****** DONE Fix the Line drawing upon reversal of the order setTipPoint <-> setTailPoint
-***** TODO Make a recording function for an EdgePlayer
-****** TODO make a line that grows from just a point and on stop-recording makes a loose edge
-******* TODO Implement EdgeRecorder and EdgeRecorderState
-******** DONE debug the state
-1. give EdgePlayer a new update_function (similar to the EdgeRecorder one) that depends on a speed, not just on two points and a parameter between [0, 1]
-   - make the standard rate of playing a constant in the EdgePlayer class
-2. make a function that changes the v1, a, duration and so on of the EdgePlayer to the values of the EdgeRecorder
-****** DONE Record an audio file using python
-This is easily done using pyaudio, which produces a ~.wav~ file
-****** DONE make two simultaneous threads: one for rendering, one for audio recording
-The rendering thread (from which the recording thread is spawned) renders an animation while the recording thread records. The recording thread needs to be sent a signal to stop the recording, (p3d Directobject?). 
-******* possible designs
-Both designs use both the p3d rendering thread and a separate audio recording thread from which to run the pyaudio boilerplate code
-******** DONE 1. Use the blocking pyaudio boilerplate code, and in a while loop query a global state variable if a ~stop_recording~ event occured
-Inside the while loop, fetch the frame data and just append it to a global ~recorded_frames~ array. After the ~stop_recording~ event this array gets saved (the whole recording) from within the audio recording thread to a ~.wav~ file and the thread ends. 
-********* DONE Cutting away spacebar sounds at beginning/end of recording section
-********* TODO figure out how to debug (see) a syntax error (e.g. NameError) in a different thread if another thread is constantly printing
-******** DEFERRED 2. Use a thread-safe queue in an additional thread to continuously write back fetched frames
-This could be better suited for handling the recording of large audio files and for converting between wave and mp3 before saving. 
-Here, one could would use a callback function (created by pyaudio, in yet another thread), which would ~.put(in_data)~ to a global queue which would then be accessed by another thread to write back larger chunks to an e.g. ~.wav~ file. 
-****** TODO Make the EdgePlayer load and play/pause a file given a filepath
-Do not make an abstraction of an EdgePlayer into a Slider class yet!
-Get to what you want to do first, that is a working recording and playing functionality. 
-******* DONE use pyaudio to play audio in a separate thread
-******* DONE Make a loading symbol for threads that are processing in the background
-******* DONE Make a queue of currently processing threads on the bottom left side of the screen
-Make a queue with the naming of the thread (what task is being done) and id, with a loading symbol and an animation of piling up and sliding down. 
-(so that the user can see what's happening in the background, i.e. the loading or saving of an audio file.)
-******** DONE ProcessingBox
-******** DONE find out how to speak to a global uithreadlogger
-******* Implement the naive approach of calculating the edge length from the duration
-(worry about node dragging of nodes in re-merging paths later)
-and show the loading symbol while the wave file is being read and before the events are being registered
-******* Implement an approach where a manual parameter v2_manual can be set (set_v2_manual (overrides v_dir)), which when defined has precendence in get_v2() over the v2 calculated from the duration and direction vector
-Here, quite an amount of refactoring would be needed (for example also for the skipping back/forward functions)
-
-***** TODO Extend the EdgePlayer To a GraphPlayer made of many edges and one EdgePlayer at a time
-***** TODO The idea of 'Expanding Subspaces' could be great man!
-***** TODO The idea of drawing and importing vector images to attach to edges could be great!
-
-*** Notes
-- A ui element (like the ~EdgeRecorder~) should be able to be in a blocked state individually (while some supporting thread is still working in the background and wants to make a change to the ui element afterwards (say the recording thread)), during that waiting time, state change calls to that ui element (coming from e.g. key press events) should be ignored and a warning should be issued. The 0th order functionality is to block all inputs (all key presses) until the supporting threads have finished. How can this be achieved? By wrapping the directobject class and arming/unarming the directobjects and collecting all armed directobjects into an array which can be gotten e.g. from the global context. 
-
-*** WAITING implement on-hover highlighting of a particular bezier curve 
-**** WAITING curve picking
-Strategy to achieve curve picking: 
-- build a tube mesh along an arbirary path: 
-  - advance in +equidistant path-length+ segments along the path of a smooth continuous curve and at each point
-    - plot a point (1.)
-    - plot a circle (2.)
-    - +find the basis of unit vectors at each point of the path (t_vec points along the tangent, n_vec points along the direction of max. radius of curvature (see e.g. [[https://de.wikipedia.org/wiki/Frenetsche_Formeln#Frenetsche_Formeln_in_Abh%C3%A4ngigkeit_von_anderen_Parametern][Frenet-Serret formulas]], with $s=t$) and b_vec = t_vec cross n_vec) and plot it+
-    - find the tangent vectors, generate the circles perpendicular to them, with naive choice of the start-vertex of each circle
-    - bulid the triangle mesh in a for loop (always accessing the last circle's coordinates last_circle_coords)
-
-Fixable Problems: 
-- the tube folds over when the curvature becomes much larger than the distance between two segments. +To make the internal rotation of the circles (that are connected to each other) more consistent, one could always rotate the first point of the circle to lie along the curvature vector or opposite from it directly after the curvature switches.+ 
-
-alter the position of the cursor along the path by dragging horizontally (horizontal dragging distance maps to path length advancement at first, with quadratic increase in dragging speed when the dragging accelerates)
-
-*** implement coulomb repulsion of particles with strong damping
-*** map an mp3 file along a bezier curve
-** Scientific scratchpad idea
-*** Implement Copy-Pasting of images
-*** Implement Text Areas
-*** Implement On-Screen Freehand Writing
-*** Implement Collapsable Notes
-** deferred tasks
-*** DEFERRED Plot the Bloch sphere
-*** DEFERRED triangulation of latex characters
-Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.
-*** DEFERRED Make rectangle class
-**** DONE draw a rectangle made of lines
-**** DEFERRED Make it automatically encompass things
-**** Implement a 'scene2d' type class
-- to plot a coordinate system in (and fit inside the viewport)
-- properties: 
-  - default height and width
-  - default anchor point
-  - background color
-  - white frame
-  - function to fit stuff in it
-
-** possilbe optimizations
-*** MAYBE Draw a black circle and black dot as part of the Cone tip
-*** MAYBE Figure out how to make an object keep facing the camera, keeping it's local origin fixed
-*** MAYBE create the shaded triangulated Cone procedurally instead of loading it from a model file
-(see e.g. https://github.com/intel-isl/Open3D/blob/ebaa197c135c7055710503d47d389526eb7ed580/src/Open3D/Geometry/TriangleMeshFactory.cpp)
-*** MAYBE calculate surface normals manually for the cone (for flat shading)

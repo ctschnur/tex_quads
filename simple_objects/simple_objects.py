@@ -1,3 +1,5 @@
+from panda3d.core import TextNode
+from conventions.conventions import compute2dPosition
 from conventions import conventions
 from simple_objects import custom_geometry
 
@@ -22,7 +24,9 @@ from direct.interval.LerpInterval import LerpFunc
 
 import hashlib
 import numpy as np
-import sys, os
+import sys
+import os
+
 
 class Point(IndicatorPrimitive):
     def __init__(self, **kwargs):
@@ -35,8 +39,14 @@ class Point(IndicatorPrimitive):
 
 
 class Point3d(Point):
-    def __init__(self, scale=0.025, **kwargs):
+    point3d_normal_scale = 0.025
+
+    def __init__(self, scale=1., **kwargs):
+        """
+        Args:
+            scale: the scale in multiples of  """
         self.scale = scale
+        self.scale_ist = Point3d.point3d_normal_scale * self.scale
 
         if 'pos' in kwargs:
             self.pos = kwargs.get('pos')
@@ -50,9 +60,10 @@ class Point3d(Point):
 
     def doInitialSetupTransformation(self):
 
-        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(self.scale, self.scale, self.scale))
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(
+            math_utils.getScalingMatrix4x4(self.scale_ist, self.scale_ist, self.scale_ist))
 
-        self.form_from_primitive_trafo = scaling_forrowvecs # * rotation_forrowvecs
+        self.form_from_primitive_trafo = scaling_forrowvecs  # * rotation_forrowvecs
         self.nodePath.setMat(self.form_from_primitive_trafo)
         self.setColor(self.color)
 
@@ -77,8 +88,10 @@ class Point3d(Point):
 
         self.nodePath.setLightOff(1)
 
-
     def setPos(self, pos):
+        """
+        Args:
+            pos: a p3d 3-component vector """
         self.pos = pos
 
         if self.pos is not None:
@@ -91,9 +104,9 @@ class Point3d(Point):
         return self.nodePath.getPos()
 
 
-
 class PointPrimitive(Point):
     """ a pixel point (no real spatial extent for e.g. picking) """
+
     def __init__(self, **kwargs):
         Point.__init__(self, **kwargs)
 
@@ -110,6 +123,7 @@ class PointPrimitive(Point):
 
 class Point2d(Point):
     """ a (2d) quad """
+
     def __init__(self, **kwargs):
         Point.__init__(self, **kwargs)
 
@@ -188,7 +202,8 @@ class Line1dPrimitive(LinePrimitive):
         # scaling matrix: scale the vector along xhat when it points in xhat direction
         # (to prevent skewing if the vector's line is a mesh)
 
-        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(np.linalg.norm(diff_vec), 1., 1.))
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(
+            math_utils.getScalingMatrix4x4(np.linalg.norm(diff_vec), 1., 1.))
 
         # apply the net transformation
         # first the scaling, then the rotation_forrowvecs
@@ -197,9 +212,11 @@ class Line1dPrimitive(LinePrimitive):
 
         scaling_and_rotation_forrowvecs = scaling_forrowvecs * self._rotation_forrowvecs
 
-        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(*self.nodePath.getPos())
+        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+            *self.nodePath.getPos())
 
-        self.nodePath.setMat(self.form_from_primitive_trafo * scaling_and_rotation_forrowvecs * translation_forrowvecs)
+        self.nodePath.setMat(self.form_from_primitive_trafo *
+                             scaling_and_rotation_forrowvecs * translation_forrowvecs)
 
         # for some weird reason, I have to run setTailPoint again ...
         self.setTailPoint(self.tail_point, run_setTipPoint_again=False)
@@ -230,7 +247,6 @@ class Line1dPrimitive(LinePrimitive):
             # print("tip_point rerun after setTailPoint: ", self.tip_point)
             self.setTipPoint(self.tip_point)
 
-
     def getRotation_forrowvecs(self):
         """ forrowvecs """
 
@@ -250,10 +266,13 @@ class Line1dPrimitive(LinePrimitive):
 
 class Line1dSolid(Line1dPrimitive):
     """ """
+
     def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
         self._rotation_forrowvecs = Mat4()
 
-        Line1dPrimitive.__init__(self, thickness=thickness, color=color, **kwargs)  # this also sets the position
+        # this also sets the position
+        Line1dPrimitive.__init__(
+            self, thickness=thickness, color=color, **kwargs)
 
         self.doInitialSetupTransformation()
 
@@ -381,7 +400,7 @@ class ArrowHeadCone(Box2dCentered):
 
     def makeObject(self):
         self.node = custom_geometry.create_GeomNode_Cone(
-            color_vec4=Vec4(1., 1., 1., 1.)) # the self.'node' is a geomnode
+            color_vec4=Vec4(1., 1., 1., 1.))  # the self.'node' is a geomnode
         # or more generally a PandaNode
         # typically, if the geometry isn't changed in-place,
         # only the NodePath is called at later times
@@ -392,8 +411,8 @@ class ArrowHeadCone(Box2dCentered):
 
 class ArrowHeadConeShaded(IndicatorPrimitive):
     def __init__(self, color=Vec4(0., 0., 0., 0.), scale=1./5.):
-        self.color=color
-        self.scale=scale
+        self.color = color
+        self.scale = scale
 
         super(ArrowHeadConeShaded, self).__init__()
 
@@ -412,7 +431,7 @@ class ArrowHeadConeShaded(IndicatorPrimitive):
         # the underlying model is already rotated in the x direction
         # rotation_forrowvecs = math_utils.get_R_y_forrowvecs(np.pi/2.)
 
-        self.form_from_primitive_trafo = scaling_forrowvecs # * rotation_forrowvecs
+        self.form_from_primitive_trafo = scaling_forrowvecs  # * rotation_forrowvecs
 
         self.nodePath.setMat(self.form_from_primitive_trafo)
 
@@ -434,8 +453,8 @@ class ArrowHeadConeShaded(IndicatorPrimitive):
 
 class SphereModelShaded(Box2dCentered):
     def __init__(self, color=Vec4(1., 1., 1., 1.), scale=0.1):
-        self.color=color
-        self.scale=scale
+        self.color = color
+        self.scale = scale
         super(SphereModelShaded, self).__init__()
         self.doInitialSetupTransformation()
 
@@ -445,7 +464,7 @@ class SphereModelShaded(Box2dCentered):
             self.scale,
             self.scale)
 
-        self.form_from_primitive_trafo = scaling_forrowvecs # * rotation_forrowvecs
+        self.form_from_primitive_trafo = scaling_forrowvecs  # * rotation_forrowvecs
 
         self.nodePath.setMat(self.form_from_primitive_trafo)
 
@@ -463,10 +482,6 @@ class SphereModelShaded(Box2dCentered):
         self.nodePath.setColor(self.color)
 
         self.nodePath.setLightOff(1)
-
-
-from conventions.conventions import compute2dPosition
-from panda3d.core import TextNode
 
 
 class Pinned2dLabel:
@@ -530,7 +545,8 @@ class Pinned2dLabel:
             self.textNode.setShadowColor(0, 0, 0, 1)
             self.textNode_p3d_generated = self.textNode.generate()
 
-            self.textNodePath = aspect2d.attachNewNode(self.textNode_p3d_generated)
+            self.textNodePath = aspect2d.attachNewNode(
+                self.textNode_p3d_generated)
 
             self.nodeisattachedtoaspect2d = True
             self.textNodePath.setScale(0.07)
@@ -548,7 +564,8 @@ class Pinned2dLabel:
         # the y coordinate gets ignored for the TextNode
         # parented by aspect2d
         from conventions.conventions import win_aspect_ratio
-        self.textNodePath.setPos((p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1] + self.yshift)
+        self.textNodePath.setPos(
+            (p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1] + self.yshift)
 
     def remove(self):
         """ removes all p3d nodes """
@@ -557,11 +574,12 @@ class Pinned2dLabel:
 
 class Fixed2dLabel(IndicatorPrimitive):
     """ a text label attached to aspect2d,  """
+
     def __init__(self,
                  text="fixed?", x=0., y=0., z=0.,
                  font="cmr12.egg"
                  # , **kwargs
-    ):
+                 ):
         """
         Args:
             x: x position in GUI-xy-plane
@@ -616,7 +634,8 @@ class Fixed2dLabel(IndicatorPrimitive):
             self.textNode.setShadowColor(0, 0, 0, 1)
             self.textNode_p3d_generated = self.textNode.generate()
 
-            self.textNodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.textNode_p3d_generated)
+            self.textNodePath = self.get_parent_node_for_nodePath_creation(
+            ).attachNewNode(self.textNode_p3d_generated)
 
             self.nodeisattachedtoaspect2d = True
             self.textNodePath.setScale(0.07)
@@ -635,6 +654,7 @@ class Fixed2dLabel(IndicatorPrimitive):
 class OrientedDisk(IndicatorPrimitive):
     """ a disk with a normal vector (rotation) and a radius
     TODO: implement normal vector orientaion """
+
     def __init__(self, thickness=5., **kwargs):
         IndicatorPrimitive.__init__(self, **kwargs)
         self.makeObject()
@@ -667,7 +687,8 @@ class OrientedCircle(IndicatorPrimitive):
         self.scale = scale
 
         IndicatorPrimitive.__init__(self, **kwargs)
-        self.makeObject(num_of_verts, radius, with_hole=with_hole, thickness=thickness)
+        self.makeObject(num_of_verts, radius,
+                        with_hole=with_hole, thickness=thickness)
 
         self.nodePath.setMat(
             OrientedCircle.getSetupTransformation(normal_vector, origin_point, scale))
@@ -702,14 +723,18 @@ class OrientedCircle(IndicatorPrimitive):
                                origin_point=np.array([0., 0., 0.]),
                                scale=1.):
         """ return forrowvecs matrix """
-        normal_vector = np.array([normal_vector[0], normal_vector[1], normal_vector[2]])
+        normal_vector = np.array(
+            [normal_vector[0], normal_vector[1], normal_vector[2]])
 
-        rotation = math_utils.getMat4by4_to_rotate_xhat_to_vector(normal_vector, a=np.array([0., 0., 1.]))
+        rotation = math_utils.getMat4by4_to_rotate_xhat_to_vector(
+            normal_vector, a=np.array([0., 0., 1.]))
         rotation_forrowvecs = math_utils.math_convention_to_p3d_mat4(rotation)
 
-        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(scale, scale, scale))
+        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(
+            math_utils.getScalingMatrix4x4(scale, scale, scale))
 
-        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(origin_point[0], origin_point[1], origin_point[2])
+        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+            origin_point[0], origin_point[1], origin_point[2])
 
         return scaling_forrowvecs * rotation_forrowvecs * translation_forrowvecs
         # self.nodePath.setMat()  # reverse order column first row second convention

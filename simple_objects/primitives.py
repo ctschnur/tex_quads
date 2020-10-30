@@ -32,6 +32,9 @@ class IndicatorPrimitive(GraphicsObject):
     # for a specific object
 
     def setColor(self, color):
+        """
+        Args:
+            color: rgba tuple """
         self.color = color
         self.nodePath.setColor(*self.color)
 

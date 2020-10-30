@@ -139,9 +139,11 @@ def isPointBetweenTwoPoints(p1, p2, p):
 
 
 def p3d_to_np(p3d_3f):
+    """ convert a p3d 3-component vector to a numpy 3-component vector """
     return np.array([p3d_3f[0], p3d_3f[1], p3d_3f[2]])
 
 def np_to_p3d_Vec3(np_vec3d):
+    """ convert a numpy 3-component vector to a p3d 3-component vector"""
     return Vec3(np_vec3d[0], np_vec3d[1], np_vec3d[2])
 
 

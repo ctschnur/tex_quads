@@ -252,12 +252,12 @@ class Orbiter:
         self.pl_nodePath.lookAt(self.orbit_center)
 
     def handle_wheel_up(self):
-        self.phi = self.phi + 0.1
+        self.phi = self.phi + 0.05
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
     def handle_wheel_down(self):
-        self.phi = self.phi - 0.1
+        self.phi = self.phi - 0.05
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
@@ -268,6 +268,7 @@ class Orbiter:
         # print("wIsPressed: ", wIsPressed)
 
     def set_view_to_xy_plane(self):
+        """ set view to the xy plane """
         self.phi = np.pi/2.
         self.theta = 0.  # np.pi/2.
         self.set_camera_pos_spherical_coords()
@@ -286,12 +287,12 @@ class Orbiter:
         self.set_pointlight_pos_spherical_coords()
 
     def handle_control_wheel_down(self):
-        self.theta = self.theta - 0.1
+        self.theta = self.theta - 0.05
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
     def handle_control_wheel_up(self):
-        self.theta = self.theta + 0.1
+        self.theta = self.theta + 0.05
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
@@ -300,7 +301,7 @@ class Orbiter:
         # to give an effective zoom effect in orthographic projection
         # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
         # to self\.r + r_0
-        self.r = self.r - 0.1
+        self.r = self.r - 0.05
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
@@ -309,7 +310,7 @@ class Orbiter:
         # to give an effective zoom effect in orthographic projection
         # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
         # to self\.r + r_0
-        self.r = self.r + 0.1
+        self.r = self.r + 0.05
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 

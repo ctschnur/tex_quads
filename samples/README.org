@@ -1,0 +1,7 @@
+* Samples
+** Two-body motion
+[[file:two-body-motion.gif]]
+** Interactive 3d bezier curves
+[[file:Peek-interactive-3d-bezier-curves.gif]]
+** Parametric solid and dashed curves, vectors
+[[file:Peek-rotating-vectors.gif]]

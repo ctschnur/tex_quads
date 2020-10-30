@@ -18,11 +18,8 @@ class Sequence:
         The sequence will be (at first) only created and not restarted.
 
         Since a sequence's duration is determined on start time
-        kwars:
-        - duration: duration of the p3d sequence in seconds
-        - extraArgs: extra arguments that the sequence update function receives
-        - update_while_moving_function
-        - on_finish_function """
+        Args:
+            **kwargs: passthrough kwargs: see docstring of set_sequence_params """
 
         self.extraArgs = None
         self.update_while_moving_function = None
@@ -35,8 +32,6 @@ class Sequence:
 
         self.set_sequence_params(**kwargs)
 
-        pass
-
     def set_sequence_params(self, **kwargs):
         """ update the p3d sequence to have a specific duration, extraArgs, and update function
         The sequence will be (at first) only created and not restarted.
@@ -45,7 +40,7 @@ class Sequence:
         kwars:
         - duration: duration of the p3d sequence in seconds
         - extraArgs: extra arguments that the sequence update function receives
-        - update_while_moving_function
+        - update_while_moving_function: function with signature: (a : parameter in interval between 0 (beginning) and 1 (end), )
         - on_finish_function """
 
         create_lerp_and_seq = True

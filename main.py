@@ -53,36 +53,100 @@ class MyApp(ShowBase):
         base.setFrameRateMeter(True)
         render.setAntialias(AntialiasAttrib.MAuto)
 
+        # ob = Orbiter(base.cam, radius=3.)
+        # ob.set_view_to_xy_plane()
+
+        # cs = CoordinateSystem(ob)
+
+        self.draw_twobody_system()
+        
+    def draw_twobody_system(self):
+        ob = Orbiter(base.cam, radius=3.)
+        ob.set_view_to_xy_plane()
+
+        cs = CoordinateSystem(ob)
+
+        from plot_utils.twobodysystem.calc import get_pos_as_func_of_time
+
+        stop_time = 50.0
+        num_points = 10000
+
+        p1_color = (0., 0., 1., 1.)
+        p2_color = (1., 1., 0., 1.)
+
+        def render_twobodysystem(a, m, p1: Point3d, p2: Point3d):
+            """
+            Args:
+                a: param between 0 and 1 -> time
+                m: list of [t, x1_vec, x2_vec]
+                p1, p2: graphical points 1 and 2 """
+
+            t = np.array(m[0])
+            x1_vec = m[1]
+            x2_vec = m[2]
+
+            duration = max(t)
+            assert duration == stop_time
+            # display one out of the discrete positions, the closest one to the time in the sequence
+            i_to_display = np.where(t <= a * duration)[0][-1]
+
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+            p1.setPos(math_utils.np_to_p3d_Vec3(
+                np.append(x1_vec[i_to_display], 0.)))
+            p2.setPos(math_utils.np_to_p3d_Vec3(
+                np.append(x2_vec[i_to_display], 0.)))
+
+            p_new1 = Point3d(scale=0.25)
+            p_new1.setPos(math_utils.np_to_p3d_Vec3(
+                np.append(x1_vec[i_to_display], 0.)))
+            p_new1.setColor(p1_color)
+
+            p_new2 = Point3d(scale=0.25)
+            p_new2.setPos(math_utils.np_to_p3d_Vec3(
+                np.append(x2_vec[i_to_display], 0.)))
+            p_new2.setColor(p2_color)
+
+            pass
+
+        def get_radius_from_mass_3d_sphere(mass):
+            """ assume incompressibility
+            Args:
+                mass: a positive number
+            Returns: radius """
+            rho = 1.
+            return (3. * mass / (4. * rho * np.pi))**(1./3.)
+
+        # two bodies: two points
+        m1 = 1
+        m2 = 2
+
+        p1 = Point3d(scale=get_radius_from_mass_3d_sphere(m1))
+        p1.setColor(p1_color)
+        p1.setPos(Vec3(1., 0., 0.))
+
+        p2 = Point3d(scale=get_radius_from_mass_3d_sphere(m2))
+        p2.setPos(Vec3(0.5, 0., 0.))
+        p2.setColor(p2_color)
+
+        myseq = Sequence(duration=stop_time,
+                         extraArgs=[
+                             # the solution vector including the times
+                             get_pos_as_func_of_time(
+                                 stoptime=stop_time, numpoints=num_points,
+                                 m1=m1, m2=m2, nc1=1, nc2=-1,
+                                 v1=(0.2, -0.2), v2=(0., 0.4), x1=(-0.5, 0.), x2=(+0.5, 0.)),
+                             p1,
+                             p2
+                         ],
+                         update_while_moving_function=render_twobodysystem)
+        myseq.start()
+
+    def thread_loggers_demo():
         # uiThreadLogger
         plot_utils.ui_thread_logger.uiThreadLogger = UIThreadLogger()
 
         ob = Orbiter(base.cam, radius=3.)
         cs = CoordinateSystem(ob)
-
-        cs.attachScatter
-
-        # ax = Axis(Vec3(1., 0., 0.), thickness1dline=5, color=Vec4(1., 1., 1., 1.))
-
-        # csplain = CoordinateSystemP3dPlain()
-
-        # ob.set_view_to_yz_plane()
-        # ob.set_view_to_xy_plane()
-
-        # from simple_objects.simple_objects import Pinned2dLabel
-
-        # q = Quad(thickness=3.0, nodePath_creation_parent_node=aspect2d)
-
-        # q.set_pos_vec3(Vec3(0., 0., 0.))
-        # q.set_height(0.2)
-        # q.set_width(0.2)
-
-        # import time
-        # initial_time = time.time()
-
-        # def my_done_function():
-        #     return initial_time + 5. < time.time()
-
-        # ws = WaitingSymbol(my_done_function, Vec3(-.5, 0., 0.), size=0.1)
 
         import time
         initial_time = time.time()
@@ -99,65 +163,6 @@ class MyApp(ShowBase):
         plot_utils.ui_thread_logger.uiThreadLogger.append_new_parallel_task(
             "my desc 3", lambda: my_is_alive_function(3.))
 
-        # from plot_utils.ui_thread_logger import ProcessingBox
-        # pb = ProcessingBox(my_done_function)
-        # a = Sequence(duration=50., extraArgs=[pb], update_while_moving_function=lambda a, pb: pb.set_xy_pos(a, 0.)).start()
-
-        # uitle = UIThreadLoggerElement("my desk", lambda: not my_done_function())
-
-        # fl = Fixed2dLabel(text="MYTEXT", font="fonts/arial.egg",
-        #                   x=0.,
-        #                   y=0.5,
-        #                   nodePath_creation_parent_node=aspect2d)
-
-        # import matplotlib.pyplot as plt
-        # import networkx as nx
-
-        # hd = "H" + chr(252) + "sker D" + chr(252)
-        # mh = "Mot" + chr(246) + "rhead"
-        # mc = "M" + chr(246) + "tley Cr" + chr(252) + "e"
-        # st = "Sp" + chr(305) + "n" + chr(776) + "al Tap"
-        # q = "Queensr" + chr(255) + "che"
-        # boc = "Blue " + chr(214) + "yster Cult"
-        # dt = "Deatht" + chr(246) + "ngue"
-
-        # G = nx.Graph()
-        # G.add_edge(hd, mh)
-        # G.add_edge(mc, st)
-        # G.add_edge(boc, mc)
-        # G.add_edge(boc, dt)
-        # G.add_edge(st, dt)
-        # G.add_edge(q, st)
-        # G.add_edge(dt, mh)
-        # G.add_edge(st, mh)
-
-        # dg = DraggableGraph(ob)
-        # gh = GraphHoverer(dg, ob)
-
-        # gh = GraphHoverer()
-
-        # f2dl = Fixed2dLabel(text="play", font="fonts/arial.egg", xshift=0.1,
-        #                     yshift=0.1, nodePath_creation_parent_node=aspect2d)
-
-        # self.line = Line1dSolid(nodePath_creation_parent_node=aspect2d)
-        # self.line.setTailPoint(Vec3(1., 0., 1.))
-        # self.line.setTipPoint(Vec3(0.5, 0., 0.))
-
-        # cp = CursorPlayer()
-
-        # from plot_utils.edgeplayer import EdgePlayer
-
-        # ep = EdgePlayer(ob)
-
-        # --- loading symbol: line turning inside a quad
-
-        # a simple edgerecorder, starting at an arbitrary point and ending on demand
-
-        # do = DirectObject.DirectObject()
-        # do.accept('d', lambda : ep.set_v1(Vec3(np.random.rand(),
-        #                                        np.random.rand(),
-        #                                        0.)))
-
         from plot_utils.edgeplayerrecorderspawner import EdgePlayerRecorderSpawner
         from plot_utils.edgerecorder import EdgeRecorder
 
@@ -165,54 +170,6 @@ class MyApp(ShowBase):
         eprs = EdgePlayerRecorderSpawner()
         # this will get removed from scope once the recording is done
         er = EdgeRecorder(ob, eprs)
-
-        #         import time
-        # initial_time = time.time()
-
-        # def my_is_alive_function(time_offset):
-        #     cond = initial_time + time_offset > time.time()
-        #     # print(initial_time, time.time(), cond)
-        #     return cond
-
-        # uiThreadLogger.append_new_parallel_task("my desc 1", lambda: my_is_alive_function(1.))
-        # uiThreadLogger.append_new_parallel_task("my desc 2", lambda: my_is_alive_function(2.))
-
-        # from plot_utils.edgehoverer import EdgeHoverer
-
-        # self.line = Line1dSolid()
-
-        # self.line.setTailPoint(Vec3(1., 1., 0.))
-        # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
-
-        # self.line.setTailPoint(Vec3(1., 1., 0.))
-        # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
-
-        # self.myvec = Vector()
-        # self.myvec.setTailPoint(Vec3(1., 1., 0.))
-        # self.myvec.setTipPoint(Vec3(1.5, 1.5, 0.))
-
-        # self.line.setTipPoint(Vec3(0.5, 0.5, 0.))
-        # self.line.setTailPoint(Vec3(1., 1., 0.))
-
-        # oc = OrientedCircle(
-        #     origin_point=Vec3(0., 0., 0.),
-        #     normal_vector=Vec3(0., 0., 1.),
-        #     radius=0.1,
-        #     num_of_verts=30,
-        #     with_hole=False)
-
-        # cursor = Point3dCursor(Vec3(1., 0., 0.))
-
-        # point1_vec3 = Vec3(1., 1., 0.)
-        # point2_vec3 = Vec3(2., 2., 0.)
-        # myvec = Vector(# tail_point_logical=point1_vec3, tip_point_logical=point2_vec3
-        # )
-        # myvec.setTailPoint(point1_vec3)
-        # myvec.setTipPoint(point2_vec3)
-
-        # the vector class has an artifact
-
-        # self.draw_vectors_demo()
 
     def draw_vectors_demo(self):
         l = Line1dSolid()
