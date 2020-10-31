@@ -247,6 +247,9 @@ class Vector:
         for child in children:
             child.setColor(*color)
 
+        self.line1.nodePath.setColor(*color)
+        self.arrowhead.setColor(color)
+
     def getTipPoint(self):
         return self.tip_point_logical
 
@@ -391,6 +394,17 @@ class Vector:
                                                           self.tail_point_logical[1],
                                                           self.tail_point_logical[2])
              ))
+
+
+    def hide(self):
+        """ hide yourself """
+        self.line1.nodePath.hide()
+        self.arrowhead.nodePath.hide()
+
+    def show(self):
+        """ show yourself """
+        self.line1.nodePath.show()
+        self.arrowhead.nodePath.show()
 
 
 

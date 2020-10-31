@@ -146,6 +146,41 @@ def np_to_p3d_Vec3(np_vec3d):
     """ convert a numpy 3-component vector to a p3d 3-component vector"""
     return Vec3(np_vec3d[0], np_vec3d[1], np_vec3d[2])
 
+def cut_vector_down_to_3d(np_vecnd):
+    """ drop all higher components
+    Args:
+        np_vecnd: numpy array of size n """
+    return np_vecnd[0:3]
+
+def enlarge_vector_to_3d(np_vecnd):
+    """ add vector components; default value of new components: 0.
+    Args:
+        np_vecnd: numpy array of size n """
+
+    di = len(np_vecnd)  # initial dimensionality
+    assert di < 3
+
+    vec = np.zeros(3)
+    vec[0:di] = np.vecnd
+    return vec
+
+def get_3d_vec_from_nd_vec(np_vec_nd):
+    """ Either add zeros for new components or cut away components.
+    Args:
+        np_vec_nd: numpy array of size n
+    Returns:
+        3d vector
+    """
+    res = np_vec_nd
+    if len(np_vec_nd) < 3:
+        res = enlarge_vector_to_3d(np_vec_nd)
+    elif len(np_vec_nd) > 3:
+        res = cut_vector_down_to_3d(np_vec_nd)
+    return res
+
+
+
+
 
 def getMat4by4_to_rotate_xhat_to_vector(target_position_vector, a=np.array([1., 0., 0.], dtype=np.float)):
     """ Apply the rodriguez formula to get the rotation matrix to rotate [1., 0., 0.] to an arbitrary position vector """

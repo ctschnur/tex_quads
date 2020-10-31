@@ -8,6 +8,7 @@ from simple_objects import primitives
 from local_utils import math_utils
 
 import numpy as np
+import math
 
 from direct.showbase.ShowBase import ShowBase, DirectObject
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
@@ -41,7 +42,6 @@ from plot_utils.symbols.waiting_symbol import WaitingSymbol
 
 from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadLoggerElement
 
-
 from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 
 import plot_utils.ui_thread_logger
@@ -53,60 +53,63 @@ class MyApp(ShowBase):
         base.setFrameRateMeter(True)
         render.setAntialias(AntialiasAttrib.MAuto)
 
+        shade_of_gray = 0.1
+        base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
+
         # ob = Orbiter(base.cam, radius=3.)
         # ob.set_view_to_xy_plane()
 
         # cs = CoordinateSystem(ob)
 
-        self.draw_twobody_system()
-        
-    def draw_twobody_system(self):
+        self.draw_nbody_system()
+
+        # self.draw_path_of_segments()
+
+    def draw_path_of_segments(self):
+
+        path = [
+            np.array([np.random.rand(),
+                      np.random.rand(),
+                      np.random.rand()]),
+            np.array([np.random.rand(),
+                      np.random.rand(),
+                      np.random.rand()]),
+            np.array([np.random.rand(),
+                      np.random.rand(),
+                      np.random.rand()])]
+
+        # from simple_objects.custom_geometry import createColoredSegmentedLineGeomNode
+
+        slp = primitives.SegmentedLinePrimitive(coords=path)
+        # slp.nodePath.removeNode()
+        # slp = None
+
+        pass
+
+    import ctsutils
+
+    def draw_nbody_system(self):
+        shade_of_gray = 0.1
+        base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
+
         ob = Orbiter(base.cam, radius=3.)
-        ob.set_view_to_xy_plane()
+        # ob.set_view_to_xy_plane()
+        # ob.set_view_to_xz_plane()
 
         cs = CoordinateSystem(ob)
 
-        from plot_utils.twobodysystem.calc import get_pos_as_func_of_time
+        from plot_utils.nbodysystem.calc import get_pos_as_func_of_time
 
-        stop_time = 50.0
-        num_points = 10000
+        animation_length_factor = 2.
+        stop_time = 5. * animation_length_factor
+        num_points = int(1000 * math.floor(animation_length_factor))
 
-        p1_color = (0., 0., 1., 1.)
-        p2_color = (1., 1., 0., 1.)
+        # make all bodies white
+        nbodies_color = (1., 1., 1., 1.)
 
-        def render_twobodysystem(a, m, p1: Point3d, p2: Point3d):
-            """
-            Args:
-                a: param between 0 and 1 -> time
-                m: list of [t, x1_vec, x2_vec]
-                p1, p2: graphical points 1 and 2 """
-
-            t = np.array(m[0])
-            x1_vec = m[1]
-            x2_vec = m[2]
-
-            duration = max(t)
-            assert duration == stop_time
-            # display one out of the discrete positions, the closest one to the time in the sequence
-            i_to_display = np.where(t <= a * duration)[0][-1]
-
-            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-            p1.setPos(math_utils.np_to_p3d_Vec3(
-                np.append(x1_vec[i_to_display], 0.)))
-            p2.setPos(math_utils.np_to_p3d_Vec3(
-                np.append(x2_vec[i_to_display], 0.)))
-
-            p_new1 = Point3d(scale=0.25)
-            p_new1.setPos(math_utils.np_to_p3d_Vec3(
-                np.append(x1_vec[i_to_display], 0.)))
-            p_new1.setColor(p1_color)
-
-            p_new2 = Point3d(scale=0.25)
-            p_new2.setPos(math_utils.np_to_p3d_Vec3(
-                np.append(x2_vec[i_to_display], 0.)))
-            p_new2.setColor(p2_color)
-
-            pass
+        d = 3
+        # two bodies: two points
+        num_of_bodies = 5
 
         def get_radius_from_mass_3d_sphere(mass):
             """ assume incompressibility
@@ -116,29 +119,113 @@ class MyApp(ShowBase):
             rho = 1.
             return (3. * mass / (4. * rho * np.pi))**(1./3.)
 
-        # two bodies: two points
-        m1 = 1
-        m2 = 2
+        import plot_utils.colors.colors as colors
 
-        p1 = Point3d(scale=get_radius_from_mass_3d_sphere(m1))
-        p1.setColor(p1_color)
-        p1.setPos(Vec3(1., 0., 0.))
+        ps = []  # graphics: points
+        vs = []  # velocity vectors
+        paths = []  # paths (tracing out movement)
 
-        p2 = Point3d(scale=get_radius_from_mass_3d_sphere(m2))
-        p2.setPos(Vec3(0.5, 0., 0.))
-        p2.setColor(p2_color)
+        vis = []
+        xis = []
+        ms = []
+        ncs = []
+        cols = []
+        for n in range(num_of_bodies):
+            vi = np.array([0.2 * np.random.rand(),
+                           0.2 * np.random.rand(),
+                           0.2 * np.random.rand()]) * (-1.)**math.floor(np.random.rand()*10) * 0.5 # consistent with d=3
+            xi = np.array([np.random.rand(),
+                           np.random.rand(),
+                           np.random.rand()]) * (-1.)**math.floor(np.random.rand()*10) * 0.65
+            vis.append(vi)
+            xis.append(xi)
+
+            # resolved error: nan's in result when mi and nc are n-dependent ...
+            mi = (1. + n) * 5
+            ms.append(mi)
+
+            nc = (-1.)**math.floor(np.random.rand()*10)
+            ncs.append(nc)
+
+            color = colors.get_next_mpl_color()
+            cols.append(color)
+
+            p = Point3d(scale=get_radius_from_mass_3d_sphere(mi))
+            p.setColor(color)
+            p.setPos(math_utils.np_to_p3d_Vec3(xi))
+            ps.append(p)
+
+            v = Vector()
+            v.setColor(color)
+            vs.append(v)
+
+            paths.append(primitives.SegmentedLinePrimitive(color=Vec4(*color)))
+
+        vis = [vi * 0.1 for vi in vis]
+
+        def render_nbodysystem(a, tup, ps, vs, paths):
+            """
+            Args:
+                a: param between 0 and 1 -> time
+                tup: tuple returned from solution function (t, vels, poss)
+                ps: list of graphical points """
+
+            t = np.array(tup[0])
+            vels = tup[1]
+            poss = tup[2]
+
+            duration = max(t)
+            assert duration == stop_time
+
+            # display one out of the discrete calculated positions, the closest one to the time in the sequence
+            i_to_display = np.where(t <= a * duration)[0][-1]
+
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+            for n in range(num_of_bodies):
+                # cut the vector down/extend the vector to a 3d vector, since you can't plot more or less than 3d
+
+                # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+                pos_of_particle_np = math_utils.get_3d_vec_from_nd_vec(
+                    poss[n][i_to_display])
+                pos_of_particle = math_utils.np_to_p3d_Vec3(pos_of_particle_np)
+                vel_of_particle_np = math_utils.get_3d_vec_from_nd_vec(
+                    vels[n][i_to_display])
+                vel_of_particle = math_utils.np_to_p3d_Vec3(vel_of_particle_np)
+
+                ps[n].setPos(pos_of_particle)
+
+                # plot the velocity vectors
+                vs[n].setTailPoint(pos_of_particle)
+
+                vel_vector_to_plot = pos_of_particle + vel_of_particle
+
+                if np.linalg.norm(vel_of_particle_np) >= 1:
+                    vel_vector_to_plot = math_utils.np_to_p3d_Vec3(
+                        pos_of_particle_np +
+                        math_utils.normalize(vel_of_particle_np) * np.log(np.linalg.norm(vel_of_particle_np)))
+
+                vs[n].setTipPoint(vel_vector_to_plot)
+
+                # trace out the paths over time
+                paths[n].extendCoords([pos_of_particle_np])
+
+            pass
 
         myseq = Sequence(duration=stop_time,
                          extraArgs=[
                              # the solution vector including the times
                              get_pos_as_func_of_time(
+                                 ms, ncs,
+                                 vis, xis,
                                  stoptime=stop_time, numpoints=num_points,
-                                 m1=m1, m2=m2, nc1=1, nc2=-1,
-                                 v1=(0.2, -0.2), v2=(0., 0.4), x1=(-0.5, 0.), x2=(+0.5, 0.)),
-                             p1,
-                             p2
+                                 d=d, num_of_bodies=num_of_bodies),
+                             ps,
+                             vs,
+                             paths
                          ],
-                         update_while_moving_function=render_twobodysystem)
+                         update_while_moving_function=render_nbodysystem)
+
         myseq.start()
 
     def thread_loggers_demo():

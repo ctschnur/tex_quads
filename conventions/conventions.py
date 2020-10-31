@@ -15,7 +15,7 @@ svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
 
 # p3d window
 winsize_scale_factor = 100 * 0.75
-winsizex = int(16. * winsize_scale_factor)
+winsizex = int(9. * winsize_scale_factor)
 winsizey = int(9. * winsize_scale_factor)
 
 print("winsizex = ", winsizex, ", ", "winsizey = ", winsizey)

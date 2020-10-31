@@ -166,7 +166,7 @@ class Orbiter:
         from panda3d.core import AmbientLight
         self.alight = AmbientLight('alight')
         self.alnp = render.attachNewNode(self.alight)
-        self.alight.setColor((0.35, 0.35, 0.35, 1))
+        self.alight.setColor((0.25, 0.25, 0.25, 1))
         render.setLight(self.alnp)
 
     def poll_zoom_plus_minus(self, task):

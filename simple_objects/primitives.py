@@ -49,6 +49,60 @@ class Box2dCentered(IndicatorPrimitive):
         self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
 
 
+class SegmentedLinePrimitive(GraphicsObject):
+    """ a segmented line, for example to trace out the path of sth., or plot a curve """
+
+    def __init__(self, coords=None, thickness=1., color=Vec4(1., 1., 1., 1.), **kwargs):
+        GraphicsObject.__init__(self, **kwargs)
+
+        self.coords = coords
+        self.thickness = thickness
+        self.color = color
+
+        self.nodePath = None
+
+        self.updateObject()
+
+    def updateObject(self):
+        from simple_objects.custom_geometry import createColoredSegmentedLineGeomNode
+
+        # destroy old object
+        if self.nodePath is not None:
+            self.nodePath.removeNode()
+
+        # create new object
+        if self.coords and self.thickness and self.color:
+            self.node = createColoredSegmentedLineGeomNode(
+                self.coords,
+                thickness=self.thickness,
+                color=self.color)
+
+            self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
+
+        # lighting
+        if self.nodePath is not None:
+            self.nodePath.setLightOff(1)
+
+    def setCoords(self, coords):
+        """ after the object has been created, this method can be used to update the path, i.e. destroy the nodePath and remake the object """
+        self.coords = coords
+        self.updateObject()
+
+    def extendCoords(self, coords_to_add):
+        """ adds coords to the previous coords which are already in memory.
+            useful if you want to e.g. just trace out (log) a path and don't care about all previous points.
+        Args:
+            coords_to_add: list of 3d np.array coordinates """
+        if coords_to_add is None:
+            return
+
+        if self.coords is None:
+            self.coords = []
+
+        self.coords.extend(coords_to_add)
+        self.updateObject()
+
+
 class ParametricLinePrimitive(GraphicsObject):
     def __init__(self, func, param_interv=np.array([0, 1]),
                  thickness=1., color=Vec4(1., 1., 1., 1.), howmany_points=50, **kwargs):

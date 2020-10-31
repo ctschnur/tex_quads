@@ -4,7 +4,7 @@ Animation engine to put my own spin on mathematical visualization and to experim
 Afer early attempts at building [[https://github.com/ctschnur/first-graphics-engine][my own rendering engine]] in ~C++~, I am for now basing this on the much more complete [[https://github.com/panda3d/panda3d][panda3d]] game engine (initially developed by Disney, written in ~C++~, having DirectX and OpenGL backends and python bindings).
 
 * Samples
-Have a look in the [[file:samples/][~samples~]] folder for some screenshots/gifs of renderings. 
+Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs of renderings. 
 
 * Long-Term goals
 - an interactive branched podcast user interface and an associated file format

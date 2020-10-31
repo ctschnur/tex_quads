@@ -692,24 +692,22 @@ def createColoredParametricCurveGeomNode(
     return geomnode
 
 
-def createColoredParametricCurveGeomNode(
-        func=(lambda t: np.array([t, t, t])),
-        param_interv=np.array([0, 1]),
-        thickness=5., color=Vec4(1., 1., 1., 1.),
-        howmany_points=50):
+def createColoredSegmentedLineGeomNode(coords,
+        thickness=5., color=Vec4(1., 1., 1., 1.)):
+    """ Plot a series of solid lines, connected to each other.
+    Args:
+        coords: list of 3d np.array """
 
     ls = LineSegs()
     ls.setThickness(thickness)
     ls.setColor(color)
 
-    t = np.linspace(param_interv[0], param_interv[1], num=howmany_points, endpoint=True)
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    ls.moveTo(*tuple(coords[0]))
 
-    for i, c_t in enumerate(t):
-        xyz_arr = func(c_t)
-        if i > 0:
-            ls.drawTo(*tuple(xyz_arr))
-
-        ls.moveTo(*tuple(xyz_arr))
+    for i, coord in enumerate(coords):
+        ls.drawTo(*tuple(coord))
+        ls.moveTo(*tuple(coord))
 
     geomnode = ls.create()
     # nodepath = NodePath(geomnode)
