@@ -10,6 +10,11 @@ class SequenceState:
         self.duration = None
         pass
 
+    def calc_t(self):
+        """ """
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        return self.a * self.duration
+
 class Sequence:
     """ wrapper around p3d sequences with basic start/stop/setting
     duration and playing parameter (between 0 and 1) functionality """
@@ -32,8 +37,18 @@ class Sequence:
 
         self.set_sequence_params(**kwargs)
 
+    def update_sequence_graphics(self):
+        """ whatever the state of the sequence is, run the function to update the graphics """
+
+        if self.p3d_sequence:  # it had been created, such that we had enough parameters
+            a = self.get_t()
+            self.state.a = a
+            dur = self.state.duration
+            self.p3d_sequence.set_t(self.state.calc_t())
+
     def set_sequence_params(self, **kwargs):
-        """ update the p3d sequence to have a specific duration, extraArgs, and update function
+        """ update the p3d sequence to have a specific duration, extraArgs, and update function.
+        This does not call the graphics update function afterwards automatically.
         The sequence will be (at first) only created and not restarted.
 
         Since a sequence's duration is determined on start time

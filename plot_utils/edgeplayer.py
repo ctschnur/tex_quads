@@ -23,6 +23,8 @@ import inspect
 
 from plot_utils.edgegraphics import EdgeGraphics
 
+import playback.audiofunctions
+
 
 class EdgePlayerState:
     """ You have an edge, and the states are
@@ -122,22 +124,23 @@ class EdgePlayer(EdgeGraphics):
 
     def __init__(self, camera_gear, wave_file_path=None):
 
+        self.wave_file_path = wave_file_path
+
         # -- do geometry logic
         self.v1 = Vec3(-.5, -.5, 0.)
         self._v_dir = None
         self.set_v_dir(Vec3(1., 1., 0.)/np.linalg.norm(Vec3(1., 1., 0.)))
 
         self._duration = None  # a relatively high number
-        self.set_duration(3.)
+        self.set_duration(1., update_cursor_sequence=False)
 
         self.short_skipping_time_step = 2.  # interactive forward/backward skipping, in seconds
 
         # -- do graphics stuff
         self.p_c = Point3dCursor(self.get_v1())
 
-        self.line = Line1dSolid()
-        self.line.setTipPoint(self.v1)
-        self.line.setTailPoint(self.get_v2())
+        self.line = None
+        self.update_line()
 
         self.primary_color = None
         self.set_primary_color(
@@ -192,10 +195,22 @@ class EdgePlayer(EdgeGraphics):
         self.playbacker = Playbacker()
 
         # -- audio playing capability
+        # this means that the graphics is still being rendered, but no audio actions are performed
+        # to debug your routines and uncouple the audio from the graphics, use switches in the
+        # state change functions addressing this variable
+        # initiall, self.has_audio_playing_capability = False
+        # but if a wave file has been successfully loaded, set self.has_audio_playing_capability = True
+        self.has_audio_playing_capability = False
+
+        if wave_file_path is not None:
+            self.set_and_load_wave_file(self.wave_file_path)
+
+    def set_and_load_wave_file(self, wave_file_path):
+        """ sets also the duration, i.e. the length of the edge,
+            resets the cursor to the beginning """
+        self.has_audio_playing_capability = False
 
         self.wave_file_path = wave_file_path
-
-        self.has_audio_playing_capability = False
 
         if not os.path.isfile(self.wave_file_path):
             print("ERR: EdgePlayer: not os.path.isfile(self.wave_file_path), ",
@@ -204,7 +219,25 @@ class EdgePlayer(EdgeGraphics):
         else:
             self.has_audio_playing_capability = True
 
-            # get the duration from the audio file
+            # proceed to set the length of your edge
+            # get the duration of the wave file
+
+            durat = playback.audiofunctions.get_wave_file_duration(
+                self.wave_file_path)
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+            # durat = 2.
+            print("wave file exists: ", self.wave_file_path, "duration: ", durat)
+
+            self.set_duration(durat, update_cursor_sequence=True)
+
+    def update_line(self):
+        """ set the line to the appropriate dimensions """
+        if self.line is None:
+            self.line = Line1dSolid()
+
+        self.line.setTipPoint(self.get_v1())
+        self.line.setTailPoint(self.get_v2())
 
     def update_while_moving_function(self,
                                      s_a):
@@ -225,12 +258,18 @@ class EdgePlayer(EdgeGraphics):
 
         self.p_c.setPos(cursor_pos)
 
-    def set_duration(self, duration):
+        self.update_line()
+
+    def set_duration(self, duration, update_cursor_sequence=True):
         """ the logical duration and the sequence's duration are being updated """
         self._duration = duration
 
-        self.cursor_sequence.set_sequence_params(
-            duration=duration)
+        if update_cursor_sequence == True:
+            self.cursor_sequence.set_sequence_params(duration=duration)
+            # if it has an EdgePlayerState, otherwise in the update_while_moving_function
+            # will fail
+            if self.state:
+                self.cursor_sequence.update_sequence_graphics()
 
     def get_duration(self):
         return self._duration
@@ -416,24 +455,7 @@ class EdgePlayer(EdgeGraphics):
         else:
             exit(1)
 
-    def set_deferred_action_after_thread_finishes():
-        """ block any further action on this ui element until the threads have finished:
-        - ignore every set_[state]_... function call
-        """
-
-    def all_supporting_threads_done(self):
-        """ This should be called before every state change of a ui element and
-        prevent that state change, since the suppporing threads are not finished yet. """
-        print("Warning: supporting threads not yet done: ",
-              self.get_active_supporting_threads())
-
-        if self.get_active_supporting_threads() is None:
-            return True
-        return False
-
     def set_stopped_at_beginning(self):
-        if not self.all_supporting_threads_done(): return
-
         self.state.set_stopped_at_beginning()
         # -- do p3d sequence stuff
         # p3d only really has a finish() function, not a 'stopped at start'
@@ -451,9 +473,6 @@ class EdgePlayer(EdgeGraphics):
 
     def set_stopped_at_end(self,  # already_at_end=False
                            ):
-        if not self.all_supporting_threads_done():
-            return
-
         self.state.set_stopped_at_end()
 
         # if already_at_end is False:

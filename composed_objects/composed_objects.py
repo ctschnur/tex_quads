@@ -26,6 +26,7 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 
+
 class GroupNode(GraphicsObject):
     """ Documentation for GroupNode
     """
@@ -168,7 +169,6 @@ class Point3dCursor():
         self.circle_outer_second.nodePath.removeNode()
 
 
-
 class Vector:
     """Documentation for Vector
        combines an arrowhead and a line1 and applys transformations to them so that it
@@ -217,7 +217,6 @@ class Vector:
         else:
             print("Error: linetype " + self.linetype + " is invalid")
 
-
         if 'arrowheadstyle' in kwargs:
             self.arrowheadstyle = kwargs.get('arrowheadstyle')
             if self.arrowheadstyle == "ArrowHeadCone":
@@ -227,7 +226,8 @@ class Vector:
             elif self.arrowheadstyle == "ArrowHead":
                 self.arrowhead = ArrowHead()
         else:
-            self.arrowhead = ArrowHeadConeShaded(color=self.color, scale=arrowhead_scale)
+            self.arrowhead = ArrowHeadConeShaded(
+                color=self.color, scale=arrowhead_scale)
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
@@ -282,7 +282,6 @@ class Vector:
 
         if adjust is True:
 
-
             # join ArrowHead and Line
             self._adjustArrowHead()
             self._adjustLine()
@@ -305,7 +304,6 @@ class Vector:
             self.line1.setTailPoint(self.tail_point_logical)
 
         if adjust is True:
-
 
             # join ArrowHead and Line
             self._adjustArrowHead()
@@ -330,7 +328,9 @@ class Vector:
         arrowhead_length = self.arrowhead.scale
         arrowhead_direction = self._get_direction()
 
-        b_tilde = - math_utils.multiply_scalar_with_vec3(arrowhead_length, arrowhead_direction)
+        b_tilde = - \
+            math_utils.multiply_scalar_with_vec3(
+                arrowhead_length, arrowhead_direction)
 
         translation_to_match_point_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
             b_tilde[0], b_tilde[1], b_tilde[2])
@@ -355,7 +355,8 @@ class Vector:
     def _get_direction(self):
         return (
             math_utils.multiply_scalar_with_vec3(
-                1./np.linalg.norm(self.tip_point_logical - self.tail_point_logical),
+                1./np.linalg.norm(self.tip_point_logical -
+                                  self.tail_point_logical),
                 self.tip_point_logical - self.tail_point_logical))
 
     def _adjustLine(self):
@@ -364,11 +365,10 @@ class Vector:
         # l_arrow = -np.cos(np.pi / 6.) * self.arrowhead.scale
         # arrowhead_direction = self._get_direction()
 
-        l_arrowhead = self.arrowhead.scale  # this could be made more general in the ArrowHead class
+        # this could be made more general in the ArrowHead class
+        l_arrowhead = self.arrowhead.scale
         l_line_0 = self._get_length_logical()
-        c_scaling =  (l_line_0 - l_arrowhead) / l_line_0
-
-
+        c_scaling = (l_line_0 - l_arrowhead) / l_line_0
 
         assert c_scaling <= 1.
 
@@ -395,7 +395,6 @@ class Vector:
                                                           self.tail_point_logical[2])
              ))
 
-
     def hide(self):
         """ hide yourself """
         self.line1.nodePath.hide()
@@ -405,7 +404,6 @@ class Vector:
         """ show yourself """
         self.line1.nodePath.show()
         self.arrowhead.nodePath.show()
-
 
 
 class Axis:
@@ -447,7 +445,8 @@ class Axis:
         if self.axis_vector:
             self.axis_vector.setTipPoint(tip_point_logical)
         else:
-            self.axis_vector = Vector(thickness1dline=self.thickness1dline, color=self.color)
+            self.axis_vector = Vector(
+                thickness1dline=self.thickness1dline, color=self.color)
 
             self.axis_vector.setTailPoint(Vec3(0., 0., 0.))
             self.axis_vector.setTipPoint(tip_point_logical)
@@ -704,3 +703,111 @@ class CoordinateSystemP3dPlain:
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths([nodepath])
+
+
+class CrossHair3d:
+    """ """
+
+    def __init__(self, camera_gear, lines_length=1., outer_line_thickness=6.0, alpha=0.5):
+        """ """
+        self.camera_gear = camera_gear
+
+        self.alpha = alpha
+
+        self.crosshair_outer_lines_length = lines_length
+        self.crosshair_outer_thickness = outer_line_thickness
+        self.crosshair_outer_color = Vec4(0., 0., 0., self.alpha)
+
+        self.crosshair_inner_thickness = 1./3. * self.crosshair_outer_thickness
+        self.crosshair_inner_lines_length = 0.98 * self.crosshair_outer_lines_length
+        self.crosshair_inner_color = Vec4(1., 1., 1., self.alpha)
+
+        self.l1i = None
+        self.l1o = None
+
+        self.l2i = None
+        self.l2o = None
+
+        self.l3i = None
+        self.l3o = None
+
+        self.update()
+
+    def update(self):
+        """ resets the positions """
+
+        orbit_center = self.camera_gear.get_orbit_center()
+        if not self.l1o:
+            self.l1o = Line1dSolid(
+                thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
+            self.l1o.setRenderAboveAll(True)
+
+        self.l1o.setTailPoint(
+            orbit_center - Vec3(self.crosshair_outer_lines_length/2., 0., 0.))
+        self.l1o.setTipPoint(
+            orbit_center + Vec3(self.crosshair_outer_lines_length/2., 0., 0.))
+
+        if not self.l2o:
+            self.l2o = Line1dSolid(
+                thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
+            self.l2o.setRenderAboveAll(True)
+
+        self.l2o.setTailPoint(
+            orbit_center - Vec3(0., self.crosshair_outer_lines_length/2., 0.))
+        self.l2o.setTipPoint(
+            orbit_center + Vec3(0., self.crosshair_outer_lines_length/2., 0.))
+
+
+        if not self.l3o:
+            self.l3o = Line1dSolid(
+                thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
+            self.l3o.setRenderAboveAll(True)
+
+        self.l3o.setTailPoint(
+            orbit_center - Vec3(0., 0., self.crosshair_outer_lines_length/2.))
+        self.l3o.setTipPoint(
+            orbit_center + Vec3(0., 0., self.crosshair_outer_lines_length/2.))
+
+
+        if not self.l1i:
+            self.l1i = Line1dSolid(
+                thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
+            self.l1i.setRenderAboveAll(True)
+
+        self.l1i.setTailPoint(
+            orbit_center - Vec3(self.crosshair_inner_lines_length/2., 0., 0.))
+        self.l1i.setTipPoint(
+            orbit_center + Vec3(self.crosshair_inner_lines_length/2., 0., 0.))
+
+
+        if not self.l2i:
+            self.l2i = Line1dSolid(
+                thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
+            self.l2i.setRenderAboveAll(True)
+
+        self.l2i.setTailPoint(
+            orbit_center - Vec3(0., self.crosshair_inner_lines_length/2., 0.))
+        self.l2i.setTipPoint(
+            orbit_center + Vec3(0., self.crosshair_inner_lines_length/2., 0.))
+
+
+        if not self.l3i:
+            self.l3i = Line1dSolid(
+                thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
+            self.l3i.setRenderAboveAll(True)
+
+        self.l3i.setTailPoint(
+            orbit_center - Vec3(0., 0., self.crosshair_inner_lines_length/2.))
+        self.l3i.setTipPoint(
+            orbit_center + Vec3(0., 0., self.crosshair_inner_lines_length/2.))
+
+    def remove(self):
+        """ """
+        self.l1i.remove()
+        self.l1o.remove()
+
+        self.l2i.remove()
+        self.l2o.remove()
+
+        self.l3i.remove()
+        self.l3o.remove()

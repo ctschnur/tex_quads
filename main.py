@@ -2,7 +2,7 @@
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel
 from simple_objects import primitives
 from local_utils import math_utils
@@ -60,12 +60,22 @@ class MyApp(ShowBase):
         ob.set_view_to_xy_plane()
         cs = CoordinateSystem(ob)
 
+        self.render_edge_player(ob)
 
-    def thread_loggers_demo():
+        # self.thread_loggers_demo()
+
+    def render_edge_player(self, camera_gear):
+        """ Render the edge player """
+        from plot_utils.edgeplayer import EdgePlayer
+        ep = EdgePlayer(
+            camera_gear, wave_file_path="/home/chris/Desktop/playbacktest.wav")
+
+    def thread_loggers_demo(self):
         # uiThreadLogger
         plot_utils.ui_thread_logger.uiThreadLogger = UIThreadLogger()
 
         ob = Orbiter(base.cam, radius=3.)
+        ob.set_view_to_xy_plane()
         cs = CoordinateSystem(ob)
 
         import time

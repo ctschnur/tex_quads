@@ -210,7 +210,6 @@ class EdgeMouseClicker:
         self.edge_player = edge_player
 
         self.mouse_pressed_and_locked_on_p = None
-        self.state_snapshot_before_pressing = None
 
         # -- register mouse event
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
@@ -227,12 +226,6 @@ class EdgeMouseClicker:
 
         if (isPointBetweenTwoPoints_success, get_hover_points_success) == (True, True):
             self.mouse_pressed_and_locked_on_p = True
-
-        # save a state snapshot (playing/paused/stopped_at_beginning/end, a) before pressing
-
-        self.state_snapshot_before_pressing = self.edge_player.get_state_snapshot()
-
-
 
 
     def get_press_successfully_locked_on(self):
@@ -257,32 +250,22 @@ class EdgeMouseClicker:
 
         if (get_hover_points_success == True and isPointBetweenTwoPoints_success == True
             and self.mouse_pressed_and_locked_on_p == True):
-
             a = self.edge_player.edge_hoverer.get_a_param(c2)
-
-            # -- recover the state snapshot it was in before, just with changed time
-            state_snapshot = self.state_snapshot_before_pressing.copy()
 
             # FIXME: separate EdgePlayer and EdgePlayerState, so that this EdgePlayerState
             # can be edited and assigned separately by calling the appropriate functions
 
-            if state_snapshot["is_stopped_at_beginning"]:
-                # self.edge_player.set_playing(a_to_start_from=a)
-                self.edge_player.set_paused(a_to_set_paused_at=a)
-            elif state_snapshot["is_stopped_at_end"]:
-                self.edge_player.set_playing(a_to_start_from=a)
-            elif state_snapshot["is_playing"]:
-                self.edge_player.set_playing(a_to_start_from=a)
-            elif state_snapshot["is_paused"]:
-                self.edge_player.set_paused(a_to_set_paused_at=a)
+            # if state_snapshot["is_stopped_at_beginning"]:
+            #     # self.edge_player.set_playing(a_to_start_from=a)
+            #     self.edge_player.set_paused(a_to_set_paused_at=a)
+            # elif state_snapshot["is_stopped_at_end"]:
+            #     self.edge_player.set_playing(a_to_start_from=a)
+            # elif state_snapshot["is_playing"]:
+            #     self.edge_player.set_playing(a_to_start_from=a)
+            # elif state_snapshot["is_paused"]:
+            #     self.edge_player.set_paused(a_to_set_paused_at=a)
 
-                self.edge_player.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
-
-            else:
-                print("snapshot matches no valid state, could not be restored!")
-                exit(1)
-
-            self.state_snapshot_before_pressing = None
+            self.edge_player.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
 
         self.mouse_pressed_and_locked_on_p = False
 

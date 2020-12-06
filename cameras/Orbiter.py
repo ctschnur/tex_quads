@@ -18,14 +18,51 @@ from panda3d.core import (
     AmbientLight,
     Point3)
 
+from composed_objects.composed_objects import CrossHair3d
+
+from interactive_tools.event_managers import DragDropEventManager
+
+from local_utils import math_utils
+
+
+class OrbiterVisualAids:
+    """ A set of graphics that helps the orbiter """
+
+    def __init__(self, orbiter):
+        """
+        Args:
+            orbiter : the orbiter object that gets these visual aids """
+        self.orbiter = orbiter
+
+        # self.crosshair = None
+        self.crosshair = CrossHair3d(self.orbiter, lines_length=0.25)
+
+    def on(self):
+        """ show them """
+        if not self.crosshair:
+            self.crosshair = CrossHair3d(self.orbiter)
+
+    def update(self):
+        """ """
+        if self.crosshair:
+            self.crosshair.update()
+
+    def remove(self):
+        """ """
+        if self.crosshair:
+            self.crosshair.remove()
+            self.crosshair = None
+
+
 class OrbiterLens:
     """ an Orbiter instance has an OrbiterLens to zoom
         with orthographic projection (then, the lens has to
         be modified, i.e. the FilmSize) """
+
     def __init__(self,
                  # lookat_position=Vec3(0,0,0),
                  # camera_position=Vec3(5, 5, 2)
-    ):
+                 ):
         self.lens = OrthographicLens()
 
         self.setOrthoLensRange(None, 5.)  # only initially!
@@ -83,18 +120,16 @@ class OrbiterLens:
         return self.width, self.height
 
 
-
-
-
-
 class Orbiter:
-    def __init__(self, camera, radius=2.):
+    def __init__(self, camera, radius=2., enable_visual_aids=True):
         base.disableMouse()
-        self.orbit_center = Vec3(0., 0., 0.)
+
+        self.orbit_center = None
+        self.set_orbit_center(Vec3(0., 0., 0.), not_just_init=False)
+
         self.r = radius
         self.phi = 0.
         self.theta = np.pi/3.
-
 
         # camera stuff
         self.camera = camera
@@ -123,7 +158,8 @@ class Orbiter:
 
         # changing theta
         myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('control-wheel_down', self.handle_control_wheel_down)
+        myDirectObject.accept('control-wheel_down',
+                              self.handle_control_wheel_down)
 
         myDirectObject = DirectObject.DirectObject()
         myDirectObject.accept('control-wheel_up', self.handle_control_wheel_up)
@@ -140,7 +176,6 @@ class Orbiter:
         self.minus_button = KeyboardButton.ascii_key('-')
         # taskMgr.add(self.poll_zoom_plus_minus, 'Zoom')
 
-
         # pressing 1, 3, 7 makes you look straight at the origin from y, x, z axis
         myDirectObject = DirectObject.DirectObject()
         myDirectObject.accept('1', self.set_view_to_xy_plane)
@@ -153,7 +188,6 @@ class Orbiter:
 
         # myDirectObject = DirectObject.DirectObject()
         # myDirectObject.accept('wheel_up', self.handle_wheel_up)
-
 
         # --- fix a point light to the side of the camera
         from panda3d.core import PointLight
@@ -168,6 +202,106 @@ class Orbiter:
         self.alnp = render.attachNewNode(self.alight)
         self.alight.setColor((0.25, 0.25, 0.25, 1))
         render.setLight(self.alnp)
+
+        self.visual_aids = OrbiterVisualAids(self)
+        if enable_visual_aids == True:
+            self.visual_aids.on()
+        else:
+            self.visual_aids.off()
+
+        # TODO: append a drag drop event manager here
+        myDirectObject = DirectObject.DirectObject()
+        myDirectObject.accept('shift-mouse1', self.handle_shift_mouse1  # , extraArgs=[ob]
+                              )
+
+    def handle_shift_mouse1(self):
+        """ """
+        print("handle_shift_mouse1")
+        self.ddem = DragDropEventManager(self)
+
+        # ---- calculate (solely camera and object needed and the recorded mouse position before dragging) the self.p_xy_offset
+        # between -1 and 1 in both x and y
+        mouse_position_before_dragging = base.mouseWatcherNode.getMouse()
+        p_xy_offset = conventions.getFilmSizeCoordinates(
+            -mouse_position_before_dragging[0],
+            -mouse_position_before_dragging[1],
+            p_x_0=0., p_y_0=0.)
+
+        self.ddem.add_on_state_change_function(Orbiter.set_new_panning_orbit_center_from_dragged_mouse,
+                                               args=(self, p_xy_offset, self.get_orbit_center()))
+        self.ddem.init_dragging()
+
+    @staticmethod
+    def set_new_panning_orbit_center_from_dragged_mouse(camera_gear, p_xy_offset, original_orbit_center):
+        """ There is a new mouse position, now
+        Args:
+            camera_gear: camera gear with camera member variable
+            p_xy_offset: the origin point (lies in the camera plane) to which the change point (calculated from the mouse displacement) is being added to """
+
+        v_cam_forward = math_utils.p3d_to_np(render.getRelativeVector(
+            camera_gear.camera, camera_gear.camera.node().getLens().getViewVector()))
+        v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
+        # camera_gear.camera.node().getLens().getViewVector()
+
+        v_cam_up = math_utils.p3d_to_np(render.getRelativeVector(
+            camera_gear.camera, camera_gear.camera.node().getLens().getUpVector()))
+        v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
+
+        r_cam = math_utils.p3d_to_np(camera_gear.camera.getPos())
+
+        e_up = math_utils.p3d_to_np(v_cam_up/np.linalg.norm(v_cam_up))
+
+        e_cross = math_utils.p3d_to_np(
+            np.cross(v_cam_forward/np.linalg.norm(v_cam_forward), e_up))
+
+        # determine the middle origin of the draggable plane (where the plane intersects the camera's forward vector)
+        # r0_middle_origin = math_utils.LinePlaneCollision(v_cam_forward, r0_obj, v_cam_forward, r_cam)
+
+        # print("r0_obj", r0_obj)
+        # print("v_cam_forward", v_cam_forward)
+        # print("v_cam_up", v_cam_up)
+        # print("r_cam", r_cam)
+        # print("e_up", e_up)
+        # print("e_cross", e_cross)
+        # print("r0_middle_origin", r0_middle_origin)
+
+        # -- calculate the bijection between mouse coordinates m_x, m_y and plane coordinates p_x, p_y
+
+        mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
+        # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
+
+        # print("p_xy_offset: ", p_xy_offset)
+
+        p_x, p_y = conventions.getFilmSizeCoordinates(
+            mouse_pos[0], mouse_pos[1], p_xy_offset[0], p_xy_offset[1])
+        # p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], 0., 0.)
+
+        drag_vec = p_x * e_cross + p_y * e_up
+
+        print("px: ", p_x, ", py: ", p_y)
+        print("drag_vec: ", drag_vec)
+
+        # camera_new_pos = camera_original_pos + drag_vec
+        new_orbit_center = original_orbit_center + (-drag_vec)
+
+        # print("original orbit center: ", original_orbit_center)
+        # print("new orbit center: ", new_orbit_center)
+        # print("current orbit center: ", camera_gear.get_orbit_center())
+        camera_gear.set_orbit_center(
+            math_utils.indexable_vec3_to_p3d_Vec3(new_orbit_center))
+        # print("updated orbit center: ", camera_gear.get_orbit_center())
+
+    def toggle_visual_aids(self, p):
+        """
+        Args:
+            p: True or False to enalbe or disable visual aids """
+        if p == True:
+            if self.visual_aids is not None:
+                self.visual_aids = OrbiterVisualAids(self)
+                self.visual_aids.on()
+        else:
+            self.visual_aids.off()
+            self.visual_aids = None
 
     def poll_zoom_plus_minus(self, task):
 
@@ -196,7 +330,6 @@ class Orbiter:
                 self.theta = np.pi - 0.0001
             if self.theta < 0.:
                 self.theta = 0. + 0.0001
-
 
         # keep r positive
         if self.r < 0:
@@ -229,27 +362,53 @@ class Orbiter:
         else:
             r = self.r
 
-        x = (self.orbit_center[0] +
+        orbit_center = self.get_orbit_center()
+        x = (orbit_center[0] +
              self.r * np.sin(theta + offset_theta) * np.cos(phi + offset_phi))
-        y = (self.orbit_center[1] +
+        y = (orbit_center[1] +
              self.r * np.sin(theta + offset_theta) * np.sin(phi + offset_phi))
-        z = (self.orbit_center[2] +
+        z = (orbit_center[2] +
              self.r * np.cos(theta + offset_theta))
 
         return x, y, z
+
+    def set_orbit_center(self, orbit_center, not_just_init=True):
+        """
+        Args:
+           orbit_center: Vec3 for the new orbit center """
+
+        # print(type(orbit_center))
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        if orbit_center is not None:
+            self.orbit_center = orbit_center
+
+        if not_just_init == True:
+            if self.visual_aids:
+                self.visual_aids.update()
+
+            self.set_camera_pos_spherical_coords()
+            self.set_pointlight_pos_spherical_coords()
+
+    def get_orbit_center(self):
+        """ """
+        if self.orbit_center is not None:
+            return self.orbit_center
+
+        else:
+            print("self.orbit_center is None")
+            exit(1)
 
     def set_camera_pos_spherical_coords(self):
         x, y, z = self.get_spherical_coords(prevent_overtop_flipping=True)
         base.cam.setPos(x, y, z)
         self.orbiterLens.setOrthoLensRange(None, self.r + 0.1)
-        base.cam.lookAt(self.orbit_center)
+        base.cam.lookAt(self.get_orbit_center())
         self.run_camera_move_hooks()
-
 
     def set_pointlight_pos_spherical_coords(self):
         x, y, z = self.get_spherical_coords(offset_phi=np.pi/2.)
         self.pl_nodePath.setPos(x, y, z)
-        self.pl_nodePath.lookAt(self.orbit_center)
+        self.pl_nodePath.lookAt(self.get_orbit_center())
 
     def handle_wheel_up(self):
         self.phi = self.phi + 0.05

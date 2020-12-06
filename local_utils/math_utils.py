@@ -10,10 +10,12 @@ def get_R_x(angle):
                      [0, math.cos(angle), -math.sin(angle)],
                      [0, math.sin(angle), math.cos(angle)]])
 
+
 def get_R_y(angle):
     return np.array([[math.cos(angle), 0, math.sin(angle)],
                      [0, 1, 0],
                      [-math.sin(angle), 0, math.cos(angle)]])
+
 
 def get_R_z(angle):
     return np.array([[math.cos(angle), -math.sin(angle), 0],
@@ -24,8 +26,10 @@ def get_R_z(angle):
 def get_R_x_forrowvecs(angle):
     return to_forrowvecs(make_3x3_matrix_affine(get_R_x(angle)))
 
+
 def get_R_y_forrowvecs(angle):
     return to_forrowvecs(make_3x3_matrix_affine(get_R_y(angle)))
+
 
 def get_R_z_forrowvecs(angle):
     return to_forrowvecs(make_3x3_matrix_affine(get_R_z(angle)))
@@ -44,6 +48,7 @@ def make_3x3_matrix_affine(m):
          [m[2][0], m[2][1], m[2][2], 0.],
          [0,       0,       0, 1.]])
 
+
 def to_forrowvecs(m4x4):
     """
     p3d uses internally a different matrix multiplication style
@@ -55,12 +60,14 @@ def to_forrowvecs(m4x4):
     """
     return Mat4(*tuple(np.transpose(m4x4).flatten()))
 
+
 def getScalingMatrix4x4(vx, vy, vz):
     """ in usual math notation convention, not in p3d hardware-optimized convention """
     return np.array([[vx,  0,  0, 0],
                      [0,  vy,  0, 0],
                      [0,   0, vz, 0],
                      [0,   0,  0, 1]])
+
 
 def getTranslationMatrix3d_forrowvecs(bx, by, bz):
     # bx = 0.5
@@ -88,7 +95,7 @@ def LinePlaneCollision(planeNormal, planePoint, rayDirection, rayPoint, epsilon=
 
     ndotu = planeNormal.dot(rayDirection)
     if abs(ndotu) < epsilon:
-            raise RuntimeError("no intersection or line is within plane")
+        raise RuntimeError("no intersection or line is within plane")
 
     w = rayPoint - planePoint
     si = -planeNormal.dot(w) / ndotu
@@ -142,15 +149,22 @@ def p3d_to_np(p3d_3f):
     """ convert a p3d 3-component vector to a numpy 3-component vector """
     return np.array([p3d_3f[0], p3d_3f[1], p3d_3f[2]])
 
+
 def np_to_p3d_Vec3(np_vec3d):
     """ convert a numpy 3-component vector to a p3d 3-component vector"""
     return Vec3(np_vec3d[0], np_vec3d[1], np_vec3d[2])
+
+
+def indexable_vec3_to_p3d_Vec3(indexable_vec3):
+    return Vec3(indexable_vec3[0], indexable_vec3[1], indexable_vec3[2])
+
 
 def cut_vector_down_to_3d(np_vecnd):
     """ drop all higher components
     Args:
         np_vecnd: numpy array of size n """
     return np_vecnd[0:3]
+
 
 def enlarge_vector_to_3d(np_vecnd):
     """ add vector components; default value of new components: 0.
@@ -163,6 +177,7 @@ def enlarge_vector_to_3d(np_vecnd):
     vec = np.zeros(3)
     vec[0:di] = np.vecnd
     return vec
+
 
 def get_3d_vec_from_nd_vec(np_vec_nd):
     """ Either add zeros for new components or cut away components.
@@ -179,9 +194,6 @@ def get_3d_vec_from_nd_vec(np_vec_nd):
     return res
 
 
-
-
-
 def getMat4by4_to_rotate_xhat_to_vector(target_position_vector, a=np.array([1., 0., 0.], dtype=np.float)):
     """ Apply the rodriguez formula to get the rotation matrix to rotate [1., 0., 0.] to an arbitrary position vector """
 
@@ -189,7 +201,8 @@ def getMat4by4_to_rotate_xhat_to_vector(target_position_vector, a=np.array([1., 
     # apply rodriguez formula to rotate the geometrie's given
     # a e.g. = [1, 0, 0] vector to the destination vector v
 
-    target_position_vector = np.array([target_position_vector[0], target_position_vector[1], target_position_vector[2]], dtype=np.float)
+    target_position_vector = np.array(
+        [target_position_vector[0], target_position_vector[1], target_position_vector[2]], dtype=np.float)
     b = target_position_vector
 
     theta = np.arccos(
@@ -221,7 +234,7 @@ def getMat4by4_to_rotate_xhat_to_vector(target_position_vector, a=np.array([1., 
         ], dtype=np.float)
 
         R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
-         + (1. - np.cos(theta)) * np.matmul(A, A))
+             + (1. - np.cos(theta)) * np.matmul(A, A))
     else:
         x = np.cross(a, b) / np.linalg.norm(np.cross(a, b))
 
@@ -232,7 +245,7 @@ def getMat4by4_to_rotate_xhat_to_vector(target_position_vector, a=np.array([1., 
         ], dtype=np.float)
 
         R = (np.identity(3, dtype=np.float) + np.sin(theta) * A
-         + (1. - np.cos(theta)) * np.matmul(A, A))
+             + (1. - np.cos(theta)) * np.matmul(A, A))
 
     R_4by4 = np.array(
         [
@@ -264,10 +277,12 @@ def p3d_mat4_to_math_convention(m):
 def multiply_scalar_with_vec3(scalar, vec3):
     return Vec3(*(scalar * p3d_to_np(vec3)))
 
+
 def getPointsAndPathLengthsAlongPolygonalChain(
         func=(lambda t: np.array([t, t, t])),
         param_interv=np.array([0, 1]),
-        ed_subpath_length=0.25,  # this parameter is key, for each specific curve that's drawn, it has to be changed
+        # this parameter is key, for each specific curve that's drawn, it has to be changed
+        ed_subpath_length=0.25,
         thickness=1.,
         howmany_points=50,
         radius=0.1):
@@ -277,7 +292,8 @@ def getPointsAndPathLengthsAlongPolygonalChain(
 
     # collect all the vertices of the draw_to call where a segment ends. Those are the approximate points I'm looking for
 
-    t = np.linspace(param_interv[0], param_interv[1], num=howmany_points, endpoint=True)
+    t = np.linspace(param_interv[0], param_interv[1],
+                    num=howmany_points, endpoint=True)
     points = np.array([func(ti) for ti in t])
 
     points_finer = []
@@ -299,17 +315,22 @@ def getPointsAndPathLengthsAlongPolygonalChain(
     while True:
         remaining_pp_length = np.linalg.norm(points[ip2] - measure_from_point)
         if remaining_ed_subpath_length <= remaining_pp_length:
-            new_finer_point = measure_from_point + remaining_ed_subpath_length * (points[ip2] - measure_from_point)/np.linalg.norm(points[ip2] - measure_from_point)
+            new_finer_point = measure_from_point + remaining_ed_subpath_length * \
+                (points[ip2] - measure_from_point) / \
+                np.linalg.norm(points[ip2] - measure_from_point)
 
             points_finer.append(new_finer_point)
-            path_lengths.append(np.linalg.norm(points_finer[-1] - points_finer[-2]))
+            path_lengths.append(np.linalg.norm(
+                points_finer[-1] - points_finer[-2]))
 
             measure_from_point = new_finer_point
             remaining_ed_subpath_length = ed_subpath_length
         else:
-            remaining_ed_subpath_length -= np.linalg.norm(points[ip2] - measure_from_point)
+            remaining_ed_subpath_length -= np.linalg.norm(
+                points[ip2] - measure_from_point)
             measure_from_point = points[ip2]
-            if ip2 < len(points) - 1:  # i.e. if it's a len(points) == 2 array, then the max index is 1
+            # i.e. if it's a len(points) == 2 array, then the max index is 1
+            if ip2 < len(points) - 1:
                 ip1 += 1
                 ip2 += 1
             else:
@@ -337,6 +358,7 @@ def get_circle_vertices(num_of_verts=10, radius=1.):
         verts = np.append(verts, np.array([x, y, z]))
 
     return np.reshape(verts, (-1, 3))
+
 
 def equal_up_to_epsilon(num1, num2, epsilon=0.001):
     return np.abs(num1 - num2) <= epsilon

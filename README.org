@@ -12,18 +12,22 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - 3d interactive scratchpad (copy-pasting of images, text, on-screen freehand drawing, collapsable notes, all in 3d)
 
 * Development Notes
+** Integration
+- [ ] uncouple the dragging behaviour of interfaces of edgeplayer and the one for panning in Orbiter (dragging should only be ever triggered in exactly one of them)
 ** Branched Podcast Interface
 - [X] Plot parametric curves
 - [X] Make blender-like side, top, front view (map to number keys)
-- [ ] Make a panning and centering view around selected objects functionality
-- [ ] Plot a dashed parametric curve
+- [ ] Make a panning and centering view around selected objects
+  - [X] crosshair for Orbiter
+  - [X] simple panning in camera plane
+- [X] Plot a dashed parametric curve
 - [X] Draw 2d bezier curve with handles
 *** Force-directed graph plotting
 - [X] draw a graph by using networkx for the layout generation
 - [X] make individual nodes of the graph draggable
 - [ ] implement your own force-direced graph drawing algorithm 
   to optimally distribute the nodes and subnodes
-  - [ ] coulomb interaction of n particles in 3d
+  - [X] implement coulomb interaction of n particles in 3d
     - [X] coulomb interaction of 2 particles in 2d
   - [ ] add infinite potential wells and/or strong damping to confine the nodes (particles)
 *** on-hover cursor for a graph of finite-length edges
@@ -47,7 +51,7 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
   - [ ] optimization: use a thread-safe queue in an additional thread to continuously write back fetched frames. This could be better suited for handling the recording of large audio files and for converting between wave and mp3 before saving. Here, one could would use a callback function (created by pyaudio, in yet another thread), which would ~.put(in_data)~ to a global queue which would then be accessed by another thread to write back larger chunks to an e.g. ~.wav~ file. 
   - [X] cutting away spacebar sounds at beginning/end of recording section
   - [ ] debug ui failing after returning from thread
-- [ ] load and play an external file into an EdgePlayer
+- [ ] *load and play an external file into an EdgePlayer*
   - [X] use pyaudio to play audio in a separate thread
   - [X] Make a loading symbol for threads that are processing in the background
     Make a queue with the naming of the thread (what task is being done) and id, with a loading symbol and an animation of piling up and sliding down. (so that the user can see what's happening in the background, i.e. the loading or saving of an audio file.)
