@@ -1,4 +1,6 @@
-from interactive_tools.dragging_and_dropping import PickableObjectManager, PickablePoint, Dragger, PickablePoint, CollisionPicker, DragAndDropObjectsManager
+from interactive_tools.picking import CollisionPicker, PickableObjectManager
+from interactive_tools.dragging_and_dropping_objects import DragAndDropObjectsManager
+from interactive_tools.pickables import PickablePoint, PickablePointDragger
 
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
 
@@ -205,7 +207,7 @@ class DraggableGraph(Graph):
 
             pt.nodePath.setScale(*(0.9*np.array([0.02, 0.02, 0.02])))
 
-            pt_dragger = Dragger(pt, self.camera_gear)
+            pt_dragger = PickablePointDragger(pt, self.camera_gear)
             pt_dragger.add_on_state_change_function(sayhi)
 
             # use 'optional parameters' to store the current value (at 'save time', vs at call time) (elisp is much better at that)

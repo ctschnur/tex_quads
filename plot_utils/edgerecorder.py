@@ -1,4 +1,6 @@
-from interactive_tools.dragging_and_dropping import PickableObjectManager, PickablePoint, Dragger, PickablePoint, CollisionPicker, DragAndDropObjectsManager
+from interactive_tools.picking import CollisionPicker, PickableObjectManager
+from interactive_tools.dragging_and_dropping_objects import DragAndDropObjectsManager
+from interactive_tools.pickables import PickablePoint, PickablePointDragger
 
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
 

@@ -81,8 +81,7 @@ class MyApp(ShowBase):
         base.disableMouse()
         self.setupWorld()
 
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('mouse1', self.onMouseTask)
+        base.accept('mouse1', self.onMouseTask)
 
         self.setupCollisionObjects()
 

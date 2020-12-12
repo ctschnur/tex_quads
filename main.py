@@ -46,7 +46,6 @@ from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 
 import plot_utils.ui_thread_logger
 
-
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -61,6 +60,10 @@ class MyApp(ShowBase):
         cs = CoordinateSystem(ob)
 
         self.render_edge_player(ob)
+
+        base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
+
+        # base.accept("mouse1", lambda: exec("import ipdb; ipdb.set_trace()"))
 
         # self.thread_loggers_demo()
 

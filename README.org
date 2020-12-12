@@ -13,12 +13,12 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 
 * Development Notes
 ** Integration
-- [ ] uncouple the dragging behaviour of interfaces of edgeplayer and the one for panning in Orbiter (dragging should only be ever triggered in exactly one of them)
 ** Branched Podcast Interface
 - [X] Plot parametric curves
 - [X] Make blender-like side, top, front view (map to number keys)
 - [ ] Make a panning and centering view around selected objects
   - [X] crosshair for Orbiter
+  - [ ] TODO: make rotation out of the top view smooth in Orbiter
   - [X] simple panning in camera plane
 - [X] Plot a dashed parametric curve
 - [X] Draw 2d bezier curve with handles
@@ -26,7 +26,7 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - [X] draw a graph by using networkx for the layout generation
 - [X] make individual nodes of the graph draggable
 - [ ] implement your own force-direced graph drawing algorithm 
-  to optimally distribute the nodes and subnodes
+      to optimally distribute the nodes and subnodes
   - [X] implement coulomb interaction of n particles in 3d
     - [X] coulomb interaction of 2 particles in 2d
   - [ ] add infinite potential wells and/or strong damping to confine the nodes (particles)
@@ -57,8 +57,8 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
     Make a queue with the naming of the thread (what task is being done) and id, with a loading symbol and an animation of piling up and sliding down. (so that the user can see what's happening in the background, i.e. the loading or saving of an audio file.)
     - [X] implement ProcessingBox
     - [X] implement UIThreadLogger (global object) to manage threads display them in the ui
-  - [ ] Implement the naive approach of calculating the edge length from the duration
-    worry about node dragging of nodes in re-merging paths later
+  - [ ] TODO: Implement the naive approach of calculating the edge length from the duration
+        worry about node dragging of nodes in re-merging paths later
   - [ ] show the loading symbol while the wave file is being read and before the events are being registered
   - [ ] implement an approach where a manual parameter ~v2_manual~ can be set (~set_v2_manual~ -> override ~v_dir~), which when defined has precendence in ~get_v2()~ over the ~v2~ calculated from the duration and direction vector. -> vary the weight of the line if it's artificially compressed/elongated
 *** Extend the EdgePlayer to a GraphPlayer made of many edges and one EdgePlayer at a time

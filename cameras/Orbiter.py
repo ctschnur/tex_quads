@@ -150,26 +150,20 @@ class Orbiter:
         from direct.showbase.ShowBase import DirectObject
 
         # changing phi
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('wheel_down', self.handle_wheel_down)
+        base.accept('wheel_down', self.handle_wheel_down)
 
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('wheel_up', self.handle_wheel_up)
+        base.accept('wheel_up', self.handle_wheel_up)
 
         # changing theta
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('control-wheel_down',
+        base.accept('control-wheel_down',
                               self.handle_control_wheel_down)
 
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('control-wheel_up', self.handle_control_wheel_up)
+        base.accept('control-wheel_up', self.handle_control_wheel_up)
 
         # 'changing r' (although that's not what directly changes the 'zoom' in an ortho lens)
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('shift-wheel_up', self.handle_zoom_plus)
+        base.accept('shift-wheel_up', self.handle_zoom_plus)
 
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('shift-wheel_down', self.handle_zoom_minus)
+        base.accept('shift-wheel_down', self.handle_zoom_minus)
 
         # polling for zoom is better than events
         self.plus_button = KeyboardButton.ascii_key('+')
@@ -177,17 +171,14 @@ class Orbiter:
         # taskMgr.add(self.poll_zoom_plus_minus, 'Zoom')
 
         # pressing 1, 3, 7 makes you look straight at the origin from y, x, z axis
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('1', self.set_view_to_xy_plane)
+        base.accept('1', self.set_view_to_xy_plane)
 
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('3', self.set_view_to_yz_plane)
+        base.accept('3', self.set_view_to_yz_plane)
 
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('7', self.set_view_to_xz_plane)
+        base.accept('7', self.set_view_to_xz_plane)
 
-        # myDirectObject = DirectObject.DirectObject()
-        # myDirectObject.accept('wheel_up', self.handle_wheel_up)
+
+        # base.accept('wheel_up', self.handle_wheel_up)
 
         # --- fix a point light to the side of the camera
         from panda3d.core import PointLight
@@ -210,14 +201,13 @@ class Orbiter:
             self.visual_aids.off()
 
         # TODO: append a drag drop event manager here
-        myDirectObject = DirectObject.DirectObject()
-        myDirectObject.accept('shift-mouse1', self.handle_shift_mouse1  # , extraArgs=[ob]
+        base.accept('shift-mouse1', self.handle_shift_mouse1  # , extraArgs=[ob]
                               )
 
     def handle_shift_mouse1(self):
         """ """
         print("handle_shift_mouse1")
-        self.ddem = DragDropEventManager(self)
+        self.ddem = DragDropEventManager()
 
         # ---- calculate (solely camera and object needed and the recorded mouse position before dragging) the self.p_xy_offset
         # between -1 and 1 in both x and y
@@ -278,8 +268,8 @@ class Orbiter:
 
         drag_vec = p_x * e_cross + p_y * e_up
 
-        print("px: ", p_x, ", py: ", p_y)
-        print("drag_vec: ", drag_vec)
+        # print("px: ", p_x, ", py: ", p_y)
+        # print("drag_vec: ", drag_vec)
 
         # camera_new_pos = camera_original_pos + drag_vec
         new_orbit_center = original_orbit_center + (-drag_vec)
@@ -488,3 +478,35 @@ class Orbiter:
         for c_hook in self.camera_move_hooks:
             # run the function
             c_hook()
+
+
+
+class PickablePointDragger(DragDropEventManager):
+    """ a dragger object gets assigned a pickable object, and
+    dragger objects are managed by DragAndDropObjetsManager.
+    it bundles the relevant information about a drag's state """
+    def __init__(self, pickablepoint, *args):
+        self.pickablepoint = pickablepoint
+        # FIXME: figure out a better way than passing the nodePath in here
+        self._dragger_nodePath_handle = pickablepoint.nodePath  # this should only be used after the picking event and when the draggers are searched for the nodepath that was picked
+
+        self.position_before_dragging = None
+
+        DragDropEventManager.__init__(self, *args)
+
+    def get_nodepath_handle_for_dragger(self):
+        return self._dragger_nodePath_handle
+
+    def init_dragging(self):
+        """ save original position """
+
+        r0_obj = math_utils.p3d_to_np(self.pickablepoint.getPos())
+
+        self.position_before_dragging = Vec3(*r0_obj)
+
+        DragDropEventManager.init_dragging(self)
+
+    def end_dragging(self):
+        self.position_before_dragging = None
+
+        DragDropEventManager.end_dragging(self)

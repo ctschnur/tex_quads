@@ -43,11 +43,8 @@ class EdgeHoverer:
         # register event for onmousemove
         self.edge_player = edge_player
         self.camera_gear = camera_gear
-        # self.mouse = mouse
 
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
-        # base.accept('mouse1', self.onPress)
-
 
         self.hoverindicatorpoint = Point3d()
 
@@ -214,12 +211,13 @@ class EdgeMouseClicker:
         # -- register mouse event
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
         base.accept('mouse1', self.on_press)
-        base.accept('mouse1-up', self.on_release)
 
     def on_press(self):
         """ get the t parameter of the active edge (from the edge_hoverer)
             and set the position of the cursor to the time """
         print("on_press")
+
+        base.acceptOnce('mouse1-up', self.on_release)
 
         isPointBetweenTwoPoints_success, get_hover_points_success, *_ = (
             self.get_press_successfully_locked_on())

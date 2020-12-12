@@ -1,4 +1,6 @@
-from interactive_tools.dragging_and_dropping import PickableObjectManager, PickablePoint, Dragger, PickablePoint, CollisionPicker, DragAndDropObjectsManager
+from interactive_tools.picking import CollisionPicker, PickableObjectManager
+from interactive_tools.dragging_and_dropping_objects import DragAndDropObjectsManager
+from interactive_tools.pickables import PickablePoint, PickablePointDragger
 
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
 
@@ -9,7 +11,7 @@ from composed_objects.composed_objects import Vector
 
 from simple_objects.custom_geometry import create_Triangle_Mesh_From_Vertices_and_Indices, createCircle, createColoredUnitQuadGeomNode
 
-# from interactive_tools.dragging_and_dropping import PickableObjectManager
+# from interactive_tools.dragging_and_dropping_objects import PickableObjectManager
 
 from simple_objects.primitives import ParametricLinePrimitive
 from panda3d.core import Vec3, Mat4, Vec4
@@ -100,7 +102,7 @@ class DraggableBezierCurve(BezierCurve):
             pt = PickablePoint(self.pickableObjectManager,
                                pos=Vec3(*p))
 
-            pt_dragger = Dragger(pt, self.camera_gear)
+            pt_dragger = PickablePointDragger(pt, self.camera_gear)
             pt_dragger.add_on_state_change_function(sayhi)
             pt_dragger.add_on_state_change_function(self.updateCurveAfterPointCoordsChanged)
 
