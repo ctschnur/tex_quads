@@ -18,7 +18,6 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - [X] Make blender-like side, top, front view (map to number keys)
 - [ ] Make a panning and centering view around selected objects
   - [X] crosshair for Orbiter
-  - [ ] TODO: make rotation out of the top view smooth in Orbiter
   - [X] simple panning in camera plane
 - [X] Plot a dashed parametric curve
 - [X] Draw 2d bezier curve with handles
