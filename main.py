@@ -56,7 +56,7 @@ class MyApp(ShowBase):
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
         ob = Orbiter(base.cam, radius=3.)
-        ob.set_view_to_xy_plane()
+        # ob.set_view_to_xy_plane()
         cs = CoordinateSystem(ob)
 
         self.render_edge_player(ob)

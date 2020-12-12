@@ -62,9 +62,10 @@ class OrbiterLens:
     def __init__(self,
                  # lookat_position=Vec3(0,0,0),
                  # camera_position=Vec3(5, 5, 2)
+                 camera
                  ):
+        self.camera = camera
         self.lens = OrthographicLens()
-
         self.setOrthoLensRange(None, 5.)  # only initially!
         # ^ the point is to change this interactively
 
@@ -73,7 +74,7 @@ class OrbiterLens:
         # you can also check for the properties of your lens/camera
         print("OrbiterLens: orthographic: ", self.lens.isOrthographic())
         # finally, set the just created Lens() to your main camera
-        base.cam.node().setLens(self.lens)
+        self.camera.node().setLens(self.lens)
 
         # Make sure that what you want to display is within the Lenses box
         # (beware of near and far planes)
@@ -81,9 +82,9 @@ class OrbiterLens:
         # vary doesn't do anything to the displayed content (except maybe
         # hiding it beyond the near/far planes)
 
-        # base.cam.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
+        # self.camera.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
 
-        # base.cam.lookAt(self.orbit_center)  # this manipulates the viewing matrix
+        # self.camera.lookAt(self.orbit_center)  # this manipulates the viewing matrix
 
         # self.set_camera_pos_spherical_coords()
 
@@ -121,6 +122,14 @@ class OrbiterLens:
 
 
 class Orbiter:
+    """ """
+
+    # when flipping over, the eye vector and z-vector are multiplied by -1.
+    # but still, to prevent graphics glitches in the situation where
+    # the lookat vector and view vector are perfectly aligned ("theta = 0"),
+    # theta_epsilon provides a small but visually unnoticeable offset
+    theta_epsilon = 1.0e-10
+
     def __init__(self, camera, radius=2., enable_visual_aids=True):
         base.disableMouse()
 
@@ -138,7 +147,7 @@ class Orbiter:
         self.camera_move_hooks = []  # store function objects
 
         # --- set the lens
-        self.orbiterLens = OrbiterLens()
+        self.orbiterLens = OrbiterLens(camera)
 
         # --- initial setting of the position
         self.set_camera_pos_spherical_coords()
@@ -156,7 +165,7 @@ class Orbiter:
 
         # changing theta
         base.accept('control-wheel_down',
-                              self.handle_control_wheel_down)
+                    self.handle_control_wheel_down)
 
         base.accept('control-wheel_up', self.handle_control_wheel_up)
 
@@ -170,13 +179,10 @@ class Orbiter:
         self.minus_button = KeyboardButton.ascii_key('-')
         # taskMgr.add(self.poll_zoom_plus_minus, 'Zoom')
 
-        # pressing 1, 3, 7 makes you look straight at the origin from y, x, z axis
-        base.accept('1', self.set_view_to_xy_plane)
-
+        # blender-like usage of 1, 3, 7 keys to align views with axes
+        base.accept('1', self.set_view_to_xz_plane)
         base.accept('3', self.set_view_to_yz_plane)
-
-        base.accept('7', self.set_view_to_xz_plane)
-
+        base.accept('7', self.set_view_to_xy_plane)
 
         # base.accept('wheel_up', self.handle_wheel_up)
 
@@ -202,7 +208,7 @@ class Orbiter:
 
         # TODO: append a drag drop event manager here
         base.accept('shift-mouse1', self.handle_shift_mouse1  # , extraArgs=[ob]
-                              )
+                    )
 
     def handle_shift_mouse1(self):
         """ """
@@ -258,7 +264,7 @@ class Orbiter:
         # -- calculate the bijection between mouse coordinates m_x, m_y and plane coordinates p_x, p_y
 
         mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
-        # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
+        # filmsize = self.camera.node().getLens().getFilmSize()  # the actual width of the film size
 
         # print("p_xy_offset: ", p_xy_offset)
 
@@ -306,20 +312,14 @@ class Orbiter:
         return task.cont
 
     def get_spherical_coords(self, offset_r=0., offset_theta=0., offset_phi=0.,
-                             prevent_overtop_flipping=False,
-                             fixed_phi=None, fixed_theta=None, fixed_r=None):
+                             fixed_phi=None, fixed_theta=None, fixed_r=None, get_up_vector=False, get_eye_vector=False, correct_for_camera_setting=False):
+        """ """
         # print("theta = ", self.theta, ", ",
         #       "phi = ", self.phi, ", ",
         #       "r = ", self.r)
 
         # prevent over-the-top flipping
         # self.theta = self.theta % np.pi
-
-        if prevent_overtop_flipping:  # useful for the camera
-            if self.theta > np.pi:
-                self.theta = np.pi - 0.0001
-            if self.theta < 0.:
-                self.theta = 0. + 0.0001
 
         # keep r positive
         if self.r < 0:
@@ -333,6 +333,8 @@ class Orbiter:
         # elif self.phi > 2.*np.pi:
         #     self.phi = self.phi - 2.*np.pi
 
+        on_other_side = self.theta % (2. * np.pi) > np.pi
+
         theta = None
         phi = None
         r = None
@@ -341,6 +343,10 @@ class Orbiter:
             theta = fixed_theta
         else:
             theta = self.theta
+
+        if correct_for_camera_setting == True:
+            if theta % np.pi < Orbiter.theta_epsilon:
+                theta += Orbiter.theta_epsilon
 
         if fixed_phi:
             phi = fixed_phi
@@ -360,7 +366,22 @@ class Orbiter:
         z = (orbit_center[2] +
              self.r * np.cos(theta + offset_theta))
 
-        return x, y, z
+        returnval = [x, y, z]
+
+
+        if get_up_vector == True:
+            if on_other_side == True:
+                returnval.append(Vec3(0., 0., -1))  # -z is up
+            else:
+                returnval.append(Vec3(0., 0., 1.))  # z is up
+
+        if get_eye_vector == True:
+            if on_other_side == True:
+                returnval.append(Vec3(-1., 0., 0.))  # in the case where -z is up, to provide visual consistency when flipping over
+            else:
+                returnval.append(Vec3(1., 0., 0.))  # in the case where z is up
+
+        return returnval
 
     def set_orbit_center(self, orbit_center, not_just_init=True):
         """
@@ -389,10 +410,15 @@ class Orbiter:
             exit(1)
 
     def set_camera_pos_spherical_coords(self):
-        x, y, z = self.get_spherical_coords(prevent_overtop_flipping=True)
-        base.cam.setPos(x, y, z)
+        x, y, z, up_vector, eye_vector = self.get_spherical_coords(get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
+        self.camera.setPos(x, y, z)
+        # self.camera.node().getLens().setViewMat(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1))
+
+        self.camera.node().getLens().setViewMat(
+            Mat4(eye_vector[0], 0, 0, 0, 0, 1, 0, 0, 0, 0, up_vector[2], 0, 0, 0, 0, 1))
+
         self.orbiterLens.setOrthoLensRange(None, self.r + 0.1)
-        base.cam.lookAt(self.get_orbit_center())
+        self.camera.lookAt(self.get_orbit_center())
         self.run_camera_move_hooks()
 
     def set_pointlight_pos_spherical_coords(self):
@@ -410,16 +436,11 @@ class Orbiter:
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
-        # from pandac.PandaModules import KeyboardButton
-        # upArrowIsPressed = base.mouseWatcherNode.isButtonDown(KeyboardButton.up())
-        # wIsPressed = base.mouseWatcherNode.isButtonDown(KeyboardButton.asciiKey("w"))
-
-        # print("wIsPressed: ", wIsPressed)
-
     def set_view_to_xy_plane(self):
         """ set view to the xy plane """
-        self.phi = np.pi/2.
-        self.theta = 0.  # np.pi/2.
+        self.phi = -np.pi/2.
+        self.theta = 0. #  # np.pi/2.
+        # self.theta = Orbiter.theta_epsilon
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
@@ -431,7 +452,8 @@ class Orbiter:
 
     def set_view_to_xz_plane(self):
         self.phi = -np.pi/2.
-        self.theta = 0.
+        self.theta = np.pi/2
+        # self.theta = Orbiter.theta_epsilon
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
@@ -441,9 +463,12 @@ class Orbiter:
         self.set_pointlight_pos_spherical_coords()
 
     def handle_control_wheel_up(self):
+        # print("previous theta: \t", self.theta)
         self.theta = self.theta + 0.05
+        # print("after setting theta: \t", self.theta)
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
+        # print("aftera updating theta: \t", self.theta)
 
     def handle_zoom_plus(self):
         # print("plus pressed")
