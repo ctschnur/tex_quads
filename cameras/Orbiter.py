@@ -478,35 +478,3 @@ class Orbiter:
         for c_hook in self.camera_move_hooks:
             # run the function
             c_hook()
-
-
-
-class PickablePointDragger(DragDropEventManager):
-    """ a dragger object gets assigned a pickable object, and
-    dragger objects are managed by DragAndDropObjetsManager.
-    it bundles the relevant information about a drag's state """
-    def __init__(self, pickablepoint, *args):
-        self.pickablepoint = pickablepoint
-        # FIXME: figure out a better way than passing the nodePath in here
-        self._dragger_nodePath_handle = pickablepoint.nodePath  # this should only be used after the picking event and when the draggers are searched for the nodepath that was picked
-
-        self.position_before_dragging = None
-
-        DragDropEventManager.__init__(self, *args)
-
-    def get_nodepath_handle_for_dragger(self):
-        return self._dragger_nodePath_handle
-
-    def init_dragging(self):
-        """ save original position """
-
-        r0_obj = math_utils.p3d_to_np(self.pickablepoint.getPos())
-
-        self.position_before_dragging = Vec3(*r0_obj)
-
-        DragDropEventManager.init_dragging(self)
-
-    def end_dragging(self):
-        self.position_before_dragging = None
-
-        DragDropEventManager.end_dragging(self)
