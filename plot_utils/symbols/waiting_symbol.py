@@ -42,7 +42,7 @@ class WaitingSymbol:
         self.anim_seq.set_sequence_params(
             duration=self.duration,
             extraArgs=[],
-            update_while_moving_function=self.update,
+            update_function=self.update,
             on_finish_function=self.restart_animation)
 
         self.anim_seq.start()

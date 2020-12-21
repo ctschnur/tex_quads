@@ -32,26 +32,30 @@ class EdgeGraphics:
 
     def set_v_dir(self, v_dir):
         """ direction vector """
-        self._v_dir = v_dir
+        self.v_dir = v_dir
 
     def get_v_dir(self):
-        return self._v_dir
+        """ """
+        return self.v_dir
 
 
-    def set_v1(self, v1):
+    def set_v1(self, v1, update_graphics=True):
         """ set the starting point of the edge
         Args:
         - v1: p3d Vec3 """
         self.v1 = v1
 
-        self.line.setTipPoint(self.v1)
-        self.line.setTailPoint(self.get_v2())
+        if update_graphics == True:
+            # ---
+            self.line.setTipPoint(self.get_v1())
+            self.line.setTailPoint(self.get_v2())
 
-        # call update_while_moving_function manually
-        self.update_while_moving_function(
-            self.state.s_a, *tuple(self.extraArgs))
+            # call update_while_moving_function manually
+            self.update_while_moving_function(
+                self.state.get_s_a(), *tuple(self.extraArgs))
 
     def get_v1(self):
+        """ """
         return self.v1
 
     def set_primary_color(self, primary_color, cursor_color_special=None,

@@ -25,8 +25,10 @@ from plot_utils.edgegraphics import EdgeGraphics
 
 import playback.audiofunctions
 
+from plot_utils.edgestate import EdgeState
 
-class EdgePlayerState:
+
+class EdgePlayerState(EdgeState):
     """ You have an edge, and the states are
         1. stopped at beginning
         2. playing
@@ -37,7 +39,7 @@ class EdgePlayerState:
     add the specific sequence commands after executing the state change functions. """
 
     def __init__(self):
-        # TODO: set predefined initial state
+        EdgeState.__init__(self)
         self.set_stopped_at_beginning()
 
     def set_stopped_at_beginning(self):
@@ -96,10 +98,8 @@ class EdgePlayerState:
               "stopped: ", str(self.stopped), ", ",
               "paused: ", str(self.paused))
 
-
 class EdgePlayer(EdgeGraphics):
     """ Adds the graphics and the p3d sequence operations to the logic of EdgePlayerState """
-
     stopped_at_beginning_primary_color = ((1., 0., 0., 1.), 1)
     stopped_at_beginning_cursor_color = ((1., 0., 0., 1.), 1)
     # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
@@ -127,14 +127,16 @@ class EdgePlayer(EdgeGraphics):
         self.wave_file_path = wave_file_path
 
         # -- do geometry logic
-        self.v1 = Vec3(-.5, -.5, 0.)
-        self._v_dir = None
+        self.v1 = None
+        self.set_v1(Vec3(-.5, -.5, 0.), update_graphics=False)
+
+        self.v_dir = None
         self.set_v_dir(Vec3(1., 1., 0.)/np.linalg.norm(Vec3(1., 1., 0.)))
 
-        self._duration = None  # a relatively high number
-        self.set_duration(1., update_cursor_sequence=False)
+        self.duration = None  # a relatively high number
+        self.set_duration(10., update_cursor_sequence=False)
 
-        self.short_skipping_time_step = 2.  # interactive forward/backward skipping, in seconds
+        self.short_skipping_time_step = 0.5  # interactive forward/backward skipping, in seconds
 
         # -- do graphics stuff
         self.p_c = Point3dCursor(self.get_v1())
@@ -143,9 +145,9 @@ class EdgePlayer(EdgeGraphics):
         self.update_line()
 
         self.primary_color = None
-        self.set_primary_color(
-            self.stopped_at_beginning_primary_color)  # initially
+        self.set_primary_color(self.stopped_at_beginning_primary_color)  # initially
 
+        # ------ events
         # setup the spacebar
         self.space_direct_object = DirectObject.DirectObject()
         self.space_direct_object.accept('space', self.react_to_spacebar)
@@ -165,30 +167,28 @@ class EdgePlayer(EdgeGraphics):
         self.set_short_backward_direct_object = DirectObject.DirectObject()
         self.set_short_backward_direct_object.accept(
             'arrow_left', self.react_to_arrow_left)
-
-        self.extraArgs = [
-            # self.lps_rate,
-            # self._duration,
-            # # self.v1, self._v_dir,
-            # self.p_c
-        ]
+        # ----- events end
 
         # -- do sequence stuff
         # ---- initialize the sequence
 
+
+
         self.cursor_sequence = Sequence()
+
+        self.extraArgs = []
         self.cursor_sequence.set_sequence_params(
             duration=self.get_duration(),
             extraArgs=self.extraArgs,
-            update_while_moving_function=self.update_while_moving_function,
+            update_function=self.update,
             on_finish_function=self.on_finish_cursor_sequence)
 
         # -- init hover and click actions
         self.camera_gear = camera_gear
 
-        self.edge_hoverer = EdgeHoverer(self, self.camera_gear)
+        # self.edge_hoverer = EdgeHoverer(self, self.camera_gear)
 
-        self.edge_mouse_clicker = EdgeMouseClicker(self)
+        # self.edge_mouse_clicker = EdgeMouseClicker(self)
 
         self.state = EdgePlayerState()
 
@@ -198,17 +198,17 @@ class EdgePlayer(EdgeGraphics):
         # this means that the graphics is still being rendered, but no audio actions are performed
         # to debug your routines and uncouple the audio from the graphics, use switches in the
         # state change functions addressing this variable
-        # initiall, self.has_audio_playing_capability = False
-        # but if a wave file has been successfully loaded, set self.has_audio_playing_capability = True
-        self.has_audio_playing_capability = False
+        # initiall, self.audio_loaded = False
+        # but if a wave file has been successfully loaded, set self.audio_loaded = True
+        self.audio_loaded = False
 
         if wave_file_path is not None:
             self.set_and_load_wave_file(self.wave_file_path)
 
-    def set_and_load_wave_file(self, wave_file_path):
+    def set_and_load_wave_file(self, wave_file_path, update_graphics=True):
         """ sets also the duration, i.e. the length of the edge,
             resets the cursor to the beginning """
-        self.has_audio_playing_capability = False
+        self.audio_loaded = False
 
         self.wave_file_path = wave_file_path
 
@@ -217,7 +217,7 @@ class EdgePlayer(EdgeGraphics):
                   self.wave_file_path)
             os._exit(1)
         else:
-            self.has_audio_playing_capability = True
+            self.audio_loaded = True
 
             # proceed to set the length of your edge
             # get the duration of the wave file
@@ -231,29 +231,34 @@ class EdgePlayer(EdgeGraphics):
 
             self.set_duration(durat, update_cursor_sequence=True)
 
-    def update_line(self):
+    def update_line(self, update_graphics=True):
         """ set the line to the appropriate dimensions """
         if self.line is None:
             self.line = Line1dSolid()
 
-        self.line.setTipPoint(self.get_v1())
-        self.line.setTailPoint(self.get_v2())
+        if update_graphics == True:
+            self.line.setTipPoint(self.get_v1())
+            self.line.setTailPoint(self.get_v2())
 
-    def update_while_moving_function(self,
-                                     s_a):
+    def update(self, *args, **kwargs):
+        s_a = args[0]
+        self.state.set_s_a(s_a)  # update s_a
+        self.update_while_moving_function(*args, **kwargs)
+
+    def update_while_moving_function(self, *args, **kwargs):
         """ calculating everything that changes while
         playing """
-        self.state.s_a = s_a  # update s_a
+        # self.state.set_s_a(s_a)  # update s_a
 
         # covered_time = s_a * (s_l/lps_rate)
 
         s_l = self.lps_rate * self.get_duration()
 
-        covered_length = s_l * s_a
+        covered_length = s_l * self.state.get_s_a()
 
         # set cursor point:
         cursor_pos = math_utils.np_to_p3d_Vec3(
-            covered_length * math_utils.p3d_to_np(self._v_dir) +
+            covered_length * math_utils.p3d_to_np(self.get_v_dir()) +
             math_utils.p3d_to_np(self.v1))
 
         self.p_c.setPos(cursor_pos)
@@ -262,7 +267,7 @@ class EdgePlayer(EdgeGraphics):
 
     def set_duration(self, duration, update_cursor_sequence=True):
         """ the logical duration and the sequence's duration are being updated """
-        self._duration = duration
+        self.duration = duration
 
         if update_cursor_sequence == True:
             self.cursor_sequence.set_sequence_params(duration=duration)
@@ -272,7 +277,7 @@ class EdgePlayer(EdgeGraphics):
                 self.cursor_sequence.update_sequence_graphics()
 
     def get_duration(self):
-        return self._duration
+        return self.duration
 
     def react_to_a(self):
         """ unconditionally jump to the beginning and stop """
@@ -326,19 +331,19 @@ class EdgePlayer(EdgeGraphics):
         print("before arrow right")
         print(self)
 
-        self.state.s_a = self.cursor_sequence.get_t()/self.get_duration()
+        self.state.set_s_a(self.cursor_sequence.get_t()/self.get_duration())
 
-        print("self.state.s_a: ", self.state.s_a,
+        print("self.state.get_s_a(): ", self.state.get_s_a(),
               "; self.cursor_sequence.get_t(): ", self.cursor_sequence.get_t())
 
-        calculated_time = (self.state.s_a * self.get_duration() +
+        calculated_time = (self.state.get_s_a() * self.get_duration() +
                            self.short_skipping_time_step)
 
         new_a = calculated_time/self.get_duration()
         print("new_a: ", new_a)
 
         print("; calculated_time: ", calculated_time,
-              "; self.state.s_a: ", self.state.s_a,
+              "; self.state.get_s_a(): ", self.state.get_s_a(),
               "; self.get_duration(): ", self.get_duration(),
               "; self.short_skipping_time_step", self.short_skipping_time_step)
 
@@ -377,12 +382,12 @@ class EdgePlayer(EdgeGraphics):
         print("before arrow left")
         print(self)
 
-        self.state.s_a = self.cursor_sequence.get_t()/self.get_duration()
+        self.state.set_s_a(self.cursor_sequence.get_t()/self.get_duration())
 
-        print("self.state.s_a: ", self.state.s_a,
+        print("self.state.get_s_a(): ", self.state.get_s_a(),
               "; self.cursor_sequence.get_t(): ", self.cursor_sequence.get_t())
 
-        calculated_time = (self.state.s_a * self.get_duration() -
+        calculated_time = (self.state.get_s_a() * self.get_duration() -
                            self.short_skipping_time_step)
 
         if calculated_time < 0.001:  # clamp it so that you can't skip the node
@@ -461,9 +466,9 @@ class EdgePlayer(EdgeGraphics):
         # p3d only really has a finish() function, not a 'stopped at start'
 
         self.cursor_sequence.pause()
-        assert self.state.s_a == 0.
+        assert self.state.get_s_a() == 0.
 
-        self.cursor_sequence.set_t(self.state.s_a * self.get_duration())
+        self.cursor_sequence.set_t(self.state.get_s_a() * self.get_duration())
 
         print("duration: ", self.get_duration())
 
@@ -487,7 +492,7 @@ class EdgePlayer(EdgeGraphics):
             self.cursor_sequence.set_t(a_to_start_from * self.get_duration())
             print("a_to_start_from: ", a_to_start_from)
 
-            if self.has_audio_playing_capability == True:
+            if self.audio_loaded == True:
                 # start the audio thread
                 self.playbacker.do_playback(
                     self.state.is_playing,  # is_playing_query_function,
@@ -495,7 +500,7 @@ class EdgePlayer(EdgeGraphics):
                     self.state.is_playing_stopped,  # is_playing_stopped_query_function,
                     # this possibly needs to be modified,
                     # if scrolling is also a state of is_playing_stopped_query_function
-                    (lambda: self.state.s_a * self.get_duration()),
+                    (lambda: self.state.get_s_a() * self.get_duration()),
                     # play_at_time_query_function,
                     self.wave_file_path)
 
@@ -508,7 +513,7 @@ class EdgePlayer(EdgeGraphics):
             # merely resume, since it is already started (standard state)
             self.cursor_sequence.resume()
 
-        print("s_a: ", self.state.s_a, ", "
+        print("s_a: ", self.state.get_s_a(), ", "
               "duration: ", self.get_duration())
 
         self.set_primary_color(self.playing_primary_color)
@@ -524,6 +529,11 @@ class EdgePlayer(EdgeGraphics):
         self.cursor_sequence.pause()
 
         self.set_primary_color(self.paused_primary_color)
+
+
+    def get_v2(self):
+        return self.v1 + self.get_v_dir() * EdgePlayer.lps_rate * self.get_duration()
+
 
     def remove(self):
         """ removes all
@@ -553,6 +563,3 @@ class EdgePlayer(EdgeGraphics):
 
         self.set_short_backward_direct_object.ignoreAll()
         self.set_short_backward_direct_object.removeAllTasks()
-
-    def get_v2(self):
-        return self.v1 + self._v_dir * EdgePlayer.lps_rate * self.get_duration()

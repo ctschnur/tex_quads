@@ -80,7 +80,7 @@ class ParallelLines:
             line1.nodePath.setPos(0., 0, idx * self.spacing)
 
 
-class Point3dCursor():
+class Point3dCursor:
     """ a white Point3d with a
     black and a white circle aroud it for accentuation """
 

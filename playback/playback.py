@@ -45,12 +45,21 @@ class Playbacker:
         return self._playbacker_thread_done
 
     def do_playback(self,
-                  is_playing_query_function,
-                  is_paused_query_function,
-                  is_playing_stopped_query_function,
+                    is_playing_query_function,
+                    is_paused_query_function,
+                    is_playing_stopped_query_function,
                     play_at_time_query_function,
                     wave_file_path):
-        """ create and start an audio-playback thread """
+        """ at each press of the play button,
+            - open a new thread
+            - assign a set of audio state variables that can be accessed from both threads.
+              - in the rendering thread (which is considered to never be blocked), a task is run monitoring the state of the audio playbacker thread
+                - the actual playback is started only after the setup of the playback is done (playback_setup_done)
+            - open a file for streaming
+
+            - play the file at the time of the cursor
+
+            """
 
         self.wave_file_path = wave_file_path
 

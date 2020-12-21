@@ -46,6 +46,8 @@ from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 
 import plot_utils.ui_thread_logger
 
+from statemachine.statemachine import ExampleStateMachine
+
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -59,9 +61,13 @@ class MyApp(ShowBase):
         # ob.set_view_to_xy_plane()
         cs = CoordinateSystem(ob)
 
-        self.render_edge_player(ob)
+        # self.render_edge_player(ob)
 
         base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
+        # base.acceptOnce("e", lambda: print("hi"))
+
+        esm = ExampleStateMachine(taskMgr, directobject=base)
+        esm.transition_into(esm.state1)
 
         # base.accept("mouse1", lambda: exec("import ipdb; ipdb.set_trace()"))
 

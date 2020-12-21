@@ -199,7 +199,7 @@ class EdgeRecorder(EdgeGraphics):
         self.cursor_sequence.set_sequence_params(
             duration=EdgeRecorder.s_dur,
             extraArgs=self.extraArgs,
-            update_while_moving_function=self.update_while_moving_function,
+            update_function=self.update_while_moving_function,
             on_finish_function=self.on_finish_cursor_sequence)
 
         # --- additional ui stuff ---
@@ -249,7 +249,7 @@ class EdgeRecorder(EdgeGraphics):
         # asked (logical):
         # the length of the line at the covered_time (line always just keeps increasing in size, not separate segments). Time in seconds is extracted from s_a (given)
 
-        self.state.s_a = s_a  # update s_a
+        self.state.set_s_a(s_a) # update s_a
 
         covered_time = s_a * (EdgeRecorder.s_l/EdgePlayer.lps_rate)
         covered_length = EdgeRecorder.s_l * s_a
@@ -331,7 +331,7 @@ class EdgeRecorder(EdgeGraphics):
     def set_recording_finished(self,  # already_at_end=False
                                ):
 
-        s_a_finished = self.state.s_a
+        s_a_finished = self.state.get_s_a()
         self.state.set_recording_finished()
 
         print("set_recording_finished")
@@ -465,7 +465,7 @@ class EdgeRecorder(EdgeGraphics):
 
     def get_v2(self, s_a=None):
         if s_a is None:
-            s_a = self.state.s_a
+            s_a = self.state.get_s_a()
 
         covered_time = s_a * (EdgeRecorder.s_l/EdgePlayer.lps_rate)
         return self.v1 + self.v_dir * EdgePlayer.lps_rate * covered_time

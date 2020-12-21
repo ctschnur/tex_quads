@@ -1,0 +1,16 @@
+Possibly the state machine of the player could be refined with both a EdgePlayerGraphicsState and a EdgePlayerAudioState (generalized interfaces to threads where audio is played / calculations are being done to generate graphics)
+#+BEGIN_SRC python
+class EdgePlayerGraphicsState:
+    """ describes just the state of the graphics.
+        after requesting play, it could be that there needs to be some setup/loading period for
+        the graphics, as well as for the Audio.
+        The object of this class is accessed and modified by 2 'threads' simultaneously:
+        - the main rendering thread (and in the future a graphics calculation thread)
+          loading and updating the graphics (may be delayed due to solving dynamics of the graphics layout)
+        - the task-'thread' overseeing the requests to play/pause/... will
+          - send the requests to setup the resources (audio loading/graphics calculations) to the Playbacker / GraphicsCalculator
+          - receive back 'ready' messages from the thread ((build up a queue of done functions and actions to perform when done, then continually check the first element of that queue))
+          then launch the actions corresponding to the last global change (EdgePlayerState) all at once
+        """
+    pass
+#+END_SRC

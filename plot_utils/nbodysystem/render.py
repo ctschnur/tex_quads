@@ -150,6 +150,6 @@ def draw_nbody_system(self):
                          vs,
                          paths
                      ],
-                     update_while_moving_function=render_nbodysystem)
+                     update_function=render_nbodysystem)
 
     myseq.start()

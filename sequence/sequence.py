@@ -6,7 +6,7 @@ class SequenceState:
     """ a state of a sequence (it can be playing or paused, essentially)
     and has a duration and a playing parameter `a` between 0 and 1 """
     def __init__(self):
-        self.a = None  # this parameter should be set from wihin the update_while_moving_function
+        self.a = None  # this parameter should be set from wihin the update_function
         self.duration = None
         pass
 
@@ -27,7 +27,7 @@ class Sequence:
             **kwargs: passthrough kwargs: see docstring of set_sequence_params """
 
         self.extraArgs = None
-        self.update_while_moving_function = None
+        self.update_function = None
         self.on_finish_function = None
 
         self.p3d_sequence = None
@@ -55,7 +55,7 @@ class Sequence:
         kwars:
         - duration: duration of the p3d sequence in seconds
         - extraArgs: extra arguments that the sequence update function receives
-        - update_while_moving_function: function with signature: (a : parameter in interval between 0 (beginning) and 1 (end), )
+        - update_function: function with signature: (a : parameter in interval between 0 (beginning) and 1 (end), )
         - on_finish_function """
 
         create_lerp_and_seq = True
@@ -72,10 +72,10 @@ class Sequence:
             print("Warning: LerpFunc will not be created yet, self.extraArgs is None")
             create_lerp_and_seq = False
 
-        if 'update_while_moving_function' in kwargs:
-            self.update_while_moving_function = kwargs.get('update_while_moving_function')
-        elif self.update_while_moving_function is None:
-            print("Warning: LerpFunc will not be created yet, self.update_while_moving_function is None")
+        if 'update_function' in kwargs:
+            self.update_function = kwargs.get('update_function')
+        elif self.update_function is None:
+            print("Warning: LerpFunc will not be created yet, self.update_function is None")
             create_lerp_and_seq = False
 
         if 'on_finish_function' in kwargs:
@@ -92,7 +92,7 @@ class Sequence:
 
         if create_lerp_and_seq == True:
             self.p3d_interval = LerpFunc(
-                self.update_while_moving_function,
+                self.update_function,
                 duration=self.state.duration,
                 extraArgs=self.extraArgs)
 
