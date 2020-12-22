@@ -46,7 +46,7 @@ from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 
 import plot_utils.ui_thread_logger
 
-from statemachine.statemachine import ExampleStateMachine
+from statemachine.statemachine import EdgePlayerStateMachine
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -66,8 +66,9 @@ class MyApp(ShowBase):
         base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
         # base.acceptOnce("e", lambda: print("hi"))
 
-        esm = ExampleStateMachine(taskMgr, directobject=base)
-        esm.transition_into(esm.state1)
+        esm = EdgePlayerStateMachine(taskMgr, directobject=base)
+        # esm.transition_into(esm.state1)
+        esm.transition_into(esm.wait_for_loading, next_state_args=("myaudio.wav",))
 
         # base.accept("mouse1", lambda: exec("import ipdb; ipdb.set_trace()"))
 
