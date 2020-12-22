@@ -284,6 +284,23 @@ class StateMachine:
                                   next_state,
                                   next_state_args=args)))))
 
+    def on_arrival_in_state_event(self, foreign_sm, state, next_state, next_state_args=()):
+        """
+        From this SM (self), this function is called to check for transitions of
+        other state machines into one of their states, until the self-SM transitions into
+        another state.
+
+        Args:
+            state: state to check if it was transitioned into
+            foreign_sm: foreign state machine
+        """
+        self.on_bool_event(lambda: equal_states(foreign_sm.get_current_state(),
+                                                state),
+                           next_state,
+                           next_state_args=next_state_args,
+                           # pfunc_register_args_now=(fooplayer,)
+                           )
+
 
 class FooPlayer(StateMachine):
     """ """
@@ -408,13 +425,11 @@ class EdgePlayerStateMachine(StateMachine):
             target=lambda: fooplayer.transition_into(fooplayer.loading), daemon=True)
         playbacker_thread.start()
 
-        # the condition for carrying on to play it
-        self.on_bool_event(lambda fooplayer: equal_states(fooplayer.get_current_state(), FooPlayer.loaded),
-                           self.play, next_state_args=(fooplayer,), pfunc_register_args_now=(fooplayer,))
+        self.on_arrival_in_state_event(fooplayer, FooPlayer.loaded, self.play, next_state_args=(fooplayer,))
 
     def play(self, fooplayer):
         """ """
-        # self.on_bool_event(lambda: equal_states(fooplayer.get_current_state(), FooPlayer.ended), ended)
+        self.on_bool_event(lambda: equal_states(fooplayer.get_current_state(), FooPlayer.ended), ended)
         pass
 
     def ended(self, *opt_args):
