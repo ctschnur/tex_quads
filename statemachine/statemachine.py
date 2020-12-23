@@ -119,6 +119,30 @@ class BoolEvent:
         return task.cont
 
 
+class BatchEvents:
+    """ """
+
+    def __init__(self, state_list, event_lambdas_list):
+        """
+        Args:
+            state_list : a list of states for which the events should be registered
+                         in the same way
+            event_lambdas_list : calls to the events
+        """
+        self.state_list = state_list
+        self.event_lambdas_list = event_lambdas_list
+
+    def register_batch_events(self, in_state):
+        """ """
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        # list_of_qualnames = (list(map(lambda tup: (tup[0].__qualname__, tup[1].__qualname__), zip(self.state_list, self.event_lambdas_list))))
+
+        for state in self.state_list:
+            if equal_states(in_state, state):
+                for func in self.event_lambdas_list:
+                    func()
+
+
 class StateMachine:
     """ """
 
@@ -150,11 +174,39 @@ class StateMachine:
 
         self.events = []
 
+        self._batch_events_list = []
+
         if initial_state is not None:
             self.transition_into(
                 initial_state, next_state_args=initial_state_args)
         else:
             self.transition_into(self._idle)
+
+    def add_batch_events_for_setup(self, batch_events):
+        """ adds them to the list of batch events to be registered every time
+            transition_into is called. It doesn't regsiter or unregister the events
+            on it's own
+        Args:
+            batch_events: an instance of BatchEvents
+        """
+        self._batch_events_list.append(batch_events)
+
+    def remove_batch_events_for_setup(self, batch_events):
+        """ removes them from the list of batch events to be registered every time
+            transition_into is called. It doesn't regsiter or unregister the events
+            on it's own.
+        Args:
+            batch_events: an instance of BatchEvents
+        """
+        self._batch_events_list.remove(batch_events)
+
+    def remove_all_batch_events_for_setup(self):
+        """ removes all batch_events from the list of batch events to be
+            registered every time
+            transition_into is called. It doesn't regsiter or unregister the events
+            on it's own.
+         """
+        self._batch_events_list = []
 
     def quit_main_loop(self):
         """ i.e. die """
@@ -222,6 +274,11 @@ class StateMachine:
 
         self._last_assigned_state_with_args = (next_state, next_state_args)
         next_state(*next_state_args)
+
+        # apply batch events in the order in which they are stored in the lists
+        for batch_events in self._batch_events_list:
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+            batch_events.register_batch_events(next_state)
 
     def _idle(self, *opt_args):
         """ state of doing nothing, waiting for transition_into commands """
@@ -365,29 +422,16 @@ class EdgePlayerStateMachine(StateMachine):
     def __init__(self, *args, **kwargs):
         """ """
         StateMachine.__init__(self, *args, **kwargs)
-
         fooplayer = None
 
-    def state1(self, *opt_args):
+    def not_loaded(self, *opt_args):
         """ """
-        # register events to go to state 2
-        # self.transition_into(self.state2)
-        self.on_key_event("p", self.wait_for_loading)
-
-        # a = ["a"]
-        # b = ["b"]
-        a = Foo(1)
-        b = Foo(2)
+        self.on_key_event("l", self.wait_for_loading)
 
         self.on_bool_event(  # lambda: equal_states(fooplayer.get_current_state(), FooPlayer.loaded)
             lambda: checking(a, b),
             self.state3,  # pfunc_register_args_now=(a, b)
         )
-
-        a.val = 4
-        # a = ["aa"]
-
-        self.transition_into(self.statefoo, next_state_args=(a, b))
 
     def statefoo(self, a, b):
         """ """
@@ -425,11 +469,13 @@ class EdgePlayerStateMachine(StateMachine):
             target=lambda: fooplayer.transition_into(fooplayer.loading), daemon=True)
         playbacker_thread.start()
 
-        self.on_arrival_in_state_event(fooplayer, FooPlayer.loaded, self.play, next_state_args=(fooplayer,))
+        self.on_arrival_in_state_event(
+            fooplayer, FooPlayer.loaded, self.play, next_state_args=(fooplayer,))
 
     def play(self, fooplayer):
         """ """
-        self.on_bool_event(lambda: equal_states(fooplayer.get_current_state(), FooPlayer.ended), ended)
+        self.on_bool_event(lambda: equal_states(
+            fooplayer.get_current_state(), FooPlayer.ended), ended)
         pass
 
     def ended(self, *opt_args):

@@ -48,6 +48,8 @@ import plot_utils.ui_thread_logger
 
 from statemachine.statemachine import EdgePlayerStateMachine
 
+
+
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -66,9 +68,15 @@ class MyApp(ShowBase):
         base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
         # base.acceptOnce("e", lambda: print("hi"))
 
-        esm = EdgePlayerStateMachine(taskMgr, directobject=base)
-        # esm.transition_into(esm.state1)
-        esm.transition_into(esm.wait_for_loading, next_state_args=("myaudio.wav",))
+        # esm = EdgePlayerStateMachine(taskMgr, directobject=base)
+        # # esm.transition_into(esm.state1)
+        # esm.transition_into(esm.wait_for_loading, next_state_args=("myaudio.wav",))
+
+        from playback.playback import PlaybackerSM
+        pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr, directobject=base)
+        # pbsm.transition_into(pbsm.state_load_wav)
+
+
 
         # base.accept("mouse1", lambda: exec("import ipdb; ipdb.set_trace()"))
 
