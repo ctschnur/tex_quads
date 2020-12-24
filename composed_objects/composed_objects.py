@@ -120,6 +120,8 @@ class Point3dCursor:
 
         self._adjust()
 
+
+
     def _adjust(self):
         # TODO: reorient towards the camera
         # TODO: keep it the same size w.r.t. the camera (on zooming)

@@ -47,9 +47,8 @@ class WaitEvent:
 
         self.p3d_sequence = None  # remove the reference
 
-
 class PandaEvent:
-    """ """
+    """ base class only """
 
     def __init__(self, event_str, event_func, directobject):
         """ """
@@ -58,14 +57,34 @@ class PandaEvent:
         self.directobject = directobject
         pass
 
-    def add(self):
-        """ """
-        self.directobject.acceptOnce(self.event_str, self.event_func)
+    # def add(self):
+    #     """ """
+    #     self.directobject.accept(self.event_str, self.event_func)
 
     def remove(self):
         """ """
         self.directobject.ignore(self.event_str)
 
+class PandaEventMultipleTimes(PandaEvent):
+    """ """
+    def __init__(self, *args, **kwargs):
+        """ """
+        PandaEvent.__init__(self, *args, **kwargs)
+
+    def add(self):
+        """ """
+        self.directobject.accept(self.event_str, self.event_func)
+
+class PandaEventOnce(PandaEvent):
+    """ """
+
+    def __init__(self, *args, **kwargs):
+        """ """
+        PandaEvent.__init__(self, *args, **kwargs)
+
+    def add(self):
+        """ """
+        self.directobject.acceptOnce(self.event_str, self.event_func)
 
 class BoolEvent:
     """ a task is registered and querys a testing function for a bool value.
@@ -146,13 +165,11 @@ class BatchEvents:
 class StateMachine:
     """ """
 
-    def __init__(self, taskmgr, directobject=None, internal_name="main_loop", initial_state=None, initial_state_args=()):
-        """ the async_func is the function that represents the main loop of the
-            state machine, e.g. a panda3d task, or a function that is called in
-            a while loop in a thread.
-
-            Args:
-                initial_state: SM's loop is started right away, with initial_state
+    def __init__(self, taskmgr, directobject=None, internal_name="main_loop", initial_state=None,
+                 initial_state_args=()):
+        """
+        Args:
+            initial_state: SM's loop is started right away, with initial_state
         """
 
         # -- registering events
@@ -295,15 +312,28 @@ class StateMachine:
                   self._last_assigned_state_with_args)
             exit(1)
 
-    def on_key_event(self, event_str, next_state, next_state_args=()):
+    def on_key_event_once(self, event_str, next_state, next_state_args=()):
         """ """
         self.add_event(
-            PandaEvent(
+            PandaEventOnce(
                 event_str,
                 lambda next_state=next_state, args=next_state_args: (
                     self.transition_into(
                         next_state,
                         next_state_args=next_state_args)),
+                self.directobject))
+
+    def on_key_event_func(self, event_str, func, func_args=(), func_kwargs=dict()):
+        """
+        this doesn't necessarily transition into a 'next state',
+        but just runs an arbitrary function whenever a key is pressed.
+        Then, after the SM transitions into a new state, the event
+        is cleaned up.
+        """
+        self.add_event(
+            PandaEventMultipleTimes(
+                event_str,
+                lambda func=func, args=func_args, kwargs=func_kwargs: func(*args, **kwargs),
                 self.directobject))
 
     def on_escape(self, *opt_args):
@@ -426,7 +456,7 @@ class EdgePlayerStateMachine(StateMachine):
 
     def not_loaded(self, *opt_args):
         """ """
-        self.on_key_event("l", self.wait_for_loading)
+        self.on_key_event_once("l", self.wait_for_loading)
 
         self.on_bool_event(  # lambda: equal_states(fooplayer.get_current_state(), FooPlayer.loaded)
             lambda: checking(a, b),
@@ -439,8 +469,8 @@ class EdgePlayerStateMachine(StateMachine):
 
     def state2(self, *opt_args):
         """ """
-        self.on_key_event("t", self.state3)
-        self.on_key_event("z", self.state4)
+        self.on_key_event_once("t", self.state3)
+        self.on_key_event_once("z", self.state4)
         # self.on_panda_event("t", self.state3)
         # self.on_panda_event("z", self.state4)
         self.on_wait_event(1, self.state4)
@@ -457,7 +487,7 @@ class EdgePlayerStateMachine(StateMachine):
 
         # as soon as func evaluates to True, go to state5
         # self.on_bool_event(func, self.state5, next_state_args=("myaudio.wav"))
-        # self.on_key_event("p")
+        # self.on_key_event_once("p")
         pass
 
     def wait_for_loading(self, filename):

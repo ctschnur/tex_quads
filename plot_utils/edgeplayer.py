@@ -376,7 +376,8 @@ class EdgePlayer(EdgeGraphics):
     def react_to_arrow_left(self):
         """ arrow_right will either:
         - if calculated time is smaller than duration: advance to a time and change nothing
-        - if calculated time is greater than duration: finish() the sequence and set stopped state
+        - if calculated time is greater than duration: finish() the sequence and set
+          stopped state
         """
 
         print("before arrow left")
@@ -417,48 +418,6 @@ class EdgePlayer(EdgeGraphics):
 
     def on_finish_cursor_sequence(self):
         self.set_stopped_at_end()
-
-    def do_when_stopped(self):
-        """ This function is called at the end of all set_stopped_... functions
-        and has several tasks, e.g.:
-        - terminate the audio playing thread. """
-
-        print("adding the task rendering_while_waiting_for_audio_playback_thread_task")
-
-        taskMgr.add(self.rendering_while_waiting_for_audio_playback_thread_task,
-                    'rendering_while_waiting_for_audio_playback_thread_task',
-                    extraArgs=[s_a_finished],
-                    appendTask=True)
-
-    def rendering_while_waiting_for_audio_playback_thread_task(self, s_a_finished, task):
-        """ This checks if the audio thread has finished.
-        TODO: If it has not properly finished, we need render a warning message. """
-        # make a p3d task to check for the audio playbacker
-        # only after the thread has finihsed, the graphics should be set to indicate
-        # the stopped state
-
-        print("rendering_while_waiting_for_audio_playback_thread_task")
-        print("self.playbacker.is_playbacker_thread_done(): ",
-              self.playbacker.is_playbacker_thread_done())
-
-        if self.playbacker.is_playbacker_thread_done() is None:
-            print("ERR: self.playbacker.is_playbacker_thread_done() is None",
-                  "this task (rendering_while_waiting_for_audio_playback_thread_task)",
-                  "should not even be registered in that situation!")
-            exit(1)
-            # return task.cont
-
-        if self.playbacker.is_playbacker_thread_done() == True:
-            print("wanting to join threads: playback audio thread is done",
-                  "of your audio at",
-                  self.playbacker.wave_file_path)
-
-            return task.done
-        elif self.playbacker.is_playbacker_thread_done() == False:
-            print("wanting to join threads: playbacker thread not yet done")
-            return task.cont
-        else:
-            exit(1)
 
     def set_stopped_at_beginning(self):
         self.state.set_stopped_at_beginning()
@@ -563,3 +522,5 @@ class EdgePlayer(EdgeGraphics):
 
         self.set_short_backward_direct_object.ignoreAll()
         self.set_short_backward_direct_object.removeAllTasks()
+
+

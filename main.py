@@ -72,9 +72,20 @@ class MyApp(ShowBase):
         # # esm.transition_into(esm.state1)
         # esm.transition_into(esm.wait_for_loading, next_state_args=("myaudio.wav",))
 
-        from playback.playback import PlaybackerSM
-        pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr, directobject=base)
+
+        # pbdo = DirectObject.DirectObject()
+        # from playback.playback import PlaybackerSM
+        # pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr, directobject=pbdo)
         # pbsm.transition_into(pbsm.state_load_wav)
+
+
+        from playback.audiofunctions import get_wave_file_duration
+        durat = get_wave_file_duration("/home/chris/Desktop/playbacktest.wav")
+
+        gcdo = DirectObject.DirectObject()
+        from plot_utils.graphickersm import GraphickerSM
+        gcsm = GraphickerSM(durat, taskMgr, directobject=gcdo)
+        gcsm.transition_into(gcsm.state_load_graphics)
 
 
 

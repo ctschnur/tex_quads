@@ -354,6 +354,7 @@ class Playbacker:
         # by calling self.playback.is_playbacker_thread_done()
 
 
+
 class PlaybackerSM(StateMachine):
     """ """
     CHUNK = 1024  # number of bytes in a buffer (a buffer is 'one frame')
@@ -379,8 +380,8 @@ class PlaybackerSM(StateMachine):
                  self.state_stopped_at_end,
                  self.state_play,
                  self.state_pause],
-                [lambda: self.on_key_event("a", self.state_stopped_at_beginning),
-                 lambda: self.on_key_event("e", self.state_stopped_at_end)]))
+                [lambda: self.on_key_event_once("a", self.state_stopped_at_beginning),
+                 lambda: self.on_key_event_once("e", self.state_stopped_at_end)]))
 
     def state_stopped_at_beginning(self, *opt_args):
         """ """
@@ -406,7 +407,7 @@ class PlaybackerSM(StateMachine):
         self.play_thread = threading.Thread(target=self.play, daemon=True)
         self.play_thread.start()
 
-        self.on_key_event("space", self.state_pause)
+        self.on_key_event_once("space", self.state_pause)
 
         # self.on_bool_event(
         #     lambda: not self.play_thread.is_alive(), self.ending_state)
@@ -415,7 +416,7 @@ class PlaybackerSM(StateMachine):
 
     def state_pause(self):
         """ """
-        self.on_key_event("space", self.resume_from_pause_state)
+        self.on_key_event_once("space", self.resume_from_pause_state)
         pass
 
     def ending_state(self):
