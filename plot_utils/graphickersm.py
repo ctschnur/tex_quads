@@ -7,6 +7,11 @@ from composed_objects.composed_objects import Point3dCursor
 
 from panda3d.core import Vec3, Mat4, Vec4
 
+from direct.interval.IntervalGlobal import Wait as P3dWait
+from direct.interval.IntervalGlobal import Sequence as P3dSequence
+
+
+
 import numpy as np
 
 from plot_utils.edgehoverer import EdgeHoverer, EdgeMouseClicker
@@ -112,7 +117,7 @@ class GraphickerSM(StateMachine, EdgeGraphics):
                     # called_from_sm=self.get_controlling_state_machine()
                 )]))
 
-        self.transition_into(self.state_load_graphics)
+        # self.transition_into(self.state_load_graphics)
 
     def get_skipped_time(self, direction=+1):
         """
@@ -192,6 +197,13 @@ class GraphickerSM(StateMachine, EdgeGraphics):
         # self.edge_mouse_clicker = EdgeMouseClicker(self)
 
         self.transition_into(self.state_stopped_at_beginning)
+
+        # import time
+        # time.sleep(2.)
+
+        # P3dSequence(P3dWait(1.)).start()
+
+
 
     def on_finish_cursor_sequence(self):
         self.set_stopped_at_end()

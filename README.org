@@ -12,12 +12,8 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - 3d interactive scratchpad (copy-pasting of images, text, on-screen freehand drawing, collapsable notes, all in 3d)
  
 * Development Notes
-** TODO Integration
-To the transition_into call and to the event calls, add a 
-controlling_sm parameter that by default evaluates to self. 
-Then, when registering the events, check if the 
-controlling_sm is self, or another one. If the ignore_from_sm is the same as self, 
-don't register the event. The same should be done for the transition_into functions. Check from where it is called, and depending on that execute it or not (there is no saving/registering of the direct transition functions)
+** Integration
+TODO: Fix the problem with als
 ** Branched Podcast Interface
 - [X] Plot parametric curves
 - [X] Make blender-like side, top, front view (map to number keys)

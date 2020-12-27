@@ -8,7 +8,11 @@ import threading
 
 import numpy as np
 
+import collections
+
 from interactive_tools.events import Event, WaitEvent, PandaEvent, PandaEventMultipleTimes, PandaEventOnce, BoolEvent
+
+
 
 
 def equal_states(obj1, obj2):
@@ -38,11 +42,13 @@ class StateMachineTransitionIntoCallBundle(StateMachineCallOrEventBundle):
             transition_into_call: a TransitionIntoCall instance """
         StateMachineCallOrEventBundle.__init__(self, *args, **kwargs)
         self.transition_into_call = transition_into_call
+        self.ran = False
         pass
 
     def run(self):
         """ """
         self.transition_into_call.run()
+        self.ran = True
 
 
 class TransitionIntoCall:
@@ -113,6 +119,10 @@ class StateMachine:
 
         self._batch_events_list = []
 
+        self.transition_into_calls_history_queue_length = 5
+        self.transition_into_calls_history_queue = collections.deque([None] * self.transition_into_calls_history_queue_length,
+                                                                     self.transition_into_calls_history_queue_length)
+
 
         initial_state_args = ()
         if initial_state is None:
@@ -128,6 +138,7 @@ class StateMachine:
 
         self._controlling_sm = None
         self.set_controlling_state_machine(controlling_sm)
+
 
     def set_controlling_state_machine(self, controlling_sm):
         """
@@ -221,9 +232,12 @@ class StateMachine:
         # print(self.internal_name, ": t : ", time.time() - self.t0, end='\r')
         return task.cont
 
+    def last_state_function_ran_p(self, last_state_function):
+        """ """
+        return self.transition_into_calls_history_queue[0].transition_into_call.next_state is last_state_function and self.transition_into_calls_history_queue[0].ran == True
+
     def transition_into(self, next_state, next_state_args=(), next_state_kwargs=dict(), called_from_sm=None):
-        """
-        """
+        """ """
 
         transition_into_call = TransitionIntoCall(next_state,
                                                   next_state_args=next_state_args,
@@ -252,8 +266,18 @@ class StateMachine:
             called_from_sm = self
 
         if called_from_sm is self.get_controlling_state_machine():
+            self.transition_into_calls_history_queue.appendleft(state_machine_transition_into_call_bundle)
+
             state_machine_transition_into_call_bundle.run()
             self._last_transition_into_call = transition_into_call
+
+            # TODO: add the controlling state machine to the event bundles and to the events
+            # apply batch events in the order in which they are stored in the lists
+            for batch_events in self._batch_events_list:
+                batch_events.register_batch_events(next_state)
+
+            self.finished_running_transition_into = state_machine_transition_into_call_bundle
+
             print("transition DID run --------- ", transition_into_call,
                   "self: ", self.__class__.__qualname__,
                   "; called_from_sm: ", called_from_sm.__class__.__qualname__,
@@ -264,12 +288,6 @@ class StateMachine:
                   "; called_from_sm: ", called_from_sm.__class__.__qualname__,
                   "; self.get_controlling_state_machine() : ", self.get_controlling_state_machine().__class__.__qualname__)
 
-
-        # TODO: add the controlling state machine to the event bundles and to the events
-
-        # apply batch events in the order in which they are stored in the lists
-        for batch_events in self._batch_events_list:
-            batch_events.register_batch_events(next_state)
 
     def _idle(self, *opt_args):
         """ state of doing nothing, waiting for transition_into commands """
@@ -441,12 +459,40 @@ class EdgePlayerStateMachine(StateMachine):
 
         # self.gcsm.transition_into(self.gcsm.state_load_graphics)
 
-        self.transition_into(self.state_load)
+        # self.transition_into(self.state_load)
 
     def state_load(self, *opt_args):
         """ """
         self.pbsm.transition_into(self.pbsm.state_load_wav, called_from_sm=self)
         self.gcsm.transition_into(self.gcsm.state_load_graphics, called_from_sm=self)
+        print("###: ", self.gcsm.get_current_state())
+
+        self.on_bool_event(
+            lambda: (
+                not self.pbsm.load_thread.is_alive()), self.state_stopped_at_beginning)
+
+    def state_stopped_at_beginning(self, *opt_args):
+        """ """
+        self.pbsm.transition_into(self.pbsm.state_stopped_at_beginning, called_from_sm=self)
+        self.gcsm.transition_into(self.gcsm.state_stopped_at_beginning, called_from_sm=self)
+
+        self.on_key_event_once("space", self.state_play)
+
+    def state_play(self, change_time_to=None):
+        """ """
+        self.pbsm.transition_into(self.pbsm.state_play, called_from_sm=self)
+        self.gcsm.transition_into(self.gcsm.state_play, called_from_sm=self)
+
+        self.on_key_event_once("space", self.state_pause)
+
+
+    def state_pause(self, change_time_to=None):
+        """ """
+        self.pbsm.transition_into(self.pbsm.state_pause, called_from_sm=self)
+        self.gcsm.transition_into(self.gcsm.state_pause, called_from_sm=self)
+
+        self.on_key_event_once("space", self.state_play)
+
 
     # def play(self, fooplayer):
     #     """ """
