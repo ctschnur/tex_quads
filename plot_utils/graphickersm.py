@@ -27,7 +27,7 @@ import playback.audiofunctions
 
 from plot_utils.edgestate import EdgeState
 
-from statemachine.statemachine import StateMachine, BatchEvents
+from statemachine.statemachine import StateMachine, SMBatchEvents
 
 import threading
 
@@ -74,33 +74,43 @@ class GraphickerSM(StateMachine, EdgeGraphics):
         self.state = EdgeState()
 
         self.add_batch_events_for_setup(
-            BatchEvents(
+            SMBatchEvents(
                 [self.state_stopped_at_beginning,
                  self.state_stopped_at_end,
                  self.state_play,
                  self.state_pause],
-                [lambda: self.on_key_event_once("a", self.state_stopped_at_beginning),
-                 lambda: self.on_key_event_once("e", self.state_stopped_at_end)]))
+                [lambda: self.on_key_event_once(
+                    "a", self.state_stopped_at_beginning,
+                    # called_from_sm=self.get_controlling_state_machine()
+                ),
+                 lambda: self.on_key_event_once(
+                     "e", self.state_stopped_at_end,
+                     # called_from_sm=self.get_controlling_state_machine()
+                 )]))
 
 
         self.add_batch_events_for_setup(
-            BatchEvents(
-                [
-                 self.state_play,
+            SMBatchEvents(
+                [self.state_play,
                  self.state_pause],
-                [lambda: self.on_key_event_once("arrow_left",
-                                           self.skip_back_state,
-                                           next_state_args=(self.get_current_state(),))]))
+                [lambda: self.on_key_event_once(
+                    "arrow_left",
+                    self.skip_back_state,
+                    next_state_args=(self.get_current_state(),),
+                    # called_from_sm=self.get_controlling_state_machine()
+                )]))
 
         self.add_batch_events_for_setup(
-            BatchEvents(
-                [
-                 self.state_stopped_at_beginning,
+            SMBatchEvents(
+                [self.state_stopped_at_beginning,
                  self.state_play,
                  self.state_pause],
-                [lambda: self.on_key_event_once("arrow_right",
-                                           self.skip_forward_state,
-                                           next_state_args=(self.get_current_state(),))]))
+                [lambda: self.on_key_event_once(
+                    "arrow_right",
+                    self.skip_forward_state,
+                    next_state_args=(self.get_current_state(),),
+                    # called_from_sm=self.get_controlling_state_machine()
+                )]))
 
         self.transition_into(self.state_load_graphics)
 

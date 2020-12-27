@@ -14,7 +14,7 @@ import sys
 
 import os
 
-from statemachine.statemachine import StateMachine, equal_states, BatchEvents
+from statemachine.statemachine import StateMachine, equal_states, SMBatchEvents
 
 
 class Playbacker:
@@ -375,7 +375,7 @@ class PlaybackerSM(StateMachine):
         self.s_a = None
 
         self.add_batch_events_for_setup(
-            BatchEvents(
+            SMBatchEvents(
                 [self.state_stopped_at_beginning,
                  self.state_stopped_at_end,
                  self.state_play,

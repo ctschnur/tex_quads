@@ -8,137 +8,60 @@ import threading
 
 import numpy as np
 
+from interactive_tools.events import Event, WaitEvent, PandaEvent, PandaEventMultipleTimes, PandaEventOnce, BoolEvent
+
 
 def equal_states(obj1, obj2):
     """ compares e.g. a bound method (of an instance) (a 'state' of a SM)
         to a function """
     return obj1.__qualname__ == obj2.__qualname__
 
+class StateMachineCallOrEventBundle:
+    """ Actions are followed by events occuring or just by transition_into calls
+        which are steered by a particular state machine (internal or external).
+        Alongside an event or a transition_into call, a sm should be bundled, from which
+        that event or transition_into call is triggered """
 
-class Event:
-    """ """
-
-    def __init__(self):
-        """ """
-        pass
-
-
-class WaitEvent:
-    """ """
-
-    def __init__(self, delay_in_seconds, func_at_end=lambda *args: None, func_at_end_args=()):
-        """ """
-        self.p3d_sequence = None
-        self.delay = delay_in_seconds
-        self.func_at_end = func_at_end
-        self.func_at_end_args = func_at_end_args
-        self.p3d_sequence = Sequence(Wait(delay_in_seconds),
-                                     Func(self.func_at_end, *func_at_end_args))
-
-    def add(self):
-        """ """
-        self.p3d_sequence.start()
-
-    def remove(self):
-        """ remove the event from being checked
-            and thus the end function from being executed """
-        if self.p3d_sequence:
-            self.p3d_sequence.pause()  # removes it from the interval manager
-
-        self.p3d_sequence = None  # remove the reference
-
-class PandaEvent:
-    """ base class only """
-
-    def __init__(self, event_str, event_func, directobject):
-        """ """
-        self.event_str = event_str
-        self.event_func = event_func
-        self.directobject = directobject
-        pass
-
-    # def add(self):
-    #     """ """
-    #     self.directobject.accept(self.event_str, self.event_func)
-
-    def remove(self):
-        """ """
-        self.directobject.ignore(self.event_str)
-
-class PandaEventMultipleTimes(PandaEvent):
-    """ """
-    def __init__(self, *args, **kwargs):
-        """ """
-        PandaEvent.__init__(self, *args, **kwargs)
-
-    def add(self):
-        """ """
-        self.directobject.accept(self.event_str, self.event_func)
-
-class PandaEventOnce(PandaEvent):
-    """ """
-
-    def __init__(self, *args, **kwargs):
-        """ """
-        PandaEvent.__init__(self, *args, **kwargs)
-
-    def add(self):
-        """ """
-        self.directobject.acceptOnce(self.event_str, self.event_func)
-
-class BoolEvent:
-    """ a task is registered and querys a testing function for a bool value.
-        once the testing function returns True, the func_at_do_now is executed
-        and the task is removed """
-
-    def __init__(self, pfunc, taskmgr, pfunc_register_args_now=(),
-                 func_at_do_now=lambda *args: None, func_at_do_now_args=()):
+    def __init__(self, called_from_sm=None):
         """
         Args:
-            pfunc: testing function (loading sth in another
-                   thread for example) """
-        self.pfunc_effective = (
-            lambda args=pfunc_register_args_now: pfunc(*args))
-        self.taskmgr = taskmgr
-        self.taskobj = None
+            controlling_sm: state machine which is controlling the call """
+        self.called_from_sm = called_from_sm
+        pass
 
-        self.func_at_do_now = func_at_do_now
-        self.func_at_do_now_args = func_at_do_now_args
 
-    def add(self):
+class StateMachineTransitionIntoCallBundle(StateMachineCallOrEventBundle):
+    """ A StateMachineCallOrEventBundle for transition_into calls """
+    def __init__(self, transition_into_call, *args, **kwargs):
+        """
+        Args:
+            transition_into_call: a TransitionIntoCall instance """
+        StateMachineCallOrEventBundle.__init__(self, *args, **kwargs)
+        self.transition_into_call = transition_into_call
+        pass
+
+    def run(self):
         """ """
-        self.taskobj = self.taskmgr.add(
-            self._task
-            # uponDeath: func is called even if it's removed and not just if it's 'task.done'
-        )
+        self.transition_into_call.run()
 
-    def taskDoneAndExecuteAndRemove(self, *args):
+
+class TransitionIntoCall:
+    """ """
+    def __init__(self, next_state, next_state_args=(), next_state_kwargs=dict()):
         """ """
-        self.func_at_do_now(*self.func_at_do_now_args)
-        self.remove(call_p3d_internal_remove=False)
+        self.next_state = next_state
+        self.next_state_args = next_state_args
+        self.next_state_kwargs = next_state_kwargs
 
-    def remove(self, call_p3d_internal_remove=True):
+    def run(self):
         """ """
-        if call_p3d_internal_remove == True:
-            all_tasks = self.taskmgr.getAllTasks()
-            for task in all_tasks:
-                # assert type(task) == type(self.taskobj)
-                if task == self.taskobj:
-                    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-                    self.taskmgr.remove(self.taskobj)
+        self.next_state(*self.next_state_args, **self.next_state_kwargs)
 
-    def _task(self, task, *extraArgs):
+    def __repr__(self):
         """ """
-        res = self.pfunc_effective()
-        if res == True:
-            # this task is removed from within this function, so that it's return
-            self.taskDoneAndExecuteAndRemove()
-            return task.done        # does this return value matter ?
+        return self.next_state.__name__
 
-        return task.cont
-
-
-class BatchEvents:
+class SMBatchEvents:
     """ """
 
     def __init__(self, state_list, event_lambdas_list):
@@ -153,20 +76,17 @@ class BatchEvents:
 
     def register_batch_events(self, in_state):
         """ """
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-        # list_of_qualnames = (list(map(lambda tup: (tup[0].__qualname__, tup[1].__qualname__), zip(self.state_list, self.event_lambdas_list))))
-
         for state in self.state_list:
             if equal_states(in_state, state):
                 for func in self.event_lambdas_list:
                     func()
 
-
 class StateMachine:
     """ """
 
-    def __init__(self, taskmgr, directobject=None, internal_name="main_loop", initial_state=None,
-                 initial_state_args=()):
+    def __init__(self, taskmgr, directobject=None, internal_name="main_loop",
+                 initial_state=None, initial_state_args=(),
+                 controlling_sm=None):
         """
         Args:
             initial_state: SM's loop is started right away, with initial_state
@@ -185,7 +105,7 @@ class StateMachine:
 
         self.internal_name = internal_name
 
-        self._last_assigned_state_with_args = None
+        self._last_transition_into_call = None
 
         self.t0 = time.time()
 
@@ -193,18 +113,41 @@ class StateMachine:
 
         self._batch_events_list = []
 
-        if initial_state is not None:
-            self.transition_into(
-                initial_state, next_state_args=initial_state_args)
-        else:
-            self.transition_into(self._idle)
+
+        initial_state_args = ()
+        if initial_state is None:
+            initial_state = self._idle
+
+
+        initial_controlling_sm = self
+        self.set_controlling_state_machine(initial_controlling_sm)
+        self.transition_into(initial_state, next_state_args=initial_state_args)
+
+        if controlling_sm is None:
+           controlling_sm = initial_controlling_sm
+
+        self._controlling_sm = None
+        self.set_controlling_state_machine(controlling_sm)
+
+    def set_controlling_state_machine(self, controlling_sm):
+        """
+        Args:
+            controlling_sm: the state machine the transitions and events of
+            which are being executed. This can be an external state machine. By default
+            it is self. """
+
+        self._controlling_sm = controlling_sm
+
+    def get_controlling_state_machine(self):
+        """ """
+        return self._controlling_sm
 
     def add_batch_events_for_setup(self, batch_events):
         """ adds them to the list of batch events to be registered every time
             transition_into is called. It doesn't regsiter or unregister the events
             on it's own
         Args:
-            batch_events: an instance of BatchEvents
+            batch_events: an instance of SMBatchEvents
         """
         self._batch_events_list.append(batch_events)
 
@@ -213,7 +156,7 @@ class StateMachine:
             transition_into is called. It doesn't regsiter or unregister the events
             on it's own.
         Args:
-            batch_events: an instance of BatchEvents
+            batch_events: an instance of SMBatchEvents
         """
         self._batch_events_list.remove(batch_events)
 
@@ -243,10 +186,15 @@ class StateMachine:
             print("WARNING: launch_main_loop: self.main_loop_running ==",
                   self.main_loop_running)
 
-    def add_event(self, event):
+    def add_event(self, event, called_from_sm=None):
         """ """
-        self.events.append(event)
-        event.add()
+        if called_from_sm is None: # if you want to control a subordinate sm, you always have to specify the called_from_sm parameter
+            called_from_sm = self
+
+        if called_from_sm is self.get_controlling_state_machine():
+            self.events.append(event)
+            event.add()
+
 
     def remove_event(self, event):
         """ """
@@ -262,7 +210,7 @@ class StateMachine:
         """ """
         if self._quit_loop == True:
             self.quit_main_loop()
-            return task.doene
+            return task.done
 
         # print(("outside state: \tsolver.t = {0:.2f} " +
         #        "conversion = {1:.2f} ").format(
@@ -273,8 +221,19 @@ class StateMachine:
         # print(self.internal_name, ": t : ", time.time() - self.t0, end='\r')
         return task.cont
 
-    def transition_into(self, next_state, next_state_args=()):
-        """ """
+    def transition_into(self, next_state, next_state_args=(), next_state_kwargs=dict(), called_from_sm=None):
+        """
+        """
+
+        transition_into_call = TransitionIntoCall(next_state,
+                                                  next_state_args=next_state_args,
+                                                  next_state_kwargs=next_state_kwargs)
+
+        state_machine_transition_into_call_bundle = (
+            StateMachineTransitionIntoCallBundle(transition_into_call,
+                                                 self.get_controlling_state_machine())
+        )
+
         # destroy events from potential last state
         for i, event in enumerate(self.events):
             event.remove()
@@ -289,12 +248,27 @@ class StateMachine:
                   "\tentering state: ", next_state.__name__,
                   "\twith arguments: ", next_state_args)
 
-        self._last_assigned_state_with_args = (next_state, next_state_args)
-        next_state(*next_state_args)
+        if called_from_sm is None:
+            called_from_sm = self
+
+        if called_from_sm is self.get_controlling_state_machine():
+            state_machine_transition_into_call_bundle.run()
+            self._last_transition_into_call = transition_into_call
+            print("transition DID run --------- ", transition_into_call,
+                  "self: ", self.__class__.__qualname__,
+                  "; called_from_sm: ", called_from_sm.__class__.__qualname__,
+                  "; self.get_controlling_state_machine() : ", self.get_controlling_state_machine().__class__.__qualname__)
+        else:
+            print("transition NOT run --------- ", transition_into_call,
+                  "self: ", self.__class__.__qualname__,
+                  "; called_from_sm: ", called_from_sm.__class__.__qualname__,
+                  "; self.get_controlling_state_machine() : ", self.get_controlling_state_machine().__class__.__qualname__)
+
+
+        # TODO: add the controlling state machine to the event bundles and to the events
 
         # apply batch events in the order in which they are stored in the lists
         for batch_events in self._batch_events_list:
-            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
             batch_events.register_batch_events(next_state)
 
     def _idle(self, *opt_args):
@@ -305,14 +279,15 @@ class StateMachine:
         """ the current state is actually the last assigned state """
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
-        if self._last_assigned_state_with_args is not None:
-            return self._last_assigned_state_with_args[0]
+        if self._last_transition_into_call is not None:
+            return self._last_transition_into_call.next_state
         else:
-            print("err: self._last_assigned_state_with_args : ",
-                  self._last_assigned_state_with_args)
+            print("err: self._last_transition_into_call : ",
+                  self._last_transition_into_call)
             exit(1)
 
-    def on_key_event_once(self, event_str, next_state, next_state_args=()):
+    def on_key_event_once(self, event_str, next_state, next_state_args=(),
+                          called_from_sm=None):
         """ """
         self.add_event(
             PandaEventOnce(
@@ -321,9 +296,11 @@ class StateMachine:
                     self.transition_into(
                         next_state,
                         next_state_args=next_state_args)),
-                self.directobject))
+                self.directobject),
+            called_from_sm=called_from_sm)
 
-    def on_key_event_func(self, event_str, func, func_args=(), func_kwargs=dict()):
+    def on_key_event_func(self, event_str, func, func_args=(), func_kwargs=dict(),
+                          called_from_sm=None):
         """
         this doesn't necessarily transition into a 'next state',
         but just runs an arbitrary function whenever a key is pressed.
@@ -333,19 +310,23 @@ class StateMachine:
         self.add_event(
             PandaEventMultipleTimes(
                 event_str,
-                lambda func=func, args=func_args, kwargs=func_kwargs: func(*args, **kwargs),
-                self.directobject))
+                lambda func=func, args=func_args, kwargs=func_kwargs: func(
+                    *args, **kwargs),
+                self.directobject),
+            called_from_sm=called_from_sm)
 
     def on_escape(self, *opt_args):
         """ """
         print("on_escape: ")
-        print("self._last_assigned_state_with_args : \n",
-              self._last_assigned_state_with_args)
+        print("self._last_transition_into_call : \n",
+              self._last_transition_into_call)
         # go to an empty state (i.e. unregister all events, ...)
         self.transition_into(lambda *opt_args: None)
+
         self.quit_main_loop()
 
-    def on_wait_event(self, seconds, next_state, next_state_args=()):
+    def on_wait_event(self, seconds, next_state, next_state_args=(),
+                      called_from_sm=None):
         """ """
         self.add_event(
             WaitEvent(seconds,
@@ -353,13 +334,16 @@ class StateMachine:
                           lambda next_state=next_state, args=next_state_args: (
                               self.transition_into(
                                   next_state,
-                                  next_state_args=args)))))
+                                  next_state_args=args))
+                      )),
+            called_from_sm=called_from_sm)
 
     def on_bool_event(self,
                       pfunc,
                       next_state,
                       pfunc_register_args_now=(),
-                      next_state_args=()):
+                      next_state_args=(),
+                      called_from_sm=None):
         """ """
         self.add_event(
             BoolEvent(pfunc,
@@ -369,25 +353,11 @@ class StateMachine:
                           lambda next_state=next_state, args=next_state_args: (
                               self.transition_into(
                                   next_state,
-                                  next_state_args=args)))))
+                                  next_state_args=args))
+                          )),
+        called_from_sm=called_from_sm)
 
-    def on_arrival_in_state_event(self, foreign_sm, state, next_state, next_state_args=()):
-        """
-        From this SM (self), this function is called to check for transitions of
-        other state machines into one of their states, until the self-SM transitions into
-        another state.
-
-        Args:
-            state: state to check if it was transitioned into
-            foreign_sm: foreign state machine
-        """
-        self.on_bool_event(lambda: equal_states(foreign_sm.get_current_state(),
-                                                state),
-                           next_state,
-                           next_state_args=next_state_args,
-                           # pfunc_register_args_now=(fooplayer,)
-                           )
-
+# TODO: check if controlling_state_machines work
 
 class FooPlayer(StateMachine):
     """ """
@@ -449,65 +419,37 @@ class Foo:
 class EdgePlayerStateMachine(StateMachine):
     """ """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, wave_file_path, *args, **kwargs):
         """ """
         StateMachine.__init__(self, *args, **kwargs)
-        fooplayer = None
 
-    def not_loaded(self, *opt_args):
+        self.dobj = base
+
+        from playback.playback import PlaybackerSM
+        from plot_utils.graphickersm import GraphickerSM
+
+        from playback.audiofunctions import get_wave_file_duration
+
+        self.durat = get_wave_file_duration(wave_file_path)
+
+        self.pbsm = PlaybackerSM(wave_file_path, taskMgr, directobject=base,
+                                 controlling_sm=self)
+        # self.pbsm.transition_into(self.pbsm.state_load_wav)
+
+        self.gcsm = GraphickerSM(self.durat, taskMgr, directobject=base,
+                                 controlling_sm=self)
+
+        # self.gcsm.transition_into(self.gcsm.state_load_graphics)
+
+        self.transition_into(self.state_load)
+
+    def state_load(self, *opt_args):
         """ """
-        self.on_key_event_once("l", self.wait_for_loading)
+        self.pbsm.transition_into(self.pbsm.state_load_wav, called_from_sm=self)
+        self.gcsm.transition_into(self.gcsm.state_load_graphics, called_from_sm=self)
 
-        self.on_bool_event(  # lambda: equal_states(fooplayer.get_current_state(), FooPlayer.loaded)
-            lambda: checking(a, b),
-            self.state3,  # pfunc_register_args_now=(a, b)
-        )
-
-    def statefoo(self, a, b):
-        """ """
-        a.val = 5
-
-    def state2(self, *opt_args):
-        """ """
-        self.on_key_event_once("t", self.state3)
-        self.on_key_event_once("z", self.state4)
-        # self.on_panda_event("t", self.state3)
-        # self.on_panda_event("z", self.state4)
-        self.on_wait_event(1, self.state4)
-        # self.on_wait_event(3, self.state5)
-
-        # register events to go back to state 1
-
-    def state3(self, *opt_args):
-        """ """
-        pass
-
-    def state4(self, *opt_args):
-        """ """
-
-        # as soon as func evaluates to True, go to state5
-        # self.on_bool_event(func, self.state5, next_state_args=("myaudio.wav"))
-        # self.on_key_event_once("p")
-        pass
-
-    def wait_for_loading(self, filename):
-        """ """
-        # start the audio loading/playing state machine in a new thread
-        fooplayer = FooPlayer(self.taskmgr)
-
-        playbacker_thread = threading.Thread(
-            target=lambda: fooplayer.transition_into(fooplayer.loading), daemon=True)
-        playbacker_thread.start()
-
-        self.on_arrival_in_state_event(
-            fooplayer, FooPlayer.loaded, self.play, next_state_args=(fooplayer,))
-
-    def play(self, fooplayer):
-        """ """
-        self.on_bool_event(lambda: equal_states(
-            fooplayer.get_current_state(), FooPlayer.ended), ended)
-        pass
-
-    def ended(self, *opt_args):
-        """ """
-        pass
+    # def play(self, fooplayer):
+    #     """ """
+    #     self.on_bool_event(lambda: equal_states(
+    #         fooplayer.get_current_state(), FooPlayer.ended), ended)
+    #     pass
