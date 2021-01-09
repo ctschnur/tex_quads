@@ -268,8 +268,9 @@ class StateMachine:
         if called_from_sm is self.get_controlling_state_machine():
             self.transition_into_calls_history_queue.appendleft(state_machine_transition_into_call_bundle)
 
+            self._last_transition_into_call = transition_into_call  # this does not mean that the state was entered correctly!
             state_machine_transition_into_call_bundle.run()
-            self._last_transition_into_call = transition_into_call
+
 
             # TODO: add the controlling state machine to the event bundles and to the events
             # apply batch events in the order in which they are stored in the lists
