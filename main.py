@@ -78,14 +78,13 @@ class MyApp(ShowBase):
 
         # esm.transition_into(esm.state_load)
 
-        wavseq = WavSequence("/home/chris/Desktop/playbacktest.wav")
-        # wavseq.set_sequence_params()
-        # wavseq.load()
+        wavseq = WavSequence("/home/chris/Desktop/playbacktest.wav", defer_loading=True)
+        wavseq.start_load_thread()
         # import time
         # time.sleep(1.)
         wavseq.start(block_to_join_threads=True, start_paused=True)
         print("HEYY")
-        # wavseq.resume()
+        wavseq.resume()
         print("HEY2")
 
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT

@@ -156,6 +156,8 @@ class WavSequence:
         self.update_function = None
         self.on_finish_function = None
 
+        self.defer_loading = None
+
         self.wf = None
         # TODO: check rb vs r changes the meaning of self.wf.setpos(...)
         self.p = None
@@ -188,7 +190,8 @@ class WavSequence:
         - duration: duration of the p3d sequence in seconds
         - update_function_extra_args: extra arguments that the sequence update function receives
         - update_function: function with signature: (a : parameter in interval between 0 (beginning) and 1 (end), )
-        - on_finish_function """
+        - on_finish_function
+        - defer_loading: if True, don't call self.start_load_thread() after init, but wait and call it manually afterwards. """
 
         create_thread_wf_stream = True
 
@@ -221,16 +224,22 @@ class WavSequence:
             self.on_finish_function = lambda: None
             # FIXME: call this sequence with this transition function: self.transition_into(self.state_stopped_at_end)
 
+        if 'defer_loading' in kwargs:
+            self.defer_loading = kwargs.get('defer_loading')
+        elif self.defer_loading is None:
+            self.defer_loading = False
+
         if self.wf:
             self.wf.stop_stream()
             del self.wf  # remove the reference
 
         if create_thread_wf_stream == True:
-            self.start_load_thread()
+            if self.defer_loading == False:
+                self.start_load_thread()
 
         return self  # in order to
 
-    def load(self):
+    def _load(self):
         """ """
         self.wf = wave.open(self.wave_file_path, 'rb')
         # TODO: check rb vs r changes the meaning of self.wf.setpos(...)
@@ -325,7 +334,7 @@ class WavSequence:
 
     def start_load_thread(self):
         """ loading at the end of init """
-        self.load_thread = threading.Thread(target=self.load, daemon=True)
+        self.load_thread = threading.Thread(target=self._load, daemon=True)
         self.load_thread.start()
         print("- > starting load thread")
 
