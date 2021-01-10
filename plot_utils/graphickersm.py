@@ -100,7 +100,7 @@ class GraphickerSM(StateMachine, EdgeGraphics):
                  self.state_pause],
                 [lambda: self.on_key_event_once(
                     "arrow_left",
-                    self.skip_back_state,
+                    self.state_skip_back,
                     next_state_args=(self.get_current_state(),),
                     # called_from_sm=self.get_controlling_state_machine()
                 )]))
@@ -112,32 +112,10 @@ class GraphickerSM(StateMachine, EdgeGraphics):
                  self.state_pause],
                 [lambda: self.on_key_event_once(
                     "arrow_right",
-                    self.skip_forward_state,
+                    self.state_skip_forward,
                     next_state_args=(self.get_current_state(),),
                     # called_from_sm=self.get_controlling_state_machine()
                 )]))
-
-        # self.transition_into(self.state_load_graphics)
-
-    def get_skipped_time(self, direction=+1):
-        """
-        Args:
-            direction: +- 1, to indicate if backwards or forwards"""
-
-        calculated_time = (self.state.get_s_a() * self.get_duration() + direction *
-                           self.short_skipping_time_step)
-
-        return np.clip(calculated_time, GraphickerSM.t_epsilon, self.get_duration())
-
-    def skip_back_state(self, previous_state):
-        """ """
-        self.transition_into(
-            previous_state, next_state_args=(self.get_skipped_time(direction=-1),))
-
-    def skip_forward_state(self, previous_state):
-        """ """
-        self.transition_into(
-            previous_state, next_state_args=(self.get_skipped_time(direction=+1),))
 
     def state_stopped_at_beginning(self, *opt_args):
         """ """
@@ -202,6 +180,32 @@ class GraphickerSM(StateMachine, EdgeGraphics):
         # time.sleep(2.)
 
         # P3dSequence(P3dWait(1.)).start()
+
+    def get_skipped_time(self, direction=+1):
+        """
+        Args:
+            direction: +- 1, to indicate if backwards or forwards"""
+
+        calculated_time = (self.state.get_s_a() * self.get_duration() + direction *
+                           self.short_skipping_time_step)
+
+        return np.clip(calculated_time, GraphickerSM.t_epsilon, self.get_duration())
+
+
+    # -- skipping begin
+    def state_skip_back(self, previous_state):
+        """ """
+        self.transition_into(
+            previous_state, next_state_args=(self.get_skipped_time(direction=-1),))
+
+    def state_skip_forward(self, previous_state):
+        """ """
+        self.transition_into(
+            previous_state, next_state_args=(self.get_skipped_time(direction=+1),))
+    # -- end
+
+
+
 
 
 

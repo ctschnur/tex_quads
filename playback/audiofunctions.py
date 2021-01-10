@@ -5,6 +5,7 @@ import os
 
 import contextlib
 
+CHUNK = 1024  # number of bytes in a buffer (a buffer is 'one frame')
 
 def get_wave_file_duration(filepath):
     """ get the duration of a .wav file """

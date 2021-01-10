@@ -34,7 +34,7 @@ from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
 
 from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
 
-from sequence.sequence import Sequence
+from sequence.sequence import Sequence, WavSequence
 
 from plot_utils.quad import Quad
 
@@ -78,24 +78,43 @@ class MyApp(ShowBase):
 
         # esm.transition_into(esm.state_load)
 
+        wavseq = WavSequence("/home/chris/Desktop/playbacktest.wav")
+        # wavseq.set_sequence_params()
+        # wavseq.load()
+        # import time
+        # time.sleep(1.)
+        wavseq.start(block_to_join_threads=True, start_paused=True)
+        print("HEYY")
+        # wavseq.resume()
+        print("HEY2")
 
-        # # --------- playbackersm
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+        # duration: duration of the p3d sequence in seconds
+        # - update_function_extra_args: extra arguments that the sequence update function receives
+        # - update_function: function with signature: (a : parameter in interval between 0 (beginning) and 1 (end), )
+        # - on_finish_function
+
+        # --------- playbackersm
+        # TODO: extend playbackersm to include EdgeState and to set/get the time,
+        # use self.state.set_s_a() or self.state.get_s_a()
         # pbdo = DirectObject.DirectObject()
         # from playback.playback import PlaybackerSM
-        # pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr, directobject=pbdo)
+        # pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr,
+        #                     directobject=pbdo)
         # pbsm.transition_into(pbsm.state_load_wav)
-        # # ---------
-
-        # --------- graphickersm
-        from playback.audiofunctions import get_wave_file_duration
-        durat = get_wave_file_duration("/home/chris/Desktop/playbacktest.wav")
-
-        gcdo = DirectObject.DirectObject()
-        from plot_utils.graphickersm import GraphickerSM
-        gcsm = GraphickerSM(durat, taskMgr, directobject=gcdo)
-
-        gcsm.transition_into(gcsm.state_load_graphics)
         # ---------
+
+        # # --------- graphickersm
+        # from playback.audiofunctions import get_wave_file_duration
+        # durat = get_wave_file_duration("/home/chris/Desktop/playbacktest.wav")
+
+        # gcdo = DirectObject.DirectObject()
+        # from plot_utils.graphickersm import GraphickerSM
+        # gcsm = GraphickerSM(durat, taskMgr, directobject=gcdo)
+
+        # gcsm.transition_into(gcsm.state_load_graphics)
+        # # ---------
 
 
         # base.accept("mouse1", lambda: exec("import ipdb; ipdb.set_trace()"))
