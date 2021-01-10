@@ -444,7 +444,7 @@ class EdgePlayerStateMachine(StateMachine):
 
         self.dobj = base
 
-        from playback.playback import PlaybackerSM
+        from playback.playbackersm import PlaybackerSM
         from plot_utils.graphickersm import GraphickerSM
 
         from playback.audiofunctions import get_wave_file_duration

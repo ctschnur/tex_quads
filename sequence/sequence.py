@@ -143,6 +143,7 @@ class Sequence:
         self.p3d_sequence.start()
 
     def finish(self):
+        """ this should implicitly set set_t to duration """
         self.p3d_sequence.finish()
 
 
@@ -262,18 +263,8 @@ class WavSequence:
 
     def default_play_loop_function(self, *args):
         """ named in analogy to p3d sequences update functions """
-        # try:
-        #     if change_time_to is not None:
-        #         self.wf.setpos(self.get_framenumber_from_time(change_time_to))
-        # except wave.Error:
-        #     print("Bad position for start_frame")
-        #     os._exit()
-
         while True:
             if self.playing_p == True:
-
-                self.playing_p == True
-
                 data = self.wf.readframes(playback.audiofunctions.CHUNK)
                 # self.play_session_num_frames += int(len(data)/PlaybackerSM.CHUNK)
 
@@ -281,7 +272,7 @@ class WavSequence:
                 self.set_t(self.get_time_from_framenumber(framenumber))
                 
                 print("TIME from FRAMENUBNMER: ",
-                      self.get_time_from_framenumber(framenumber))
+                      self.get_time_from_framenumber(framenumber), end="\r")
 
                 if len(data) > 0:
                     # write to sound device
@@ -289,12 +280,11 @@ class WavSequence:
                 else:
                     # no data left
                     self.finish()
+                    # None
 
             if self.break_play_loop_p == True:
                 self.finish()
                 break
-
-            # else:
 
             #     # self.transition_into(self.state_stopped_at_end)
             #     # this transition happens from inside the thread! But then the thread finishes
@@ -336,17 +326,33 @@ class WavSequence:
         else:
             print("WARNING: self.wf: ", self.wf)
 
+    def _restart_play_thread_after_loading_and_set_paused(self):
+        """ called in fuctions such as self.pause or self.resume in order to
+        re-enter the play_thread and the while loop, when the while loop
+        had been broken out of before. The set_paused is done implicitly, by setting
+        the self.playing_p variable to False before starting the thread and the
+        while loop """
+        if self.play_thread is None or self.play_thread.is_alive() == False:
+            self.start(start_paused=True, start_paused_at_t=self.state.get_t())
+
     def pause(self):
         """ """
         # stream stopped would not be a pause state
         # the pause state is an idle while loop not writing to the soundcard
-        assert self.wf and self.p and self.play_thread.is_alive() == True  # and self.stream.is_active() == True
+
+        self._restart_play_thread_after_loading_and_set_paused()
+
+        assert self.wf and self.p and self.play_thread.is_alive() == True
+
         self.playing_p = False
         self.break_play_loop_p = False
         print("pause: setting playing_p to ", self.playing_p)
 
     def resume(self):
-        assert self.wf and self.p and self.play_thread.is_alive() == True  # and self.stream.is_active() == True
+        self._restart_play_thread_after_loading_and_set_paused()
+
+        assert self.wf and self.p and self.play_thread.is_alive() == True
+
         self.playing_p = True
         self.break_play_loop_p = False
 
@@ -366,7 +372,7 @@ class WavSequence:
         return res
         # upon load_thread is not alive any more
 
-    def start(self, block_to_join_threads=False, start_paused=False):
+    def start(self, block_to_join_threads=False, start_paused=False, start_paused_at_t=0.):
         """ the sequence needs to be loaded first before it's played using 'start'.
         it can be made sure that it's loaded by waiting for wavseq.load_thread.is_alive() == False in
         an outside state machine and then transitioning """
@@ -395,7 +401,7 @@ class WavSequence:
                                                 args=(self.update_function_extra_args,),
                                                 daemon=True)
             
-            self.set_t(0.)
+            self.set_t(start_paused_at_t)
 
             if self.stream is not None and self.stream.is_active() == False:
                 self.stream.start_stream()
@@ -408,7 +414,7 @@ class WavSequence:
 
     def finish(self):
         """ this function sets variables which are queried in the play loop,
-        run _finish_up_resouces_from_inside_play_loop and end the thread """
+        but does not make the thread end """
 
         self.set_t(self.state.duration)
 
@@ -418,7 +424,7 @@ class WavSequence:
         self.playing_p = False
         self.break_play_loop_p = True
         
-        self._finish_up_resouces_from_inside_play_loop()
+        # self._finish_up_resouces_from_inside_play_loop()
         self.on_finish_function()
 
     def _finish_up_resouces_from_inside_play_loop(self):

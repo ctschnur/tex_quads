@@ -78,17 +78,23 @@ class MyApp(ShowBase):
 
         # esm.transition_into(esm.state_load)
 
-        wavseq = WavSequence("/home/chris/Desktop/playbacktest.wav", defer_loading=True)
-        wavseq.start_load_thread()
-        # import time
-        # time.sleep(1.)
-        wavseq.start(block_to_join_threads=True, start_paused=True)
-        print("HEYY")
-        print("HEY2")
-        wavseq.set_t(2.)
-        wavseq.resume()
+        # wavseq = WavSequence("/home/chris/Desktop/playbacktest.wav", defer_loading=True)
+        # wavseq.start_load_thread()
+        # # import time
+        # # time.sleep(1.)
+        # wavseq.start(block_to_join_threads=True, start_paused=True)
+        # print("HEYY")
+        # print("HEY2")
+        # wavseq.set_t(2.)
+        # wavseq.resume()
+        # print("HEYY")
+        # # wavseq.set_t(1.)
+        # # wavseq.pause()
+        # # wavseq.set_t(3.)
+        # # wavseq.resume()
+
         # print(wavseq.get_t())
-        # wavseq.pause()
+        # # wavseq.pause()
         # wavseq.play_thread.join()
         # print(wavseq.get_t())
 
@@ -103,22 +109,22 @@ class MyApp(ShowBase):
         # --------- playbackersm
         # TODO: extend playbackersm to include EdgeState and to set/get the time,
         # use self.state.set_s_a() or self.state.get_s_a()
-        # pbdo = DirectObject.DirectObject()
-        # from playback.playback import PlaybackerSM
-        # pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr,
-        #                     directobject=pbdo)
-        # pbsm.transition_into(pbsm.state_load_wav)
+        pbdo = DirectObject.DirectObject()
+        from playback.playbackersm import PlaybackerSM
+        pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr,
+                            directobject=pbdo)
+        pbsm.transition_into(pbsm.state_load_wav)
         # ---------
 
         # # --------- graphickersm
-        # from playback.audiofunctions import get_wave_file_duration
-        # durat = get_wave_file_duration("/home/chris/Desktop/playbacktest.wav")
+        from playback.audiofunctions import get_wave_file_duration
+        durat = get_wave_file_duration("/home/chris/Desktop/playbacktest.wav")
 
-        # gcdo = DirectObject.DirectObject()
-        # from plot_utils.graphickersm import GraphickerSM
-        # gcsm = GraphickerSM(durat, taskMgr, directobject=gcdo)
+        gcdo = DirectObject.DirectObject()
+        from plot_utils.graphickersm import GraphickerSM
+        gcsm = GraphickerSM(durat, taskMgr, directobject=gcdo)
 
-        # gcsm.transition_into(gcsm.state_load_graphics)
+        gcsm.transition_into(gcsm.state_load_graphics)
         # # ---------
 
 
