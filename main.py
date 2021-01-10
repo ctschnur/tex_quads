@@ -84,8 +84,14 @@ class MyApp(ShowBase):
         # time.sleep(1.)
         wavseq.start(block_to_join_threads=True, start_paused=True)
         print("HEYY")
-        wavseq.resume()
         print("HEY2")
+        wavseq.set_t(2.)
+        wavseq.resume()
+        # print(wavseq.get_t())
+        # wavseq.pause()
+        # wavseq.play_thread.join()
+        # print(wavseq.get_t())
+
 
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 

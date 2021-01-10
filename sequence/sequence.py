@@ -22,10 +22,19 @@ class SequenceState:
     def set_t(self, t):
         """ """
         assert t <= self.duration
-        self.a = t * self.duration
+        self.a = float(t) / float(self.duration)
 
     def get_t(self):
         """ """
+        # assert 1. <= self.a
+        if self.a > 1.:
+            print("WARNING: self.a > 1.: ", self.a)
+        t = self.a * self.duration
+        # assert t <= self.duration
+        if not (t <= self.duration):
+            print("WARNING: not (t <= self.duration): t: ", t,
+                  ", self.duration: ", self.duration)
+        
         return self.a * self.duration
 
 class Sequence:
@@ -261,25 +270,28 @@ class WavSequence:
         #     os._exit()
 
         while True:
-            if self.playing_p == False:
-                # print("paused", end="\r")
-                continue
+            if self.playing_p == True:
 
-            self.playing_p == True
+                self.playing_p == True
 
-            data = self.wf.readframes(playback.audiofunctions.CHUNK)
-            # self.play_session_num_frames += int(len(data)/PlaybackerSM.CHUNK)
+                data = self.wf.readframes(playback.audiofunctions.CHUNK)
+                # self.play_session_num_frames += int(len(data)/PlaybackerSM.CHUNK)
 
-            framenumber = self.wf.tell()
-            self.set_t(self.get_time_from_framenumber(framenumber))
+                framenumber = self.wf.tell()
+                self.set_t(self.get_time_from_framenumber(framenumber))
+                
+                print("TIME from FRAMENUBNMER: ",
+                      self.get_time_from_framenumber(framenumber))
 
-            if len(data) > 0:
-                # write to sound device
-                self.stream.write(data)
+                if len(data) > 0:
+                    # write to sound device
+                    self.stream.write(data)
+                else:
+                    # no data left
+                    self.finish()
 
             if self.break_play_loop_p == True:
-                self._finish_up_resouces_from_inside_play_loop()
-                self.on_finish_function()
+                self.finish()
                 break
 
             # else:
@@ -299,6 +311,7 @@ class WavSequence:
     def get_t(self):
         """ """
         t_from_state = self.state.get_t()
+        print("from inside get_t: ", t_from_state)
         t = t_from_state
 
         if self.wf:
@@ -313,10 +326,15 @@ class WavSequence:
 
     def set_t(self, t):
         """ """
+        if t > 50.:
+            import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+            
         self.state.set_t(t)
 
         if self.wf:
             self.wf.setpos(self.get_framenumber_from_time(t))
+        else:
+            print("WARNING: self.wf: ", self.wf)
 
     def pause(self):
         """ """
@@ -391,8 +409,17 @@ class WavSequence:
     def finish(self):
         """ this function sets variables which are queried in the play loop,
         run _finish_up_resouces_from_inside_play_loop and end the thread """
+
+        self.set_t(self.state.duration)
+
+        print("set_t in finish: ", self.state.duration)
+        print("get_t immediately afterwards: ", self.get_t())
+        
         self.playing_p = False
         self.break_play_loop_p = True
+        
+        self._finish_up_resouces_from_inside_play_loop()
+        self.on_finish_function()
 
     def _finish_up_resouces_from_inside_play_loop(self):
         """ """
