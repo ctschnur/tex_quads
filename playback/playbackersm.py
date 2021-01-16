@@ -18,8 +18,6 @@ import numpy as np
 
 from statemachine.statemachine import StateMachine, equal_states, SMBatchEvents
 
-from plot_utils.edgestate import EdgeState
-
 from sequence.sequence import WavSequence
 
 class PlaybackerSM(StateMachine):
@@ -46,8 +44,6 @@ class PlaybackerSM(StateMachine):
         self.short_skipping_time_step = 0.5
 
         self.play_thread = None
-
-        self.state = EdgeState()
 
         self.add_batch_events_for_setup(
             SMBatchEvents(

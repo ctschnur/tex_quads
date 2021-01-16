@@ -46,20 +46,20 @@ TODO: Fix the problem with als
 - [X] record an audio file using python
   - [X] using pyaudio, which produces a ~.wav~ file
 - [X] implement audio recording parallel to ui
-- [ ] implement audio playback parallel to ui
+- [-] implement audio playback parallel to ui
   - [ ] optimization: use a thread-safe queue in an additional thread to continuously write back fetched frames. This could be better suited for handling the recording of large audio files and for converting between wave and mp3 before saving. Here, one could would use a callback function (created by pyaudio, in yet another thread), which would ~.put(in_data)~ to a global queue which would then be accessed by another thread to write back larger chunks to an e.g. ~.wav~ file. 
   - [X] cutting away spacebar sounds at beginning/end of recording section
 - [ ] *load and play an external file into an EdgePlayer*
-  - [ ] make EdgePlayerSM (state machine) and call the routines of PlaybackerSM and GraphickerSM from inside of there
-  - [ ] implement mouse hovering and pickig in the EdgePlayerSM
+  - [X] make EdgePlayerSM (state machine) and call the routines of PlaybackerSM and GraphickerSM from inside of there
+  - [X] implement mouse hovering and pickig in the EdgePlayerSM
   - [X] use pyaudio to play audio in a separate thread
   - [X] Make a loading symbol for threads that are processing in the background
-    Make a queue with the naming of the thread (what task is being done) and id, with a loading symbol and an animation of piling up and sliding down. (so that the user can see what's happening in the background, i.e. the loading or saving of an audio file.)
     - [X] implement ProcessingBox
     - [X] implement UIThreadLogger (global object) to manage threads display them in the ui
-  - [ ] TODO: Implement the naive approach of calculating the edge length from the duration; worry about node dragging of nodes in re-merging paths later
+  - [X] Implement the naive approach of calculating the edge length from the duration; worry about node dragging of nodes in re-merging paths later
+  - [ ] implement an approach where a manual parameter ~v2_manual~ can be set (~set_v2_manual~ -> override ~v_dir~), which when defined has precendence in ~get_v2()~ over the ~v2~ calculated from the duration and direction vector.
+  - [ ] make an interactive way of scaling the length of an edgeplayer (i.e. vary the weight of the line (thicker in the middle than on the borders) if it's artificially compressed/elongated) (e.g. hold shift and drag over a square appearing above the player)
   - [ ] show the loading symbol while the wave file is being read and before the events are being registered
-  - [ ] implement an approach where a manual parameter ~v2_manual~ can be set (~set_v2_manual~ -> override ~v_dir~), which when defined has precendence in ~get_v2()~ over the ~v2~ calculated from the duration and direction vector. -> vary the weight of the line if it's artificially compressed/elongated
 *** Extend the EdgePlayer to a GraphPlayer made of many edges and one EdgePlayer at a time
 *** implement expanding subspaces
 select a node press expand -> show the lastest connection but hide everything else

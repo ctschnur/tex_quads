@@ -9,7 +9,7 @@ from panda3d.core import Vec3, Mat4, Vec4
 
 import numpy as np
 
-from plot_utils.edgehoverer import EdgeHoverer, EdgeMouseClicker
+from plot_utils.edgemousetools import EdgeHoverer, EdgeMouseClicker
 
 from local_utils import math_utils
 
@@ -24,8 +24,6 @@ import inspect
 from plot_utils.edgegraphics import EdgeGraphics
 
 import playback.audiofunctions
-
-from plot_utils.edgestate import EdgeState
 
 from statemachine.statemachine import StateMachine
 
@@ -42,10 +40,7 @@ class EdgePlayerSM(StateMachine):
         """ """
         StateMachine.__init__(self, *args, **kwargs)
 
-
         # # --------- playbackersm
-        # # TODO: extend playbackersm to include EdgeState and to set/get the time,
-        # # use self.state.set_s_a() or self.state.get_s_a()
         # pbdo = DirectObject.DirectObject()
         # from playback.playbackersm import PlaybackerSM
         # pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr,
@@ -76,8 +71,30 @@ class EdgePlayerSM(StateMachine):
                                  controlling_sm=self)
         # self.pbsm.transition_into(self.pbsm.state_load_wav)
 
+        def on_valid_press_func(a):
+            """ """
+            time = a * self.get_duration()
+
+            cond1 = math_utils.equal_up_to_epsilon(self.get_t(), time, epsilon=0.01)
+            # print("COND: ", cond1, ", :", self.get_t(), time)
+            # if cond1 and (self.get_current_state() == self.state_play or self.get_current_state() == self.state_pause):
+            #     return
+
+            # print("HEYY a: ", a, "set time to: ", time)
+
+            next_state = None
+            current_state = self.get_current_state()
+            if current_state != self.state_play:
+                next_state = self.state_pause
+            else:
+                next_state = current_state
+
+            self.transition_into(
+                next_state, next_state_args=(time,))
+
         self.gcsm = GraphickerSM(self.duration, taskMgr, directobject=base,
-                                 controlling_sm=self, camera_gear=camera_gear)
+                                 controlling_sm=self, camera_gear=camera_gear,
+                                 on_valid_press_func=on_valid_press_func)
 
         # self.gcsm.transition_into(self.gcsm.state_load_graphics)
 
@@ -187,7 +204,7 @@ class EdgePlayerSM(StateMachine):
     def get_t(self):
         """ """
         tp = self.pbsm.wav_sequence.get_t()
-        tg = self.gcsm.cursor_sequence.get_t()
+        tg = self.gcsm.edge_graphics.cursor_sequence.get_t()
 
         # assert not math_utils.equal_up_to_epsilon(tp, tg, epsilon=0.005)
 

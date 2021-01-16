@@ -33,7 +33,7 @@ from interactive_tools import cameraray
 
 from functools import partial
 
-from plot_utils.edgehoverer import EdgeHoverer, EdgeMouseClicker
+from plot_utils.edgemousetools import EdgeHoverer, EdgeMouseClicker
 
 from direct.interval.IntervalGlobal import Wait, Sequence, Func
 from direct.interval.LerpInterval import LerpFunc

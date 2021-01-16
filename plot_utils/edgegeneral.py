@@ -9,7 +9,7 @@ from panda3d.core import Vec3, Mat4, Vec4
 
 import numpy as np
 
-from plot_utils.edgehoverer import EdgeHoverer, EdgeMouseClicker
+from plot_utils.edgemousetools import EdgeHoverer, EdgeMouseClicker
 
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval

@@ -39,9 +39,10 @@ class EdgeHoverer:
         mouse shift recalculate the new situation,
         i.e. either show a connecting line or not. """
 
-    def __init__(self, edge_player, camera_gear):
+    def __init__(self, edge_graphics, camera_gear):
+        """ """
         # register event for onmousemove
-        self.edge_player = edge_player
+        self.edge_graphics = edge_graphics
         self.camera_gear = camera_gear
 
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
@@ -78,9 +79,9 @@ class EdgeHoverer:
         e1 = ray_direction
 
         # -- check if this line qualifies to render a hover cursor
-        r2 = self.edge_player.v1
+        r2 = self.edge_graphics.v1
         edge_p1 = r2
-        edge_p2 = self.edge_player.get_v2()
+        edge_p2 = self.edge_graphics.get_v2()
         e2 = edge_p2 - edge_p1  # direction vector for edge infinite straight line
         d = np.abs(math_utils.shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2))
         c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
@@ -94,9 +95,9 @@ class EdgeHoverer:
         FIXME: replace getTail/TipPoints with other stuff. """
         t = 1. - (
             np.linalg.norm(
-                self.edge_player.line.getTailPoint() - math_utils.np_to_p3d_Vec3(c2)) /
+                self.edge_graphics.line.getTailPoint() - math_utils.np_to_p3d_Vec3(c2)) /
             np.linalg.norm(
-                self.edge_player.line.getTailPoint() - self.edge_player.line.getTipPoint()))
+                self.edge_graphics.line.getTailPoint() - self.edge_graphics.line.getTipPoint()))
         return t
 
     def render_hints(self):
@@ -120,7 +121,7 @@ class EdgeHoverer:
                 self.time_label.setPos(*(ray_aufpunkt + ray_direction * 1.))
 
                 a = self.get_a_param(c2)
-                t = a * self.edge_player.get_duration()
+                t = a * self.edge_graphics.get_duration_func()
 
                 self.time_label.setText("t = {0:.2f}, a = {1:.2f}".format(t, a))
                 self.time_label.update()
@@ -130,7 +131,7 @@ class EdgeHoverer:
 
                 # on hover, change the color to be
                 # darker than otherwise
-                primary_color = self.edge_player.get_primary_color()
+                primary_color = self.edge_graphics.get_primary_color()
 
                 darkening_factor = 0.5
                 new_rgb_v3 = np.array([
@@ -140,12 +141,12 @@ class EdgeHoverer:
                 new_color = ((new_rgb_v3[0], new_rgb_v3[1], new_rgb_v3[2], 1.), 1)
 
                 # when hovered-over
-                self.edge_player.set_primary_color(new_color,
+                self.edge_graphics.set_primary_color(new_color,
                                                    change_logical_primary_color=False)
             else:
                 self.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))  # when not hovered-over
 
-                self.edge_player.set_primary_color(self.edge_player.get_primary_color())
+                self.edge_graphics.set_primary_color(self.edge_graphics.get_primary_color())
 
                 self.shortest_distance_line.nodePath.hide()
                 self.time_label.textNodePath.hide()
@@ -160,7 +161,7 @@ class EdgeHoverer:
             d_min_point = None
             closestpoint = None
 
-            playerline_limiting_positions = [self.edge_player.get_v1(), self.edge_player.get_v2()]
+            playerline_limiting_positions = [self.edge_graphics.get_v1(), self.edge_graphics.get_v2()]
 
             for pos in playerline_limiting_positions:
                 d = np.linalg.norm(
@@ -203,10 +204,18 @@ class EdgeMouseClicker:
     """ encapsulates the resources one needs for holding down the mouse and dragging
         the cursor along a single edge. """
 
-    def __init__(self, edge_player):
-        self.edge_player = edge_player
+    def __init__(self, edge_graphics, edge_hoverer, on_valid_press_func):
+        """
+        Args:
+            on_valid_press_func : a function that is triggered if a valid press was registered;
+              with signature on_valid_press_func(a), where a is a parameter between 0 and 1"""
+        self.edge_graphics = edge_graphics
+        self.edge_hoverer = edge_hoverer
+        self.on_valid_press_func = on_valid_press_func
 
         self.mouse_pressed_and_locked_on_p = None
+
+        self.previous_a_when_locked_on = None
 
         # -- register mouse event
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
@@ -225,11 +234,10 @@ class EdgeMouseClicker:
         if (isPointBetweenTwoPoints_success, get_hover_points_success) == (True, True):
             self.mouse_pressed_and_locked_on_p = True
 
-
     def get_press_successfully_locked_on(self):
-        
+        """ """
         get_hover_points_success, ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2 = (
-            self.edge_player.edge_hoverer.get_hover_points())
+            self.edge_hoverer.get_hover_points())
 
         if get_hover_points_success == True:
             isPointBetweenTwoPoints_success = math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1)
@@ -248,34 +256,24 @@ class EdgeMouseClicker:
 
         if (get_hover_points_success == True and isPointBetweenTwoPoints_success == True
             and self.mouse_pressed_and_locked_on_p == True):
-            a = self.edge_player.edge_hoverer.get_a_param(c2)
+            a = self.edge_hoverer.get_a_param(c2)
 
-            # FIXME: separate EdgePlayer and EdgePlayerState, so that this EdgePlayerState
-            # can be edited and assigned separately by calling the appropriate functions
+            self.previous_a_when_locked_on = None
 
-            # if state_snapshot["is_stopped_at_beginning"]:
-            #     # self.edge_player.set_playing(a_to_start_from=a)
-            #     self.edge_player.set_paused(a_to_set_paused_at=a)
-            # elif state_snapshot["is_stopped_at_end"]:
-            #     self.edge_player.set_playing(a_to_start_from=a)
-            # elif state_snapshot["is_playing"]:
-            #     self.edge_player.set_playing(a_to_start_from=a)
-            # elif state_snapshot["is_paused"]:
-            #     self.edge_player.set_paused(a_to_set_paused_at=a)
-
-            self.edge_player.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
+            self.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
 
         self.mouse_pressed_and_locked_on_p = False
 
     def mouseMoverTask(self, task):
+        """ """
         # self.render_hints()
         if self.mouse_pressed_and_locked_on_p is True:
             print("self.mouse_pressed_and_locked_on_p: ", self.mouse_pressed_and_locked_on_p)
             # move the cursor position to the corresponding t
 
             # on press: color the line red
-            self.edge_player.edge_hoverer.shortest_distance_line.setColor(
-                self.edge_player.get_primary_color())
+            self.edge_hoverer.shortest_distance_line.setColor(
+                self.edge_graphics.get_primary_color())
 
             (isPointBetweenTwoPoints_success, get_hover_points_success,
              ray_direction, ray_aufpunkt, edge_p1, edge_p2, c1, c2) = (
@@ -284,9 +282,16 @@ class EdgeMouseClicker:
             if (get_hover_points_success == True and isPointBetweenTwoPoints_success == True
                 and self.mouse_pressed_and_locked_on_p == True):
 
-                a = self.edge_player.edge_hoverer.get_a_param(c2)
-                self.edge_player.set_paused(a_to_set_paused_at=a)
+                a = self.edge_hoverer.get_a_param(c2)
+
+                if a != self.previous_a_when_locked_on:
+                    print("a != self.previous_a_when_locked_on: ", a != self.previous_a_when_locked_on, a, self.previous_a_when_locked_on)
+                    self.on_valid_press_func(a)
+                else:
+                    print("ELSE")
+
+                self.previous_a_when_locked_on = a
 
         else:
-            self.edge_player.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
+            self.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
         return task.cont
