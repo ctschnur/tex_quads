@@ -46,8 +46,7 @@ from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 
 import plot_utils.ui_thread_logger
 
-from statemachine.statemachine import EdgePlayerStateMachine
-
+from statemachine.edgeplayer import EdgePlayerSM
 
 
 class MyApp(ShowBase):
@@ -66,71 +65,11 @@ class MyApp(ShowBase):
         # self.render_edge_player(ob)
 
         base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
-        # base.acceptOnce("e", lambda: print("hi"))
 
-        # esm = EdgePlayerStateMachine(taskMgr, directobject=base)
-        # # esm.transition_into(esm.state1)
-        # esm.transition_into(esm.wait_for_loading, next_state_args=("myaudio.wav",))
+        esm = EdgePlayerSM("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
+        esm.transition_into(esm.state_load)
 
-
-        # esm = EdgePlayerStateMachine("/home/chris/Desktop/playbacktest.wav",
-        #                              taskMgr)
-
-        # esm.transition_into(esm.state_load)
-
-        # wavseq = WavSequence("/home/chris/Desktop/playbacktest.wav", defer_loading=True)
-        # wavseq.start_load_thread()
-        # # import time
-        # # time.sleep(1.)
-        # wavseq.start(block_to_join_threads=True, start_paused=True)
-        # print("HEYY")
-        # print("HEY2")
-        # wavseq.set_t(2.)
-        # wavseq.resume()
-        # print("HEYY")
-        # # wavseq.set_t(1.)
-        # # wavseq.pause()
-        # # wavseq.set_t(3.)
-        # # wavseq.resume()
-
-        # print(wavseq.get_t())
-        # # wavseq.pause()
-        # wavseq.play_thread.join()
-        # print(wavseq.get_t())
-
-
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
-
-        # duration: duration of the p3d sequence in seconds
-        # - update_function_extra_args: extra arguments that the sequence update function receives
-        # - update_function: function with signature: (a : parameter in interval between 0 (beginning) and 1 (end), )
-        # - on_finish_function
-
-        # --------- playbackersm
-        # TODO: extend playbackersm to include EdgeState and to set/get the time,
-        # use self.state.set_s_a() or self.state.get_s_a()
-        pbdo = DirectObject.DirectObject()
-        from playback.playbackersm import PlaybackerSM
-        pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr,
-                            directobject=pbdo)
-        pbsm.transition_into(pbsm.state_load_wav)
-        # ---------
-
-        # # --------- graphickersm
-        from playback.audiofunctions import get_wave_file_duration
-        durat = get_wave_file_duration("/home/chris/Desktop/playbacktest.wav")
-
-        gcdo = DirectObject.DirectObject()
-        from plot_utils.graphickersm import GraphickerSM
-        gcsm = GraphickerSM(durat, taskMgr, directobject=gcdo)
-
-        gcsm.transition_into(gcsm.state_load_graphics)
-        # # ---------
-
-
-        # base.accept("mouse1", lambda: exec("import ipdb; ipdb.set_trace()"))
-
-        # self.thread_loggers_demo()
+        ob.set_view_to_xy_plane()
 
     def render_edge_player(self, camera_gear):
         """ Render the edge player """

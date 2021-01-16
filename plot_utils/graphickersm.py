@@ -63,10 +63,10 @@ class GraphickerSM(StateMachine, EdgeGraphics):
 
     t_epsilon = 0.001
 
-    def __init__(self, wave_file_duration, *args, **kwargs):
+    def __init__(self, wave_file_duration, *args, camera_gear=None, **kwargs):
         """ """
         StateMachine.__init__(self, *args, **kwargs)
-        EdgeGraphics.__init__(self)
+        EdgeGraphics.__init__(self, *args, **kwargs)
 
         self.v1 = None
         self.v_dir = None
@@ -75,7 +75,9 @@ class GraphickerSM(StateMachine, EdgeGraphics):
         self.primary_color = None
         self.cursor_sequence = None
         self.extraArgs = None
-        # self.camera_gear = None
+
+        self.camera_gear = camera_gear
+
         self.state = EdgeState()
 
         self.add_batch_events_for_setup(
@@ -159,9 +161,9 @@ class GraphickerSM(StateMachine, EdgeGraphics):
         # -- init hover and click actions
         # self.camera_gear = camera_gear
 
-        # self.edge_hoverer = EdgeHoverer(self, self.camera_gear)
+        self.edge_hoverer = EdgeHoverer(self, self.camera_gear)
 
-        # self.edge_mouse_clicker = EdgeMouseClicker(self)
+        self.edge_mouse_clicker = EdgeMouseClicker(self)
 
         self.transition_into(self.state_stopped_at_beginning)
 
@@ -267,3 +269,33 @@ class GraphickerSM(StateMachine, EdgeGraphics):
 
     def get_v2(self):
         return self.v1 + self.get_v_dir() * self.lps_rate * self.get_duration()
+
+
+    def remove(self):
+        """ removes all
+        - p3d sequences
+        - p3d nodes (detaches them from render)
+        - p3d events (directobjects)
+        their references. """
+
+        self.cursor_sequence.pause()  # remove it from the interval manager
+        del self.cursor_sequence  # remove the reference
+
+        self.line.nodePath.removeNode()
+        self.p_c.remove()
+
+        self.space_direct_object.ignoreAll()
+        self.space_direct_object.removeAllTasks()
+
+        # setup keys for jumping to beginning/end
+        self.set_stopped_at_beginning_direct_object.ignoreAll()
+        self.set_stopped_at_beginning_direct_object.removeAllTasks()
+
+        self.set_stopped_at_end_direct_object.ignoreAll()
+        self.set_stopped_at_end_direct_object.removeAllTasks()
+
+        self.set_short_forward_direct_object.ignoreAll()
+        self.set_short_forward_direct_object.removeAllTasks()
+
+        self.set_short_backward_direct_object.ignoreAll()
+        self.set_short_backward_direct_object.removeAllTasks()

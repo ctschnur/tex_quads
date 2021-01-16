@@ -301,16 +301,16 @@ class WavSequence:
     def get_t(self):
         """ """
         t_from_state = self.state.get_t()
-        print("from inside get_t: ", t_from_state)
+        # print("from inside get_t: ", t_from_state)
         t = t_from_state
 
         if self.wf:
             assert self.wf
             t_wf = float(self.wf.tell()) / float(self.wf.getframerate())
             t = t_wf
-            print("COMPARISON: t_from_state: ", t_from_state, ", t_wf: ", t_wf)
+            # print("COMPARISON: t_from_state: ", t_from_state, ", t_wf: ", t_wf)
 
-        print("time returned:", t)
+        # print("time returned:", t)
 
         return t
 
@@ -346,7 +346,7 @@ class WavSequence:
 
         self.playing_p = False
         self.break_play_loop_p = False
-        print("pause: setting playing_p to ", self.playing_p)
+        # print("pause: setting playing_p to ", self.playing_p)
 
     def resume(self):
         self._restart_play_thread_after_loading_and_set_paused()
@@ -360,7 +360,7 @@ class WavSequence:
         """ loading at the end of init """
         self.load_thread = threading.Thread(target=self._load, daemon=True)
         self.load_thread.start()
-        print("- > starting load thread")
+        # print("- > starting load thread")
 
     def load_thread_finished_p(self):
         """ """

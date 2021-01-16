@@ -26,7 +26,7 @@ class EdgeGraphics:
     This class is just an abstraction, and should not be used directly, but
     only be derived from. """
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         pass
 
 

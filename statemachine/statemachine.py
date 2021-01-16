@@ -256,11 +256,10 @@ class StateMachine:
         if self.main_loop_running == False:
             self.launch_main_loop()
 
-        # print("\r", flush=True)
-        if next_state.__name__ != "_idle":
-            print(self.__class__.__name__, ": "
-                  "\tentering state: ", next_state.__name__,
-                  "\twith arguments: ", next_state_args)
+        # if next_state.__name__ != "_idle":
+        #     print(self.__class__.__name__, ": "
+        #           "\tentering state: ", next_state.__name__,
+        #           "\twith arguments: ", next_state_args)
 
         if called_from_sm is None:
             called_from_sm = self
@@ -279,15 +278,15 @@ class StateMachine:
 
             self.finished_running_transition_into = state_machine_transition_into_call_bundle
 
-            print("transition DID run --------- ", transition_into_call,
-                  "self: ", self.__class__.__qualname__,
-                  "; called_from_sm: ", called_from_sm.__class__.__qualname__,
-                  "; self.get_controlling_state_machine() : ", self.get_controlling_state_machine().__class__.__qualname__)
-        else:
-            print("transition NOT run --------- ", transition_into_call,
-                  "self: ", self.__class__.__qualname__,
-                  "; called_from_sm: ", called_from_sm.__class__.__qualname__,
-                  "; self.get_controlling_state_machine() : ", self.get_controlling_state_machine().__class__.__qualname__)
+            # print("transition DID run --------- ", transition_into_call,
+        #           "self: ", self.__class__.__qualname__,
+        #           "; called_from_sm: ", called_from_sm.__class__.__qualname__,
+        #           "; self.get_controlling_state_machine() : ", self.get_controlling_state_machine().__class__.__qualname__)
+        # else:
+        #     print("transition NOT run --------- ", transition_into_call,
+        #           "self: ", self.__class__.__qualname__,
+        #           "; called_from_sm: ", called_from_sm.__class__.__qualname__,
+        #           "; self.get_controlling_state_machine() : ", self.get_controlling_state_machine().__class__.__qualname__)
 
 
     def _idle(self, *opt_args):
@@ -435,68 +434,3 @@ class Foo:
         return str(self.val)
 
 
-class EdgePlayerStateMachine(StateMachine):
-    """ """
-
-    def __init__(self, wave_file_path, *args, **kwargs):
-        """ """
-        StateMachine.__init__(self, *args, **kwargs)
-
-        self.dobj = base
-
-        from playback.playbackersm import PlaybackerSM
-        from plot_utils.graphickersm import GraphickerSM
-
-        from playback.audiofunctions import get_wave_file_duration
-
-        self.durat = get_wave_file_duration(wave_file_path)
-
-        self.pbsm = PlaybackerSM(wave_file_path, taskMgr, directobject=base,
-                                 controlling_sm=self)
-        # self.pbsm.transition_into(self.pbsm.state_load_wav)
-
-        self.gcsm = GraphickerSM(self.durat, taskMgr, directobject=base,
-                                 controlling_sm=self)
-
-        # self.gcsm.transition_into(self.gcsm.state_load_graphics)
-
-        # self.transition_into(self.state_load)
-
-    def state_load(self, *opt_args):
-        """ """
-        self.pbsm.transition_into(self.pbsm.state_load_wav, called_from_sm=self)
-        self.gcsm.transition_into(self.gcsm.state_load_graphics, called_from_sm=self)
-        print("###: ", self.gcsm.get_current_state())
-
-        self.on_bool_event(
-            lambda: (
-                not self.pbsm.load_thread.is_alive()), self.state_stopped_at_beginning)
-
-    def state_stopped_at_beginning(self, *opt_args):
-        """ """
-        self.pbsm.transition_into(self.pbsm.state_stopped_at_beginning, called_from_sm=self)
-        self.gcsm.transition_into(self.gcsm.state_stopped_at_beginning, called_from_sm=self)
-
-        self.on_key_event_once("space", self.state_play)
-
-    def state_play(self, change_time_to=None):
-        """ """
-        self.pbsm.transition_into(self.pbsm.state_play, called_from_sm=self)
-        self.gcsm.transition_into(self.gcsm.state_play, called_from_sm=self)
-
-        self.on_key_event_once("space", self.state_pause)
-
-
-    def state_pause(self, change_time_to=None):
-        """ """
-        self.pbsm.transition_into(self.pbsm.state_pause, called_from_sm=self)
-        self.gcsm.transition_into(self.gcsm.state_pause, called_from_sm=self)
-
-        self.on_key_event_once("space", self.state_play)
-
-
-    # def play(self, fooplayer):
-    #     """ """
-    #     self.on_bool_event(lambda: equal_states(
-    #         fooplayer.get_current_state(), FooPlayer.ended), ended)
-    #     pass
