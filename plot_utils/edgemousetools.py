@@ -161,7 +161,8 @@ class EdgeHoverer:
             d_min_point = None
             closestpoint = None
 
-            playerline_limiting_positions = [self.edge_graphics.get_v1(), self.edge_graphics.get_v2()]
+            playerline_limiting_positions = [self.edge_graphics.get_v1(),
+                                             self.edge_graphics.get_v2()]
 
             for pos in playerline_limiting_positions:
                 d = np.linalg.norm(

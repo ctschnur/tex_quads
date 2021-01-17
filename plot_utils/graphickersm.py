@@ -130,7 +130,7 @@ class GraphickerSM(StateMachine):
         """ """
         self.edge_graphics.set_v1(Vec3(-.5, -.5, 0.), update_graphics=False)
 
-        self.edge_graphics.set_v_dir(Vec3(1., 0., 0.)/np.linalg.norm(Vec3(1., 1., 0.)))
+        self.edge_graphics.set_v_dir(Vec3(1., 0., 0.))
 
         self.set_duration(self.duration, update_cursor_sequence=False)
 

@@ -39,17 +39,17 @@ class EdgeGraphics:
         self.get_lps_rate_func = get_lps_rate_func
         self.get_duration_func = get_duration_func
 
+        self.v2_override = None
+
         pass
 
-
     def set_v_dir(self, v_dir):
-        """ direction vector """
-        self.v_dir = v_dir
+        """ direction vector, normalizing the input vector """
+        self.v_dir = v_dir/np.linalg.norm(v_dir)
 
     def get_v_dir(self):
         """ """
         return self.v_dir
-
 
     def set_v1(self, v1, update_graphics=True):
         """ set the starting point of the edge
@@ -118,6 +118,14 @@ class EdgeGraphics:
         # self.state.set_s_a(s_a)  # update s_a
         self.update_while_moving_function(a, *args, **kwargs)
 
+    def set_cursor_position(self, a):
+        """ """
+        cursor_pos = math_utils.np_to_p3d_Vec3(
+            math_utils.p3d_to_np(self.get_v1()) +
+            a * (math_utils.p3d_to_np(self.get_v2()) - math_utils.p3d_to_np(self.get_v1())))
+
+        self.p_c.setPos(cursor_pos)
+
     def update_while_moving_function(self, a, *args, **kwargs):
         """ calculating everything that changes while
         playing """
@@ -127,20 +135,24 @@ class EdgeGraphics:
 
         s_l = self.get_lps_rate_func() * self.get_duration_func()
 
-        # covered_length = s_l * self.state.get_s_a()
-        covered_length = s_l * a
+        # covered_length = s_l * a
 
         # set cursor point:
-        cursor_pos = math_utils.np_to_p3d_Vec3(
-            covered_length * math_utils.p3d_to_np(self.get_v_dir()) +
-            math_utils.p3d_to_np(self.v1))
-
-        self.p_c.setPos(cursor_pos)
-
+        self.set_cursor_position(a)
         self.update_line()
+
+    def set_v2_override(self, v2_override):
+        """ """
+        self.v2_override = v2_override
+
+        # update the direction
+        self.set_v_dir(v2_override - self.get_v1())
 
     def get_v2(self):
         """ """
+        if self.v2_override is not None:
+            return self.v2_override
+
         return self.v1 + self.get_v_dir() * self.get_lps_rate_func() * self.get_duration_func()
 
     def remove(self):

@@ -13,7 +13,6 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
  
 * Development Notes
 ** Integration
-TODO: Fix the problem with als
 ** Branched Podcast Interface
 - [X] Plot parametric curves
 - [X] Make blender-like side, top, front view (map to number keys)
@@ -64,7 +63,6 @@ TODO: Fix the problem with als
 *** implement expanding subspaces
 select a node press expand -> show the lastest connection but hide everything else
 *** implement freehand drawing onto panes anchored to nodes and edges
-
 ** Dropped/Deferred dev efforts
 - [ ] triangulation of latex characters. 
   Probe, at what complexity the p3d triangulation breaks. To decrease the complexity (geometry simplification) and check for intersections of hole polygon with boundary polygon, use the shapely library.

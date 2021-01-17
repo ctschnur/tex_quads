@@ -66,8 +66,9 @@ class MyApp(ShowBase):
 
         base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
 
-        esm = EdgePlayerSM("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
-        esm.transition_into(esm.state_load)
+        # esm = EdgePlayerSM("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
+        # esm.transition_into(esm.state_load)
+        # esm.gcsm.edge_graphics.set_v2_override(Vec3(1., 0., 0.))
 
         ob.set_view_to_xy_plane()
 
