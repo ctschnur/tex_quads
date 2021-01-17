@@ -1,6 +1,15 @@
+from direct.showbase.ShowBase import ShowBase, DirectObject
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
+
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, Point3d
 
 from interactive_tools.event_managers import DragDropEventManager
+
+from local_utils import math_utils
+
+import numpy as np
+
+from conventions import conventions
 
 class PickablePointDragger(DragDropEventManager):
     """ a dragger object gets assigned a pickable object, and
@@ -14,10 +23,11 @@ class PickablePointDragger(DragDropEventManager):
         self._dragger_nodePath_handle = pickablepoint.nodePath  # this should only be used after the picking event and when the draggers are searched for the nodepath that was picked
 
         self.position_before_dragging = None
+        self.last_frame_drag_pos = None
+
+        DragDropEventManager.__init__(self)
 
         self.add_on_state_change_function(self.update)
-
-        DragDropEventManager.__init__(self, *args)
 
     def get_nodepath_handle_for_dragger(self):
         return self._dragger_nodePath_handle
@@ -53,13 +63,13 @@ class PickablePointDragger(DragDropEventManager):
         # determine the middle origin of the draggable plane (where the plane intersects the camera's forward vector)
         r0_middle_origin = math_utils.LinePlaneCollision(v_cam_forward, r0_obj, v_cam_forward, r_cam)
 
-        print("r0_obj", r0_obj)
-        print("v_cam_forward", v_cam_forward)
-        print("v_cam_up", v_cam_up)
-        print("r_cam", r_cam)
-        print("e_up", e_up)
-        print("e_cross", e_cross)
-        print("r0_middle_origin", r0_middle_origin)
+        # print("r0_obj", r0_obj)
+        # print("v_cam_forward", v_cam_forward)
+        # print("v_cam_up", v_cam_up)
+        # print("r_cam", r_cam)
+        # print("e_up", e_up)
+        # print("e_cross", e_cross)
+        # print("r0_middle_origin", r0_middle_origin)
 
         # -- calculate the bijection between mouse coordinates m_x, m_y and plane coordinates p_x, p_y
 
@@ -98,6 +108,7 @@ class PickablePointDragger(DragDropEventManager):
 class PickablePoint(Point3d):
     """ a flat point (2d box) parented by render """
     def __init__(self, pickableObjectManager, **kwargs):
+        """ """
         Point3d.__init__(self, **kwargs)
 
         self.nodePath.setColor(1., 0., 0., 1.)

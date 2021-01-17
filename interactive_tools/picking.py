@@ -104,7 +104,7 @@ class CollisionPicker:
                 print("picked object: ",
                       # picked_obj_with_tag.getTags(), " tag: ",
                       ", the object: ", picked_obj_with_tag, ", the position: ", picked_obj_pos)
-                picked_obj_with_tag.setColor(1., 1., 1., 1.)
+                # picked_obj_with_tag.setColor(1., 1., 1., 1.)  # for debugging
 
                 # to retrieve the properties of the picked object associated with the dragging and dropping,
                 # search the DragAndDropObjectsManager's array for the picked NodePath
