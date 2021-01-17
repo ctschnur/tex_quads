@@ -63,12 +63,15 @@ class GraphickerSM(StateMachine):
 
     short_skipping_time_step = 0.5
 
-    def __init__(self, wave_file_duration, *args, camera_gear=None, on_valid_press_func=None, **kwargs):
+    def __init__(self, wave_file_duration, *args, camera_gear=None, edge_graphics=None, on_valid_press_func=None, **kwargs):
         """ """
         StateMachine.__init__(self, *args, **kwargs)
-        # EdgeGraphics.__init__(self, )
 
-        self.edge_graphics = EdgeGraphics(get_lps_rate_func=lambda: GraphickerSM.lps_rate, get_duration_func=lambda: self.get_duration())
+        self.edge_graphics = None
+        if edge_graphics is None:
+            self.edge_graphics = EdgeGraphics(get_lps_rate_func=lambda: GraphickerSM.lps_rate, get_duration_func=lambda: self.get_duration())
+        else:
+            self.edge_graphics = edge_graphics
 
         self.on_valid_press_func = on_valid_press_func # for edgemouseclicker
 
@@ -128,9 +131,7 @@ class GraphickerSM(StateMachine):
 
     def state_load_graphics(self):
         """ """
-        self.edge_graphics.set_v1(Vec3(-.5, -.5, 0.), update_graphics=False)
-
-        self.edge_graphics.set_v_dir(Vec3(1., 0., 0.))
+        self.edge_graphics.init_edge_graphics_by_setters()
 
         self.set_duration(self.duration, update_cursor_sequence=False)
 

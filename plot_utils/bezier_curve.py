@@ -88,7 +88,7 @@ class DraggableBezierCurve(BezierCurve):
         # -- add picking utilities
         self.pickableObjectManager = PickableObjectManager()
         self.dragAndDropObjectsManager = DragAndDropObjectsManager()
-        self.collisionPicker = CollisionPicker(self.camera_gear, render, base.mouseWatcherNode, base, self.dragAndDropObjectsManager)
+        self.collisionPicker = CollisionPicker(self.camera_gear, render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
 
         # -- add a mouse task to check for picking
         self.p3d_direct_object = DirectObject.DirectObject()

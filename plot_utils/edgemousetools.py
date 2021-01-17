@@ -79,9 +79,9 @@ class EdgeHoverer:
         e1 = ray_direction
 
         # -- check if this line qualifies to render a hover cursor
-        r2 = self.edge_graphics.v1
+        r2 = self.edge_graphics.get_inset_v1()
         edge_p1 = r2
-        edge_p2 = self.edge_graphics.get_v2()
+        edge_p2 = self.edge_graphics.get_inset_v2()
         e2 = edge_p2 - edge_p1  # direction vector for edge infinite straight line
         d = np.abs(math_utils.shortestDistanceBetweenTwoStraightInfiniteLines(r1, r2, e1, e2))
         c1, c2 = math_utils.getPointsOfShortestDistanceBetweenTwoStraightInfiniteLines(
@@ -161,8 +161,8 @@ class EdgeHoverer:
             d_min_point = None
             closestpoint = None
 
-            playerline_limiting_positions = [self.edge_graphics.get_v1(),
-                                             self.edge_graphics.get_v2()]
+            playerline_limiting_positions = [self.edge_graphics.get_inset_v1(),
+                                             self.edge_graphics.get_inset_v2()]
 
             for pos in playerline_limiting_positions:
                 d = np.linalg.norm(
@@ -220,14 +220,17 @@ class EdgeMouseClicker:
 
         # -- register mouse event
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
-        base.accept('mouse1', self.on_press)
+        # base.accept('mouse1', self.on_press)
+
+        self.direct_object = DirectObject.DirectObject()
+        self.direct_object.accept('mouse1', self.on_press)
 
     def on_press(self):
         """ get the t parameter of the active edge (from the edge_hoverer)
             and set the position of the cursor to the time """
         print("on_press")
 
-        base.acceptOnce('mouse1-up', self.on_release)
+        self.direct_object.acceptOnce('mouse1-up', self.on_release)
 
         isPointBetweenTwoPoints_success, get_hover_points_success, *_ = (
             self.get_press_successfully_locked_on())
@@ -296,3 +299,8 @@ class EdgeMouseClicker:
         else:
             self.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
         return task.cont
+
+    def remove(self):
+        """ """
+        self.direct_object.ignoreAll()
+        self.direct_object.removeAllTasks()

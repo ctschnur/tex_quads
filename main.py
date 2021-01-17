@@ -48,7 +48,7 @@ import plot_utils.ui_thread_logger
 
 from statemachine.edgeplayer import EdgePlayerSM
 
-from interactive_tools.draggables import DraggablePoint
+from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -71,9 +71,20 @@ class MyApp(ShowBase):
         # esm.transition_into(esm.state_load)
         # esm.gcsm.edge_graphics.set_v2_override(Vec3(1., 0., 0.))
 
-        dp = DraggablePoint(ob)
-        dp.setPos(Vec3(1., 0., 0.))
-        print(dp.getPos())
+        # dp = DraggablePoint(ob)
+        # dp.setPos(Vec3(1., 0., 0.))
+        # print(dp.getPos())
+
+        dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
+
+        # dp1 = DraggablePoint(ob)
+        # dp1.setPos(Vec3(1., 0., 0.))
+        # print(dp1.getPos())
+
+        # dp2 = DraggablePoint(ob)
+        # dp2.setPos(Vec3(2., 0., 0.))
+        # print(dp2.getPos())
+
 
         ob.set_view_to_xy_plane()
 

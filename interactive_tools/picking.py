@@ -32,15 +32,13 @@ class PickableObjectManager:
 class CollisionPicker:
     """ This stores a ray, attached to a camera """
 
-    def __init__(self, camera_gear, render, mousewatchernode, base, dragAndDropObjectsManager):
+    def __init__(self, camera_gear, render, mousewatchernode, dragAndDropObjectsManager):
         self.dragAndDropObjectsManager = dragAndDropObjectsManager
 
         # -- things that are needed to do picking from different camera orientations
         self.camera_gear = camera_gear  # e.g. the orbiter class is a camera_gear
         self.camera = self.camera_gear.camera
         self.render = render
-
-        self.base = base
 
         self.mouse_watcher_node = mousewatchernode
 

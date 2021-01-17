@@ -31,41 +31,24 @@ from statemachine.statemachine import StateMachine
 
 from statemachine.statemachine import StateMachine, equal_states, SMBatchEvents
 
+from playback.playbackersm import PlaybackerSM
+from plot_utils.graphickersm import GraphickerSM
+from playback.audiofunctions import get_wave_file_duration
+
 class EdgePlayerSM(StateMachine):
     """ """
 
     t_epsilon = 0.001
 
-    def __init__(self, wave_file_path, camera_gear, *args, **kwargs):
+    def __init__(self, wave_file_path, camera_gear, *args, edge_graphics=None, **kwargs):
         """ """
         StateMachine.__init__(self, *args, **kwargs)
 
-        # # --------- playbackersm
-        # pbdo = DirectObject.DirectObject()
-        # from playback.playbackersm import PlaybackerSM
-        # pbsm = PlaybackerSM("/home/chris/Desktop/playbacktest.wav", taskMgr,
-        #                     directobject=pbdo)
-        # pbsm.transition_into(pbsm.state_load_wav)
-        # # ---------
-
-        # # # --------- graphickersm
-        # from playback.audiofunctions import get_wave_file_duration
-        # duration = get_wave_file_duration("/home/chris/Desktop/playbacktest.wav")
-
-        # gcdo = DirectObject.DirectObject()
-        # from plot_utils.graphickersm import GraphickerSM
-        # gcsm = GraphickerSM(durat, taskMgr, directobject=gcdo)
-        # gcsm.transition_into(gcsm.state_load_graphics)
-        # # # ---------
-
         self.dobj = base
 
-        from playback.playbackersm import PlaybackerSM
-        from plot_utils.graphickersm import GraphickerSM
-
-        from playback.audiofunctions import get_wave_file_duration
-
         self.duration = get_wave_file_duration(wave_file_path)
+
+        self.edge_graphics = edge_graphics
 
         self.pbsm = PlaybackerSM(wave_file_path, taskMgr, directobject=base,
                                  controlling_sm=self)
@@ -94,6 +77,7 @@ class EdgePlayerSM(StateMachine):
 
         self.gcsm = GraphickerSM(self.duration, taskMgr, directobject=base,
                                  controlling_sm=self, camera_gear=camera_gear,
+                                 edge_graphics=self.edge_graphics, 
                                  on_valid_press_func=on_valid_press_func)
 
         # self.gcsm.transition_into(self.gcsm.state_load_graphics)
