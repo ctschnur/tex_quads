@@ -742,7 +742,7 @@ class CrossHair3d:
         if not self.l1o:
             self.l1o = Line1dSolid(
                 thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
-            self.l1o.setRenderAboveAll(True)
+            self.l1o.set_render_above_all(True)
 
         self.l1o.setTailPoint(
             orbit_center - Vec3(self.crosshair_outer_lines_length/2., 0., 0.))
@@ -752,7 +752,7 @@ class CrossHair3d:
         if not self.l2o:
             self.l2o = Line1dSolid(
                 thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
-            self.l2o.setRenderAboveAll(True)
+            self.l2o.set_render_above_all(True)
 
         self.l2o.setTailPoint(
             orbit_center - Vec3(0., self.crosshair_outer_lines_length/2., 0.))
@@ -763,7 +763,7 @@ class CrossHair3d:
         if not self.l3o:
             self.l3o = Line1dSolid(
                 thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
-            self.l3o.setRenderAboveAll(True)
+            self.l3o.set_render_above_all(True)
 
         self.l3o.setTailPoint(
             orbit_center - Vec3(0., 0., self.crosshair_outer_lines_length/2.))
@@ -774,7 +774,7 @@ class CrossHair3d:
         if not self.l1i:
             self.l1i = Line1dSolid(
                 thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
-            self.l1i.setRenderAboveAll(True)
+            self.l1i.set_render_above_all(True)
 
         self.l1i.setTailPoint(
             orbit_center - Vec3(self.crosshair_inner_lines_length/2., 0., 0.))
@@ -785,7 +785,7 @@ class CrossHair3d:
         if not self.l2i:
             self.l2i = Line1dSolid(
                 thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
-            self.l2i.setRenderAboveAll(True)
+            self.l2i.set_render_above_all(True)
 
         self.l2i.setTailPoint(
             orbit_center - Vec3(0., self.crosshair_inner_lines_length/2., 0.))
@@ -796,7 +796,7 @@ class CrossHair3d:
         if not self.l3i:
             self.l3i = Line1dSolid(
                 thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
-            self.l3i.setRenderAboveAll(True)
+            self.l3i.set_render_above_all(True)
 
         self.l3i.setTailPoint(
             orbit_center - Vec3(0., 0., self.crosshair_inner_lines_length/2.))

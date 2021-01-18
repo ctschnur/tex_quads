@@ -75,7 +75,11 @@ class MyApp(ShowBase):
         # dp.setPos(Vec3(1., 0., 0.))
         # print(dp.getPos())
 
-        dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
+        # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
+
+        from plot_utils.frame2d import Frame2d
+
+        f2d = Frame2d()
 
         # dp1 = DraggablePoint(ob)
         # dp1.setPos(Vec3(1., 0., 0.))

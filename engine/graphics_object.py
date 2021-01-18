@@ -45,7 +45,7 @@ class GraphicsObject:
     def get_parent_node_for_nodePath_creation(self):
         return self.nodePath_creation_parent_node
 
-    def setRenderAboveAll(self, p):
+    def set_render_above_all(self, p):
         """ set render order to be such that it renders normally (false), or above all (true)
         Args:
             p: True or False to enable or disable the 'above all' rendering mode """
@@ -60,4 +60,8 @@ class GraphicsObject:
                 self.nodePath.setDepthTest(True)
                 self.nodePath.setDepthWrite(True)
         except NameError:       # if nodePath is not yet defined
-            print("NameError in setRenderAboveAll()")
+            print("NameError in set_render_above_all()")
+
+    def remove(self):
+        """ """
+        self.nodePath.removeNode()
