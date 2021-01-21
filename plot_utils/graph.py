@@ -35,7 +35,7 @@ from functools import partial
 
 from plot_utils.edgemousetools import EdgeHoverer, EdgeMouseClicker
 
-from engine.tq_graphics_basics import tq_render, tq_loader
+import engine
 
 
 def sayhi():
@@ -178,7 +178,7 @@ class DraggableGraph(Graph):
         self.pickableObjectManager = PickableObjectManager()
         self.dragAndDropObjectsManager = DragAndDropObjectsManager()
         self.collisionPicker = CollisionPicker(
-            self.camera_gear, tq_render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
+            self.camera_gear, engine.tq_graphics_basics.tq_render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
 
         # -- add a mouse task to check for picking
         self.p3d_direct_object = DirectObject.DirectObject()

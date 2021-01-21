@@ -30,6 +30,6 @@ class Scene2d:
             cur_point.setColor(*self.color)
             self.set_bbox.append(cur_point)
 
-        self.groupNode = GroupNode()
-        self.groupNode.addChildNodePaths(
+        self.group_node = GroupNode()
+        self.group_node.addChildNodePaths(
             [point.nodepath for point in self.set_bbox])

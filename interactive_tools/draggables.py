@@ -35,7 +35,7 @@ class DraggablePoint(PickablePoint):
         self.dadom.add_dragger(self.pt_dragger)
 
         self.collisionPicker = CollisionPicker(
-            camera_gear, tq_render, base.mouseWatcherNode, self.dadom)
+            camera_gear, engine.tq_graphics_basics.tq_render, base.mouseWatcherNode, self.dadom)
 
         # -- add a mouse task to check for picking
         self.p3d_direct_object = DirectObject.DirectObject()

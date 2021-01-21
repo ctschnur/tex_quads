@@ -14,6 +14,14 @@ from direct.interval.LerpInterval import LerpFunc
 
 import numpy as np
 
+def init_engine(p3d_render, p3d_aspect2d, loader):
+    """ """
+    global tq_render
+    global tq_aspect2d
+    global tq_loader
+    tq_render = TQGraphicsNodePath.from_p3d_nodepath(render)
+    tq_aspect2d = TQGraphicsNodePath.from_p3d_nodepath(aspect2d)
+    tq_loader = TQLoader(loader)
 
 class TQGraphicsNodePath:
     """ Anything that fundamentally is a only a graphics object in this engine should have these properties. """
@@ -25,7 +33,9 @@ class TQGraphicsNodePath:
             self.TQGraphicsNodePath_creation_parent_node = kwargs.get(
                 'TQGraphicsNodePath_creation_parent_node')
         else:
-            self.TQGraphicsNodePath_creation_parent_node = render
+            tq_graphics_nodepath_kwargs = {}
+            tq_graphics_nodepath_kwargs['TQGraphicsNodePath_creation_parent_node'] = None
+            self.TQGraphicsNodePath_creation_parent_node = TQGraphicsNodePath.from_p3d_nodepath(render, **tq_graphics_nodepath_kwargs)
 
         self.set_parent_node_for_nodepath_creation(
             self.TQGraphicsNodePath_creation_parent_node)
@@ -59,6 +69,10 @@ class TQGraphicsNodePath:
     def set_p3d_nodepath(self, p3d_nodepath):
         """ """
         self.p3d_nodepath = p3d_nodepath
+
+    def get_p3d_nodepath(self):
+        """ """
+        return self.p3d_nodepath
 
     def get_parent_node_for_nodepath_creation(self):
         return self.TQGraphicsNodePath_creation_parent_node
@@ -118,15 +132,17 @@ class TQGraphicsNodePath:
 
     def reparentTo(self, *args, **kwargs):
         """ """
-        return self.p3d_nodepath.reparentTo(*args, **kwargs)
+        new_args = list(args)
+        new_args[0] = new_args[0].p3d_nodepath
+        return self.p3d_nodepath.reparentTo(*new_args, **kwargs)
 
     def node(self):
         """ """
         return self.p3d_nodepath.node()
 
-    def setRenderModeFilled(self):
+    def setRenderModeFilled(self, *args, **kwargs):
         """ """
-        return self.p3d_nodepath.setRenderModeFilled()
+        return self.p3d_nodepath.setRenderModeFilled(*args, **kwargs)
 
     def setLightOff(self, *args, **kwargs):
         """ """
@@ -200,6 +216,10 @@ class TQGraphicsNodePath:
         """ """
         return self.p3d_nodepath.setAntialias(*args, **kwargs)
 
+    def getRelativeVector(self, *args, **kwargs):
+        """ """
+        return self.p3d_nodepath.getRelativeVector(*args, **kwargs)
+
 
 class TQLoader:
     """ """
@@ -213,15 +233,7 @@ class TQLoader:
         return self.p3d_loader.loadModel(*args, **kwargs)
 
 
-tq_render = None
-tq_aspect2d = None
-tq_loader = None
+# engine.tq_graphics_basics.tq_render = None
+# tq_aspect2d = None
+# engine.tq_graphics_basics.tq_loader = None
 
-def prepare_engine(p3d_render, p3d_aspect2d, loader):
-    """ """
-    global tq_render
-    global tq_aspect2d
-    global tq_loader
-    tq_render = TQGraphicsNodePath.from_p3d_nodepath(render)
-    tq_aspect2d = TQGraphicsNodePath.from_p3d_nodepath(aspect2d)
-    tq_loader = TQLoader(loader)

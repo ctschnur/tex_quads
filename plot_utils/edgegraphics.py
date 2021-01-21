@@ -181,7 +181,7 @@ class EdgeGraphics:
     def remove(self):
         """ removes all
         - p3d sequences
-        - p3d nodes (detaches them from tq_render)
+        - p3d nodes (detaches them from engine.tq_graphics_basics.tq_render)
         - p3d events (directobjects)
         their references. """
 

@@ -1,5 +1,6 @@
 import direct.directbase.DirectStart
 from panda3d.core import *
+import engine
 
 base.disableMouse() # disable default mouse controls
 
@@ -7,16 +8,16 @@ base.disableMouse() # disable default mouse controls
 environ = loader.loadModel('environment')
 environ.setScale(0.1)
 environ.setZ(-5)
-environ.reparentTo(tq_render)
+environ.reparentTo(engine.tq_graphics_basics.tq_render)
 
 # model for the camera to orbit along
 model = loader.loadModel('smiley')
-model.reparentTo(tq_render)
+model.reparentTo(engine.tq_graphics_basics.tq_render)
 
 # dummy node for camera
-parentnode = tq_render.attachNewNode('camparent')
+parentnode = engine.tq_graphics_basics.tq_render.attachNewNode('camparent')
 parentnode.reparentTo(model) # inherit transforms
-parentnode.setEffect(CompassEffect.make(tq_render)) # NOT inherit rotation
+parentnode.setEffect(CompassEffect.make(engine.tq_graphics_basics.tq_render)) # NOT inherit rotation
 
 keyMap = {"a":0, "d":0, "w":0, "s":0}
 
@@ -75,16 +76,16 @@ base.accept('s-up', setKey, ["s",0])
 # environ = loader.loadModel('environment')
 # environ.setScale(0.1)
 # environ.setZ(-5)
-# environ.reparentTo(tq_render)
+# environ.reparentTo(engine.tq_graphics_basics.tq_render)
 
 # # model for the camera to orbit along
 # model = loader.loadModel('smiley')
-# model.reparentTo(tq_render)
+# model.reparentTo(engine.tq_graphics_basics.tq_render)
 
 # # dummy node for camera, we will rotate the dummy node fro camera rotation
-# parentnode = tq_render.attachNewNode('camparent')
+# parentnode = engine.tq_graphics_basics.tq_render.attachNewNode('camparent')
 # parentnode.reparentTo(model) # inherit transforms
-# parentnode.setEffect(CompassEffect.make(tq_render)) # NOT inherit rotation
+# parentnode.setEffect(CompassEffect.make(engine.tq_graphics_basics.tq_render)) # NOT inherit rotation
 
 # # the camera
 # base.camera.reparentTo(parentnode)

@@ -104,9 +104,9 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     # -- set faint ambient white lighting
     from panda3d.core import AmbientLight
     alight = AmbientLight('alight')
-    alnp = tq_render.attachNewNode(alight)
+    alnp = engine.tq_graphics_basics.tq_render.attachNewNode(alight)
     alight.setColor((0.35, 0.35, 0.35, 1))
-    tq_render.setLight(alnp)
+    engine.tq_graphics_basics.tq_render.setLight(alnp)
 
 
 def compute2dPosition(nodepath, point = Point3(0, 0, 0)):

@@ -97,7 +97,7 @@ class mouseCollisionClass:
         cn.addSolid(CollisionRay(0, -100, 0, 0, 1, 0))
         cn.setFromCollideMask(dragMask)
         cn.setIntoCollideMask(BitMask32.allOff())
-        self.c_nodepath = tq_render.attachNewNode(cn)
+        self.c_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode(cn)
         self.ctrav = CollisionTraverser()
         self.queue = CollisionHandlerQueue()
         self.ctrav.addCollider(self.c_nodepath, self.queue)
@@ -110,7 +110,7 @@ class mouseCollisionClass:
         return task.cont
 
     def collisionCheck(self):
-        self.ctrav.traverse(tq_render)
+        self.ctrav.traverse(engine.tq_graphics_basics.tq_render)
         self.queue.sortEntries()
         if self.queue.getNumEntries():
             # self.queue.getNumEntries()-1
@@ -142,7 +142,7 @@ class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         base.setFrameRateMeter(True)
-        tq_render.setAntialias(AntialiasAttrib.MAuto)
+        engine.tq_graphics_basics.tq_render.setAntialias(AntialiasAttrib.MAuto)
 
         ob = Orbiter(radius=3.)
         # cs = CoordinateSystem(ob)
@@ -183,7 +183,7 @@ class MyApp(ShowBase):
                 findChildrenAndSetRenderModeRecursively(child)
                 child.setRenderModeFilled()
 
-        findChildrenAndSetRenderModeRecursively(tq_render)
+        findChildrenAndSetRenderModeRecursively(engine.tq_graphics_basics.tq_render)
 
 
 app = MyApp()

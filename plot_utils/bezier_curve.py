@@ -27,7 +27,7 @@ from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, 
 
 from simple_objects.primitives import IndicatorPrimitive
 
-from engine.tq_graphics_basics import tq_render, tq_loader
+import engine
 
 def sayhi():
     print("heylo ------- ######")
@@ -90,7 +90,7 @@ class DraggableBezierCurve(BezierCurve):
         # -- add picking utilities
         self.pickableObjectManager = PickableObjectManager()
         self.dragAndDropObjectsManager = DragAndDropObjectsManager()
-        self.collisionPicker = CollisionPicker(self.camera_gear, tq_render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
+        self.collisionPicker = CollisionPicker(self.camera_gear, engine.tq_graphics_basics.tq_render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
 
         # -- add a mouse task to check for picking
         self.p3d_direct_object = DirectObject.DirectObject()

@@ -7,7 +7,7 @@ from local_utils import math_utils
 from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
 
 from engine.tq_graphics_basics import TQGraphicsNodePath
-from engine.tq_graphics_basics import tq_render, tq_loader
+import engine
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
@@ -75,13 +75,13 @@ class Point3d(Point):
     def makeObject(self):
         # load a gltf file
         from panda3d.core import Filename
-        self.tq_graphics_nodepath = tq_loader.loadModel(
+        self.set_p3d_nodepath(engine.tq_graphics_basics.tq_loader.loadModel(
             Filename.fromOsSpecific(
                 # root of project
                 os.path.abspath(sys.path[0])).getFullpath()
-            + "/models/small_sphere_triangulated_with_face_normals.gltf")
+            + "/models/small_sphere_triangulated_with_face_normals.gltf"))
 
-        self.reparentTo(tq_render)
+        self.reparentTo(engine.tq_graphics_basics.tq_render)
         self.node = self.node()
 
         self.setRenderModeFilled()
@@ -98,7 +98,7 @@ class Point3d(Point):
         self.pos = pos
 
         if self.pos is not None:
-            self.setPos(pos)
+            super().setPos(pos)
             self.show()
         else:
             self.hide()
@@ -119,7 +119,7 @@ class PointPrimitive(Point):
         self.node = custom_geometry.create_GeomNode_Single_Point(
             color_vec4=Vec4(1., 1., 1., 1.))
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setLightOff(1)
         # self.setRenderModeThickness(5)
 
@@ -134,7 +134,7 @@ class Point2d(Point):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
 
         self.setTwoSided(True)
         self.setLightOff(1)
@@ -158,8 +158,8 @@ class LinePrimitive(IndicatorPrimitive):
     # def makeObject(self, thickness, color):
     #     self.node = custom_geometry.createColoredUnitLineGeomNode(
     #         thickness=thickness, color_vec4=self.color)
-    #     self.tq_graphics_nodepath = tq_render.attachNewNode(self.node)
-    #     self.setLightOff(1)
+    #     self.set_p3d_nodepath(engine.tq_graphics_basics.tq_render.attachNewNode(self.node)
+    #     self.setLightOff(1))
 
 
 class Line1dPrimitive(LinePrimitive):
@@ -177,7 +177,8 @@ class Line1dPrimitive(LinePrimitive):
             thickness=thickness,
             color_vec4=self.color)
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+
         self.setLightOff(1)
 
     def setTipPoint(self, point):
@@ -294,7 +295,7 @@ class LineDashedPrimitive(TQGraphicsNodePath):
     def makeObject(self, thickness, color, howmany_periods):
         self.node = custom_geometry.createColoredUnitDashedLineGeomNode(
             thickness=thickness, color_vec4=self.color, howmany_periods=5.)
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
 
         self.setLightOff(1)
 
@@ -376,7 +377,7 @@ class ArrowHead(Box2dCentered):
         """
         self.node = custom_geometry.createColoredArrowGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
 
         self.setTwoSided(True)
 
@@ -408,7 +409,7 @@ class ArrowHeadCone(Box2dCentered):
         # typically, if the geometry isn't changed in-place,
         # only the NodePath is called at later times
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setTwoSided(True)
 
 
@@ -441,11 +442,11 @@ class ArrowHeadConeShaded(IndicatorPrimitive):
     def makeObject(self):
         # load a gltf file
         from panda3d.core import Filename
-        self.tq_graphics_nodepath = tq_loader.loadModel(
+        self.set_p3d_nodepath(engine.tq_graphics_basics.tq_loader.loadModel(
             Filename.fromOsSpecific(
                 os.path.abspath(sys.path[0])).getFullpath()  # root of project
-            + "/models/unit_cone_triangulated_with_face_normals.gltf")
-        self.reparentTo(tq_render)
+            + "/models/unit_cone_triangulated_with_face_normals.gltf"))
+        self.reparentTo(engine.tq_graphics_basics.tq_render)
         self.node = self.node()
 
         # override the vertex colors of the model
@@ -474,11 +475,11 @@ class SphereModelShaded(Box2dCentered):
     def makeObject(self):
         # load a gltf file
         from panda3d.core import Filename
-        self.tq_graphics_nodepath = tq_loader.loadModel(
+        self.set_p3d_nodepath(engine.tq_graphics_basics.tq_loader.loadModel(
             Filename.fromOsSpecific(
                 os.path.abspath(sys.path[0])).getFullpath()  # root of project
-            + "/models/small_sphere_triangulated_with_face_normals.gltf")
-        self.reparentTo(tq_render)
+            + "/models/small_sphere_triangulated_with_face_normals.gltf"))
+        self.reparentTo(engine.tq_graphics_basics.tq_render)
         self.node = self.node()
 
         # override the vertex colors of the model
@@ -529,7 +530,7 @@ class Pinned2dLabel(IndicatorPrimitive):
         self.update()
 
     def update(self):
-        pos_rel_to_cam = base.cam.get_relative_point(base.tq_render,
+        pos_rel_to_cam = base.cam.get_relative_point(engine.tq_graphics_basics.tq_render.get_p3d_nodepath(),
                                                      self.refpoint3d)
         p2d = Point2()
 
@@ -666,7 +667,7 @@ class OrientedDisk(IndicatorPrimitive):
         self.node = custom_geometry.createColoredUnitDisk(
             color_vec4=Vec4(1., 1., 1., 1.))
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setLightOff(1)
         self.setTwoSided(True)
 
@@ -704,7 +705,7 @@ class OrientedCircle(IndicatorPrimitive):
             num_of_verts=num_of_verts,
             radius=radius)
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setLightOff(1)
         self.setRenderModeThickness(thickness)
 

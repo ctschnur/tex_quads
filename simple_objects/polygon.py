@@ -33,7 +33,7 @@ class Polygon2d(TQGraphicsNodePath):
         self.node = custom_geometry.create_colored_polygon2d_GeomNode_from_point_cloud(
             point_cloud,
             color_vec4=Vec4(1., 1., 1., 1.))
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
 
 
 class Polygon2dTestTriangles(TQGraphicsNodePath):
@@ -46,7 +46,7 @@ class Polygon2dTestTriangles(TQGraphicsNodePath):
         self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries)
         # self.node = custom_geometry.create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries)
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
 
 
 class Polygon2dTestLineStrips(TQGraphicsNodePath):
@@ -58,5 +58,5 @@ class Polygon2dTestLineStrips(TQGraphicsNodePath):
     def makeObject(self, symbol_geometries):
         self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries)
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setRenderModeWireframe()

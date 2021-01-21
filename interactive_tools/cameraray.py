@@ -14,17 +14,17 @@ from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, 
 
 from conventions import conventions
 
-from engine.tq_graphics_basics import tq_render, tq_loader
+import engine
 
 def getCameraMouseRay(camera, mouse_pos):
     # aufpunkt of the plane -> just choose the camera position
     r0_obj = math_utils.p3d_to_np(base.cam.getPos())
 
-    v_cam_forward = math_utils.p3d_to_np(tq_render.getRelativeVector(camera, camera.node().getLens().getViewVector()))
+    v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(camera, camera.node().getLens().getViewVector()))
     v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
     # self.camera_gear.camera.node().getLens().getViewVector()
 
-    v_cam_up = math_utils.p3d_to_np(tq_render.getRelativeVector(camera, camera.node().getLens().getUpVector()))
+    v_cam_up = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(camera, camera.node().getLens().getUpVector()))
     v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
 
     r_cam = math_utils.p3d_to_np(camera.getPos())

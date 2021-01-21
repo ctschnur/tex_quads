@@ -36,7 +36,7 @@ class IndicatorPrimitive(TQGraphicsNodePath):
         Args:
             color: rgba tuple """
         self.color = color
-        self.setColor(*self.color)
+        super().setColor(*self.color)
 
 
 class Box2dCentered(IndicatorPrimitive):
@@ -46,7 +46,7 @@ class Box2dCentered(IndicatorPrimitive):
     def makeObject(self):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
 
 
 class SegmentedLinePrimitive(TQGraphicsNodePath):
@@ -59,7 +59,7 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
         self.thickness = thickness
         self.color = color
 
-        self.tq_graphics_nodepath = None
+        self.set_p3d_nodepath(None)
 
         self.updateObject()
 
@@ -77,7 +77,7 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
                 thickness=self.thickness,
                 color=self.color)
 
-            self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+            self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
 
         # lighting
         if self.nodepath is not None:
@@ -119,7 +119,7 @@ class ParametricLinePrimitive(TQGraphicsNodePath):
         self.node = createColoredParametricCurveGeomNode(
             func=func,
             param_interv=param_interv, thickness=thickness, color=color, howmany_points=howmany_points)
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setLightOff(1)
 
 
@@ -148,7 +148,7 @@ class ParametricDashedLinePrimitive(TQGraphicsNodePath):
             color=color,
             howmany_points=howmany_points)
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setLightOff(1)
 
 
@@ -160,5 +160,5 @@ class ConePrimitive(TQGraphicsNodePath):
         self.node = custom_geometry.create_GeomNode_Cone(
             color_vec4=Vec4(1., 1., 1., 1.))
 
-        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setTwoSided(True)

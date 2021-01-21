@@ -1,3 +1,4 @@
+import engine
 from conventions import conventions
 from simple_objects import custom_geometry
 from local_utils import texture_utils, math_utils
@@ -33,15 +34,15 @@ class GroupNode(TQGraphicsNodePath):
 
     def __init__(self):
         super(GroupNode, self).__init__()
-        self.tq_graphics_nodepath = NodePath("empty")
-        self.reparentTo(tq_render)
+        self.set_p3d_nodepath(NodePath("empty"))
+        # self.reparentTo(engine.tq_graphics_basics.tq_render)
 
-    def addChildNodePaths(self, NodePaths):
-        for np in NodePaths:
-            np.reparentTo(self.nodepath)
+    def addChildNodePaths(self, nodepaths):
+        for np in nodepaths:
+            np.reparentTo(self)
 
-    def removeChildNodePaths(self, NodePaths):
-        for np in NodePaths:
+    def removeChildNodePaths(self, nodepaths):
+        for np in nodepaths:
             np.removeNode()
 
     def hide(self):
@@ -58,7 +59,8 @@ class GroupNode(TQGraphicsNodePath):
             child.show()
 
     def get_children(self):
-        return self.get_children()
+        """ """
+        return super().get_children()
 
 
 class ParallelLines:
@@ -76,7 +78,7 @@ class ParallelLines:
 
         self.lines = [Line2dObject() for i in range(self.number_of_lines)]
         for idx, line1 in enumerate(self.lines):
-            line1.setScale(line1.nodepath, 1., 1., 1.)
+            line1.setScale(line1, 1., 1., 1.)
             line1.setPos(0., 0, idx * self.spacing)
 
 
@@ -231,9 +233,9 @@ class Vector:
             self.arrowhead = ArrowHeadConeShaded(
                 color=self.color, scale=arrowhead_scale)
 
-        self.groupNode = GroupNode()
-        self.groupNode.addChildNodePaths(
-            [self.line1.nodepath, self.arrowhead.nodepath])
+        self.group_node = GroupNode()
+        self.group_node.addChildNodePaths(
+            [self.line1, self.arrowhead])
 
         self.tip_point_logical = tip_point_logical
         self.tail_point_logical = tail_point_logical
@@ -245,11 +247,11 @@ class Vector:
 
     def setColor(self, color):
         """ set this color to all panda nodes """
-        children = self.groupNode.get_children()
+        children = self.group_node.get_children()
         for child in children:
             child.setColor(*color)
 
-        self.line1.setColor(*color)
+        self.line1.setColor(color)
         self.arrowhead.setColor(color)
 
     def getTipPoint(self):
@@ -272,13 +274,13 @@ class Vector:
 
         if (self.tip_point_logical is None or self.tail_point_logical is None):
             adjust = False
-            self.groupNode.hide()
+            self.group_node.hide()
 
             if self.tip_point_logical is not None:
                 self.line1.setTipPoint(self.tip_point_logical)
 
         else:
-            self.groupNode.show()
+            self.group_node.show()
             self.line1.setTipPoint(self.tip_point_logical)
             self.line1.setTailPoint(self.tail_point_logical)
 
@@ -296,12 +298,12 @@ class Vector:
 
         if (self.tip_point_logical is None or self.tail_point_logical is None):
             adjust = False
-            self.groupNode.hide()
+            self.group_node.hide()
 
             if self.tail_point_logical is not None:
                 self.line1.setTailPoint(self.tail_point_logical)
         else:
-            self.groupNode.show()
+            self.group_node.show()
             self.line1.setTipPoint(self.tip_point_logical)
             self.line1.setTailPoint(self.tail_point_logical)
 
@@ -431,15 +433,15 @@ class Axis:
         # p3d node
         # TODO: make a class composed_object and have it automatically have a p3d
         # groupnode
-        self.groupNode = GroupNode()
+        self.group_node = GroupNode()
 
         # build and connect the building blocks according to logical properties
         self._build_vector()
         # self._build_ticks()
 
         # # add everything together to a transform node
-        # self.groupNode.addChildNodePaths([self.axis_vector.groupNode.nodepath,
-        #                                   self.ticks_groupNode.nodepath])
+        # self.group_node.addChildNodePaths([self.axis_vector.group_node,
+        #                                   self.ticks_groupNode])
 
     def _build_vector(self):
         tip_point_logical = self.direction_vector * self.axis_length
@@ -453,15 +455,15 @@ class Axis:
             self.axis_vector.setTailPoint(Vec3(0., 0., 0.))
             self.axis_vector.setTipPoint(tip_point_logical)
 
-            self.groupNode.addChildNodePaths(
-                [self.axis_vector.groupNode.nodepath])
+            self.group_node.addChildNodePaths(
+                [self.axis_vector.group_node])
 
     def _build_ticks(self):
         # for now, always build new ticks
         if self.ticks:
             # remove all tick p3d nodes
-            self.groupNode.removeChildNodePaths(
-                [self.ticks_groupNode.nodepath])
+            self.group_node.removeChildNodePaths(
+                [self.ticks_groupNode])
 
         # build new set of ticks
         self.ticks = []
@@ -470,7 +472,7 @@ class Axis:
 
         for i in np.arange(0, self.axis_length, step=1./self.ticksperunitlength):
             trafo_nodepath = NodePath("trafo_nodepath")
-            trafo_nodepath.reparentTo(self.ticks_groupNode.nodepath)
+            trafo_nodepath.reparentTo(self.ticks_groupNode)
             # tick_line = Line2dObject()
             tick_line = Line1dSolid(thickness=self.thickness1dline)
             tick_line.reparentTo(trafo_nodepath)
@@ -498,7 +500,7 @@ class Axis:
         self.ticks_groupNode.setMat(
             self.axis_vector.line1.getRotation_forrowvecs())
 
-        self.groupNode.addChildNodePaths([self.ticks_groupNode.nodepath])
+        self.group_node.addChildNodePaths([self.ticks_groupNode])
 
     def setAxisLength(self, length):
         # set the logical parameter
@@ -534,12 +536,12 @@ class CoordinateSystem:
         self.axes = []
         self.camera = camera
 
-        self.groupNode = GroupNode()
+        self.group_node = GroupNode()
 
         for direction_vec, color_vec in zip(CoordinateSystem.cartesian_axes_directions[:dimension], CoordinateSystem.cartesian_axes_colors[:dimension]):
             ax = Axis(direction_vec, thickness1dline=5, color=color_vec)
             self.axes.append(ax)
-            self.groupNode.addChildNodePaths([ax.groupNode.nodepath])
+            self.group_node.addChildNodePaths([ax.group_node])
 
         self.attach_axes_labels()
 
@@ -623,9 +625,9 @@ class Scatter:
 
             self.points.append(cur_point)
 
-        self.groupNode = GroupNode()
-        self.groupNode.addChildNodePaths(
-            [point.nodepath for point in self.points])
+        self.group_node = GroupNode()
+        self.group_node.addChildNodePaths(
+            [point for point in self.points])
 
 
 class Box2dOfLines:
@@ -675,9 +677,9 @@ class Box2dOfLines:
 
         self.lines = [self.line1, self.line2, self.line3, self.line4]
 
-        self.groupNode = GroupNode()
-        self.groupNode.addChildNodePaths(
-            [lines.nodepath for lines in self.lines])
+        self.group_node = GroupNode()
+        self.group_node.addChildNodePaths(
+            [lines for lines in self.lines])
 
 
 class CoordinateSystemP3dPlain:
@@ -703,8 +705,8 @@ class CoordinateSystemP3dPlain:
         geomnode = ls.create()
         nodepath = NodePath(geomnode)
 
-        self.groupNode = GroupNode()
-        self.groupNode.addChildNodePaths([nodepath])
+        self.group_node = GroupNode()
+        self.group_node.addChildNodePaths([nodepath])
 
 
 class CrossHair3d:

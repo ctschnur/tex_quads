@@ -1,3 +1,5 @@
+import engine
+
 import numpy as np
 import math
 
@@ -33,7 +35,7 @@ class Frame2d():
         self.x_pos_left_border = x_start_pos
         self.y_pos_top_box = y_start_pos
 
-        self.quad = Quad(thickness=2.0, TQGraphicsNodePath_creation_parent_node=tq_aspect2d)
+        self.quad = Quad(thickness=2.0, TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
         self.quad.set_pos_vec3(Vec3(self.x_pos_left_border, 0., self.y_pos_top_box))
 
         self.quad.set_height(self.height)
@@ -48,7 +50,7 @@ class Frame2d():
 
         # self.plp1.remove()
 
-        point = Point3d(pos=(Vec3(1., 0., 1.)), TQGraphicsNodePath_creation_parent_node=tq_aspect2d)
+        point = Point3d(pos=(Vec3(1., 0., 1.)), TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
         pass
 
     def update_parametric_line(self, func_xy_of_t=None):
@@ -56,7 +58,7 @@ class Frame2d():
         if func_xy_of_t is not None:
             self.plp1 = ParametricLinePrimitive(
                 lambda t: np.array([func_xy_of_t(t)[0], 0., func_xy_of_t(t)[1]]),
-                howmany_points=100, TQGraphicsNodePath_creation_parent_node=tq_aspect2d)
+                howmany_points=100, TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
 
             self.plp1.setPos(self.quad.get_pos_vec3())
             print("hi")

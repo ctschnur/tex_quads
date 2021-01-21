@@ -1,4 +1,4 @@
-import engine.tq_graphics_basics
+import engine
 
 from direct.showbase.ShowBase import ShowBase, DirectObject
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
@@ -58,7 +58,9 @@ class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
 
-        engine.tq_graphics_basics.prepare_engine(render, aspect2d, loader)
+        engine.tq_graphics_basics.init_engine(render, aspect2d, loader)
+
+        print(engine.tq_graphics_basics.tq_render)
 
         base.setFrameRateMeter(True)
 
@@ -152,7 +154,7 @@ class MyApp(ShowBase):
 
         a = Vector()
 
-        # a.groupNode.hide()
+        # a.group_node.hide()
 
         a.setTipPoint(Vec3(1., 0., 0.)  # , param=True
                       )

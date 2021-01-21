@@ -33,7 +33,7 @@ class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         base.setFrameRateMeter(True)
-        tq_render.setAntialias(AntialiasAttrib.MAuto)
+        engine.tq_graphics_basics.tq_render.setAntialias(AntialiasAttrib.MAuto)
 
         ob = Orbiter(base.cam, radius=3.)
         cs = CoordinateSystem(ob)
@@ -86,7 +86,7 @@ class MyApp(ShowBase):
 
         # gn = create_GeomNode_Sphere()
         # np = NodePath(gn)
-        # np.reparentTo(tq_render)
+        # np.reparentTo(engine.tq_graphics_basics.tq_render)
 
         # def findChildrenAndSetRenderModeRecursively(parentnode):
         #     children = parentnode.get_children()
@@ -94,7 +94,7 @@ class MyApp(ShowBase):
         #         findChildrenAndSetRenderModeRecursively(child)
         #         child.setRenderModeFilled()
 
-        # findChildrenAndSetRenderModeRecursively(tq_render)
+        # findChildrenAndSetRenderModeRecursively(engine.tq_graphics_basics.tq_render)
 
         # show text on-screen
 

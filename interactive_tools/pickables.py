@@ -49,11 +49,11 @@ class PickablePointDragger(DragDropEventManager):
         # self.counter += 1
         r0_obj = math_utils.p3d_to_np(self.pickablepoint.getPos())
 
-        v_cam_forward = math_utils.p3d_to_np(tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getViewVector()))
+        v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getViewVector()))
         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
         # self.camera.node().getLens().getViewVector()
 
-        v_cam_up = math_utils.p3d_to_np(tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getUpVector()))
+        v_cam_up = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getUpVector()))
         v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
 
         r_cam = math_utils.p3d_to_np(self.camera.getPos())

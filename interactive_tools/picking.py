@@ -13,7 +13,7 @@ from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay
 import numpy as np
 
 
-from engine.tq_graphics_basics import tq_render, tq_loader
+import engine
 
 class PickableObjectManager:
     """ Each pickable object has to have an individual tag,
@@ -31,7 +31,6 @@ class PickableObjectManager:
         objectNp.setTag('objectId', objectTag)
 
 
-
 class CollisionPicker:
     """ This stores a ray, attached to a camera """
 
@@ -42,7 +41,7 @@ class CollisionPicker:
         # -- things that are needed to do picking from different camera orientations
         self.camera_gear = camera_gear  # e.g. the orbiter class is a camera_gear
         self.camera = self.camera_gear.camera
-        self.render = render
+        self.tq_render = tq_render
 
         self.mouse_watcher_node = mousewatchernode
 
@@ -60,7 +59,7 @@ class CollisionPicker:
         # -- TODO: update this every time the orbiter camera position changes
         # first, transform the (0,1,0) vector into render's coordinate system
 
-        self.pick_collision_ray.setDirection(tq_render.getRelativeVector(camera, Vec3(0, 1, 0)))
+        self.pick_collision_ray.setDirection(engine.tq_graphics_basics.tq_render.getRelativeVector(camera, Vec3(0, 1, 0)))
 
         # ---- build the CollisionNode
         self.pick_collision_node = CollisionNode('pick_collision_ray')
@@ -91,7 +90,7 @@ class CollisionPicker:
         self.pick_collision_ray.setFromLens(self.camera.node(), mouse_pos[0], mouse_pos[1])
 
         # now actually (manually) traverse to see if the two objects are collided (traverse the render tree (is the camera included there?))
-        self.pick_traverser.traverse(tq_render)  # this should fill up the collision queue
+        self.pick_traverser.traverse(engine.tq_graphics_basics.tq_render)  # this should fill up the collision queue
 
         if self.collision_queue.getNumEntries() > 0:
             # first, sort the entries (? which direction does it do that? to the camera?)
@@ -101,7 +100,7 @@ class CollisionPicker:
 
             # check to see if indeed an object was picked, and which posiition it has
             if not picked_obj_with_tag.isEmpty():
-                picked_obj_pos = entry.getSurfacePoint(tq_render)
+                picked_obj_pos = entry.getSurfacePoint(engine.tq_graphics_basics.tq_render)
 
                 print("picked object: ",
                       # picked_obj_with_tag.getTags(), " tag: ",
