@@ -26,10 +26,10 @@ class Scene2d:
         # draw the box
         for cur_x, cur_y, cur_z in zip(self.x_lowerleft, self.y_lowerleft, self.z):
             cur_point = PointPrimitive()
-            cur_point.nodePath.setPos(cur_x, 0, cur_y)
-            cur_point.nodePath.setColor(*self.color)
+            cur_point.setPos(cur_x, 0, cur_y)
+            cur_point.setColor(*self.color)
             self.set_bbox.append(cur_point)
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
-            [point.nodePath for point in self.set_bbox])
+            [point.nodepath for point in self.set_bbox])

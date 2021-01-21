@@ -2,7 +2,7 @@ from conventions import conventions
 from simple_objects import custom_geometry
 from local_utils import texture_utils, math_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
-from engine.graphics_object import GraphicsObject
+from engine.tq_graphics_basics import TQGraphicsNodePath
 from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedCircle
 
 from simple_objects.simple_objects import Point3d
@@ -27,18 +27,18 @@ import hashlib
 import numpy as np
 
 
-class GroupNode(GraphicsObject):
+class GroupNode(TQGraphicsNodePath):
     """ Documentation for GroupNode
     """
 
     def __init__(self):
         super(GroupNode, self).__init__()
-        self.nodePath = NodePath("empty")
-        self.nodePath.reparentTo(render)
+        self.tq_graphics_nodepath = NodePath("empty")
+        self.reparentTo(tq_render)
 
     def addChildNodePaths(self, NodePaths):
         for np in NodePaths:
-            np.reparentTo(self.nodePath)
+            np.reparentTo(self.nodepath)
 
     def removeChildNodePaths(self, NodePaths):
         for np in NodePaths:
@@ -46,19 +46,19 @@ class GroupNode(GraphicsObject):
 
     def hide(self):
         """ hide every child node in the group node """
-        children = self.nodePath.get_children()
+        children = self.get_children()
 
         for child in children:
             child.hide()
 
     def show(self):
         """ hide every child node in the group node """
-        children = self.nodePath.get_children()
+        children = self.get_children()
         for child in children:
             child.show()
 
     def get_children(self):
-        return self.nodePath.get_children()
+        return self.get_children()
 
 
 class ParallelLines:
@@ -76,8 +76,8 @@ class ParallelLines:
 
         self.lines = [Line2dObject() for i in range(self.number_of_lines)]
         for idx, line1 in enumerate(self.lines):
-            line1.nodePath.setScale(line1.nodePath, 1., 1., 1.)
-            line1.nodePath.setPos(0., 0, idx * self.spacing)
+            line1.setScale(line1.nodepath, 1., 1., 1.)
+            line1.setPos(0., 0, idx * self.spacing)
 
 
 class Point3dCursor:
@@ -156,19 +156,19 @@ class Point3dCursor:
         self._adjust()
 
     def hide(self):
-        self.point_center.nodePath.hide()
-        self.circle_outer_first.nodePath.hide()
-        self.circle_outer_second.nodePath.hide()
+        self.point_center.hide()
+        self.circle_outer_first.hide()
+        self.circle_outer_second.hide()
 
     def show(self):
-        self.point_center.nodePath.show()
-        self.circle_outer_first.nodePath.show()
-        self.circle_outer_second.nodePath.show()
+        self.point_center.show()
+        self.circle_outer_first.show()
+        self.circle_outer_second.show()
 
     def remove(self):
-        self.point_center.nodePath.removeNode()
-        self.circle_outer_first.nodePath.removeNode()
-        self.circle_outer_second.nodePath.removeNode()
+        self.point_center.removeNode()
+        self.circle_outer_first.removeNode()
+        self.circle_outer_second.removeNode()
 
 
 class Vector:
@@ -233,7 +233,7 @@ class Vector:
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
-            [self.line1.nodePath, self.arrowhead.nodePath])
+            [self.line1.nodepath, self.arrowhead.nodepath])
 
         self.tip_point_logical = tip_point_logical
         self.tail_point_logical = tail_point_logical
@@ -249,7 +249,7 @@ class Vector:
         for child in children:
             child.setColor(*color)
 
-        self.line1.nodePath.setColor(*color)
+        self.line1.setColor(*color)
         self.arrowhead.setColor(color)
 
     def getTipPoint(self):
@@ -318,8 +318,8 @@ class Vector:
         #   - translate arrowhead to the tip of the line1
         #   - translate arrowhead back to the scaled back line1's tip
 
-        assert self.line1.nodePath.getPos() == self.line1.tail_point
-        assert self.line1.nodePath.getPos() == self.tail_point_logical
+        assert self.line1.getPos() == self.line1.tail_point
+        assert self.line1.getPos() == self.tail_point_logical
 
         translation_to_tip_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
             self.tip_point_logical[0],
@@ -342,7 +342,7 @@ class Vector:
         #     Mat4()
         # )
 
-        self.arrowhead.nodePath.setMat(
+        self.arrowhead.setMat(
             self.arrowhead.form_from_primitive_trafo *  # for me, this is just the scaling
             self.line1.getRotation_forrowvecs() *
             translation_to_tip_forrowvecs *
@@ -383,11 +383,11 @@ class Vector:
         # 2. apply the scaling
         # 3. translate it back to it's original position
 
-        assert self.line1.nodePath.getPos() == self.line1.tail_point
-        assert self.line1.nodePath.getPos() == self.tail_point_logical
+        assert self.line1.getPos() == self.line1.tail_point
+        assert self.line1.getPos() == self.tail_point_logical
 
-        self.line1.nodePath.setMat(
-            (self.line1.nodePath.getMat() *
+        self.line1.setMat(
+            (self.line1.getMat() *
              math_utils.getTranslationMatrix3d_forrowvecs(-self.tail_point_logical[0],
                                                           -self.tail_point_logical[1],
                                                           -self.tail_point_logical[2]) *
@@ -399,13 +399,13 @@ class Vector:
 
     def hide(self):
         """ hide yourself """
-        self.line1.nodePath.hide()
-        self.arrowhead.nodePath.hide()
+        self.line1.hide()
+        self.arrowhead.hide()
 
     def show(self):
         """ show yourself """
-        self.line1.nodePath.show()
-        self.arrowhead.nodePath.show()
+        self.line1.show()
+        self.arrowhead.show()
 
 
 class Axis:
@@ -438,8 +438,8 @@ class Axis:
         # self._build_ticks()
 
         # # add everything together to a transform node
-        # self.groupNode.addChildNodePaths([self.axis_vector.groupNode.nodePath,
-        #                                   self.ticks_groupNode.nodePath])
+        # self.groupNode.addChildNodePaths([self.axis_vector.groupNode.nodepath,
+        #                                   self.ticks_groupNode.nodepath])
 
     def _build_vector(self):
         tip_point_logical = self.direction_vector * self.axis_length
@@ -454,14 +454,14 @@ class Axis:
             self.axis_vector.setTipPoint(tip_point_logical)
 
             self.groupNode.addChildNodePaths(
-                [self.axis_vector.groupNode.nodePath])
+                [self.axis_vector.groupNode.nodepath])
 
     def _build_ticks(self):
         # for now, always build new ticks
         if self.ticks:
             # remove all tick p3d nodes
             self.groupNode.removeChildNodePaths(
-                [self.ticks_groupNode.nodePath])
+                [self.ticks_groupNode.nodepath])
 
         # build new set of ticks
         self.ticks = []
@@ -469,36 +469,36 @@ class Axis:
         self.ticks_groupNode = GroupNode()
 
         for i in np.arange(0, self.axis_length, step=1./self.ticksperunitlength):
-            trafo_nodePath = NodePath("trafo_nodePath")
-            trafo_nodePath.reparentTo(self.ticks_groupNode.nodePath)
+            trafo_nodepath = NodePath("trafo_nodepath")
+            trafo_nodepath.reparentTo(self.ticks_groupNode.nodepath)
             # tick_line = Line2dObject()
             tick_line = Line1dSolid(thickness=self.thickness1dline)
-            tick_line.nodePath.reparentTo(trafo_nodePath)
+            tick_line.reparentTo(trafo_nodepath)
 
             tick_length = 0.2
             # translation = Vec3(i, 0, -0.25 * tick_length)
             tick_line.setTipPoint(Vec3(0, 0, tick_length))
             translation = Vec3(i, 0, -0.25 * tick_length)
-            trafo_nodePath.setPos(
+            trafo_nodepath.setPos(
                 translation[0], translation[1], translation[2])
 
             if float(i).is_integer() and i != 0:
-                tick_line.nodePath.setColor(1, 0, 0, 1)
+                tick_line.setColor(1, 0, 0, 1)
             if i == 0:
-                tick_line.nodePath.setColor(1, 1, 1, 0.2)
+                tick_line.setColor(1, 1, 1, 0.2)
 
             if float(i).is_integer() and i != 0:
-                trafo_nodePath.setScale(.5, 1., .5)
+                trafo_nodepath.setScale(.5, 1., .5)
             else:
-                trafo_nodePath.setScale(.5, 1., .5)
+                trafo_nodepath.setScale(.5, 1., .5)
 
             self.ticks.append(tick_line)
 
         # apply rotation to ticks group Node
-        self.ticks_groupNode.nodePath.setMat(
+        self.ticks_groupNode.setMat(
             self.axis_vector.line1.getRotation_forrowvecs())
 
-        self.groupNode.addChildNodePaths([self.ticks_groupNode.nodePath])
+        self.groupNode.addChildNodePaths([self.ticks_groupNode.nodepath])
 
     def setAxisLength(self, length):
         # set the logical parameter
@@ -539,7 +539,7 @@ class CoordinateSystem:
         for direction_vec, color_vec in zip(CoordinateSystem.cartesian_axes_directions[:dimension], CoordinateSystem.cartesian_axes_colors[:dimension]):
             ax = Axis(direction_vec, thickness1dline=5, color=color_vec)
             self.axes.append(ax)
-            self.groupNode.addChildNodePaths([ax.groupNode.nodePath])
+            self.groupNode.addChildNodePaths([ax.groupNode.nodepath])
 
         self.attach_axes_labels()
 
@@ -550,14 +550,14 @@ class CoordinateSystem:
 
         # get max and min of scatter in x and y range
         scatters_x_max = max(
-            [max([lpoint.x for lpoint in [point.nodePath.getPos() for point in scatter.points]]) for scatter in self.scatters])
+            [max([lpoint.x for lpoint in [point.getPos() for point in scatter.points]]) for scatter in self.scatters])
         scatters_y_max = max(
-            [max([lpoint.z for lpoint in [point.nodePath.getPos() for point in scatter.points]]) for scatter in self.scatters])
+            [max([lpoint.z for lpoint in [point.getPos() for point in scatter.points]]) for scatter in self.scatters])
 
         # scatter_x_min = min(
-        #     [lpoint.x for lpoint in [point.nodePath.getPos() for point in scatter.points]])
+        #     [lpoint.x for lpoint in [point.getPos() for point in scatter.points]])
         # scatter_y_min = min(
-        #     [lpoint.z for lpoint in [point.nodePath.getPos() for point in scatter.points]])
+        #     [lpoint.z for lpoint in [point.getPos() for point in scatter.points]])
 
         # resize the axes of the coordinate system to encompass the scatter
 
@@ -618,14 +618,14 @@ class Scatter:
         for cur_x, cur_y, cur_z in zip(self.x, self.y, self.z):
             cur_point = Point3d()
             # FIXME: for 3d plots, this has to change
-            cur_point.nodePath.setPos(cur_x, cur_y, cur_z)
-            cur_point.nodePath.setColor(*self.color)
+            cur_point.setPos(cur_x, cur_y, cur_z)
+            cur_point.setColor(*self.color)
 
             self.points.append(cur_point)
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
-            [point.nodePath for point in self.points])
+            [point.nodepath for point in self.points])
 
 
 class Box2dOfLines:
@@ -648,36 +648,36 @@ class Box2dOfLines:
         # -- bottom
         self.line1 = Line2dObject()
         self.line1.setTipPoint(Vec3(self.width, 0, 0))
-        self.line1.nodePath.setPos(
-            self.line1.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
-        self.line1.nodePath.setColor(self.color)
+        self.line1.setPos(
+            self.line1.getPos() + Vec3(self.x_ll, 0, self.y_ll))
+        self.line1.setColor(self.color)
 
         # -- left
         self.line2 = Line2dObject()
         self.line2.setTipPoint(Vec3(0, 0., self.height))
-        self.line2.nodePath.setPos(
-            self.line2.nodePath.getPos() + Vec3(self.x_ll, 0, self.y_ll))
-        self.line2.nodePath.setColor(self.color)
+        self.line2.setPos(
+            self.line2.getPos() + Vec3(self.x_ll, 0, self.y_ll))
+        self.line2.setColor(self.color)
 
         # -- top
         self.line3 = Line2dObject()
         self.line3.setTipPoint(Vec3(self.width, 0., 0.))
-        self.line3.nodePath.setPos(self.line3.nodePath.getPos(
+        self.line3.setPos(self.line3.getPos(
         ) + Vec3(self.x_ll, 0, self.y_ll) + Vec3(0, 0, self.height))
-        self.line3.nodePath.setColor(self.color)
+        self.line3.setColor(self.color)
 
         # -- right
         self.line4 = Line2dObject()
         self.line4.setTipPoint(Vec3(0, 0., self.height))
-        self.line4.nodePath.setPos(self.line4.nodePath.getPos(
+        self.line4.setPos(self.line4.getPos(
         ) + Vec3(self.x_ll, 0, self.y_ll) + Vec3(self.width, 0, 0))
-        self.line4.nodePath.setColor(self.color)
+        self.line4.setColor(self.color)
 
         self.lines = [self.line1, self.line2, self.line3, self.line4]
 
         self.groupNode = GroupNode()
         self.groupNode.addChildNodePaths(
-            [lines.nodePath for lines in self.lines])
+            [lines.nodepath for lines in self.lines])
 
 
 class CoordinateSystemP3dPlain:

@@ -35,6 +35,8 @@ from functools import partial
 
 from plot_utils.edgemousetools import EdgeHoverer, EdgeMouseClicker
 
+from engine.tq_graphics_basics import tq_render, tq_loader
+
 
 def sayhi():
     print("heylo ------- ######")
@@ -176,7 +178,7 @@ class DraggableGraph(Graph):
         self.pickableObjectManager = PickableObjectManager()
         self.dragAndDropObjectsManager = DragAndDropObjectsManager()
         self.collisionPicker = CollisionPicker(
-            self.camera_gear, render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
+            self.camera_gear, tq_render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
 
         # -- add a mouse task to check for picking
         self.p3d_direct_object = DirectObject.DirectObject()
@@ -188,7 +190,7 @@ class DraggableGraph(Graph):
 
         # # -- add the update dragging tasks for each of the PickablePoints' draggers
         # for pp in self.graph_points:
-        #     dragger = self.dragAndDropObjectsManager.get_dragger_from_nodePath(pp.nodePath):
+        #     dragger = self.dragAndDropObjectsManager.get_dragger_from_tq_nodepath(pp.nodepath):
         #     dragger.add_on_state_change_function(self.updateAfterPointCoordsChanged)
 
         # TODO: improve the design by letting DraggableGraph inherit from DragAndDropObjectsManager,
@@ -205,7 +207,7 @@ class DraggableGraph(Graph):
                                     self.pickableObjectManager,
                                     pos=Vec3(auto_coord[0], auto_coord[1], 0.))
 
-            pt.nodePath.setScale(*(0.9*np.array([0.02, 0.02, 0.02])))
+            pt.setScale(*(0.9*np.array([0.02, 0.02, 0.02])))
 
             pt_dragger = PickablePointDragger(pt, self.camera_gear)
             pt_dragger.add_on_state_change_function(sayhi)
@@ -217,8 +219,8 @@ class DraggableGraph(Graph):
 
             self.dragAndDropObjectsManager.add_dragger(pt_dragger)
 
-            pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
-            # pt.nodePath.showBounds()
+            pt.setHpr(90, 0, 0)  # 90 degrees yaw
+            # pt.showBounds()
 
             self.graph_points.append(pt)
 
@@ -239,7 +241,7 @@ class DraggableGraph(Graph):
         """ once a PickablePoint has been dragged, you need to update it's edges """
 
         # first of all find the dragged object (PickablePoint)
-        # self.dragAndDropObjectsManager.get_dragger_from_nodePath()
+        # self.dragAndDropObjectsManager.get_dragger_from_tq_nodepath()
         if dragged_graphpickablepoint:
             connected_edges = (list) (self.logical_graph.edges([dragged_graphpickablepoint.nx_graph_node]))
 
@@ -355,7 +357,7 @@ class GraphHoverer:
 
                     self.shortest_distance_line.setTipPoint(math_utils.np_to_p3d_Vec3(c1))
                     self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
-                    self.shortest_distance_line.nodePath.show()
+                    self.shortest_distance_line.show()
 
                     # -- set the time label
                     # ---- set the position of the label to the position of the mouse cursor, but a bit higher
@@ -385,13 +387,13 @@ class GraphHoverer:
                         edge.setColor(((1., 0., 0., 1.), 1))
             else:
                 # hide the connection line
-                self.shortest_distance_line.nodePath.hide()
+                self.shortest_distance_line.hide()
 
                 # make all the same color
                 for edge in self.draggablegraph.graph_edges:
                     edge.setColor(((1., 1., 1., 1.), 1))
 
-            self.hoverindicatorpoint.nodePath.setPos(math_utils.np_to_p3d_Vec3(
+            self.hoverindicatorpoint.setPos(math_utils.np_to_p3d_Vec3(
                 ray_aufpunkt + ray_direction * 1.))
 
             # -- color point
@@ -414,12 +416,12 @@ class GraphHoverer:
 
             # ---- color in point
             for point in self.draggablegraph.graph_points:
-                point.nodePath.setColor((1., 0., 1., 1.), 1)
+                point.setColor((1., 0., 1., 1.), 1)
 
                 if point is closestpoint:
-                    point.nodePath.setColor((1., 0., 0., 1.), 1)
+                    point.setColor((1., 0., 0., 1.), 1)
                 else:
-                    point.nodePath.setColor((1., 1., 1., 1.), 1)
+                    point.setColor((1., 1., 1., 1.), 1)
 
     def init_time_label(self):
         """ show a text label at the position of the cursor:

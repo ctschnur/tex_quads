@@ -1,0 +1,44 @@
+
+
+
+
+
+
+
+
+
+
+
+
+
+sm1: 
+state1: 
+transition_into(state2)
+state2: 
+
+-> if self.called_from_sm is not self: don't transition
+
+
+
+sm2: 
+init: 
+sm1o = sm1(called_from_sm=self)  # sm1 controlled by sm2
+state1: 
+sm1o.transition_into(sm1.state3)
+state2: 
+--
+sm1: 
+state1: 
+transition_into(state2)
+state2: 
+state3: 
+
+
+in sm1.transition_into(): 
+-> if self.called_from_sm is not self: dpon't transition
+
+
+
+
+-> 
+in the add_event, transition_into and add_batch_events calls, only add or do the transition_into if the state machine where this function was called from (so either None->self or explicitly set by called_from_sm) is the .get_controlling_sm (which can be self or another one). If the called_from_sm is the .get_controlling_state_machine, then add the event/do the transition_into

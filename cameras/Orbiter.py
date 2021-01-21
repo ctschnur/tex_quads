@@ -24,6 +24,8 @@ from interactive_tools.event_managers import DragDropEventManager
 
 from local_utils import math_utils
 
+from engine.tq_graphics_basics import tq_render, tq_loader
+
 
 class OrbiterVisualAids:
     """ A set of graphics that helps the orbiter """
@@ -189,16 +191,16 @@ class Orbiter:
         # --- fix a point light to the side of the camera
         from panda3d.core import PointLight
         self.plight = PointLight('plight')
-        self.pl_nodePath = render.attachNewNode(self.plight)
+        self.pl_nodepath = tq_render.attachNewNode(self.plight)
         self.set_pointlight_pos_spherical_coords()
-        render.setLight(self.pl_nodePath)
+        tq_render.setLight(self.pl_nodepath)
 
         # -- set faint ambient white lighting
         from panda3d.core import AmbientLight
         self.alight = AmbientLight('alight')
-        self.alnp = render.attachNewNode(self.alight)
+        self.alnp = tq_render.attachNewNode(self.alight)
         self.alight.setColor((0.25, 0.25, 0.25, 1))
-        render.setLight(self.alnp)
+        tq_render.setLight(self.alnp)
 
         self.visual_aids = OrbiterVisualAids(self)
         if enable_visual_aids == True:
@@ -234,12 +236,12 @@ class Orbiter:
             camera_gear: camera gear with camera member variable
             p_xy_offset: the origin point (lies in the camera plane) to which the change point (calculated from the mouse displacement) is being added to """
 
-        v_cam_forward = math_utils.p3d_to_np(render.getRelativeVector(
+        v_cam_forward = math_utils.p3d_to_np(tq_render.getRelativeVector(
             camera_gear.camera, camera_gear.camera.node().getLens().getViewVector()))
         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
         # camera_gear.camera.node().getLens().getViewVector()
 
-        v_cam_up = math_utils.p3d_to_np(render.getRelativeVector(
+        v_cam_up = math_utils.p3d_to_np(tq_render.getRelativeVector(
             camera_gear.camera, camera_gear.camera.node().getLens().getUpVector()))
         v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
 
@@ -423,8 +425,8 @@ class Orbiter:
 
     def set_pointlight_pos_spherical_coords(self):
         x, y, z = self.get_spherical_coords(offset_phi=np.pi/2.)
-        self.pl_nodePath.setPos(x, y, z)
-        self.pl_nodePath.lookAt(self.get_orbit_center())
+        self.pl_nodepath.setPos(x, y, z)
+        self.pl_nodepath.lookAt(self.get_orbit_center())
 
     def handle_wheel_up(self):
         self.phi = self.phi + 0.05

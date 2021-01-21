@@ -40,7 +40,7 @@ class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         base.setFrameRateMeter(True)
-        render.setAntialias(AntialiasAttrib.MAuto)
+        tq_render.setAntialias(AntialiasAttrib.MAuto)
 
         # ob = Orbiter(radius=3.)
         # cs = CoordinateSystem(ob)
@@ -70,10 +70,10 @@ class MyApp(ShowBase):
         control_points = []
         for p in point_coords_arr:
             pt = Point(pos=Vec3(*p), thickness=10)
-            pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
+            pt.setHpr(90, 0, 0)  # 90 degrees yaw
             # control_points.append(pt)
-            # draggable = dragDropObjectClass(pt.nodePath, objectManager)
-            pt.nodePath.showBounds()
+            # draggable = dragDropObjectClass(pt.nodepath, objectManager)
+            pt.showBounds()
             control_points.append(pt)
 
 
@@ -92,12 +92,12 @@ class MyApp(ShowBase):
                 findChildrenAndSetRenderModeRecursively(child)
                 child.setRenderModeFilled()
 
-        findChildrenAndSetRenderModeRecursively(render)
+        findChildrenAndSetRenderModeRecursively(tq_render)
 
 
     def setupWorld(self):
         self.box = loader.loadModel('box')
-        self.box.reparentTo(render)
+        self.box.reparentTo(tq_render)
         self.box.setScale(0.5)
         self.box.setPos(0., 0., 0.)
         self.box.setHpr(0., 0., 0.)
@@ -112,10 +112,10 @@ class MyApp(ShowBase):
         # from panda3d.core import PointLight
         # self.plight = PointLight('plight')
         # self.plight.setColor(Vec4(0.7, 0.7, 0.7, 1.))
-        # self.pl_nodePath = render.attachNewNode(self.plight)
+        # self.pl_nodepath = tq_render.attachNewNode(self.plight)
         # # self.set_pointlight_pos_spherical_coords()
-        # self.pl_nodePath.setPos(self.box, 0., 0., 40.)
-        # render.setLight(self.pl_nodePath)
+        # self.pl_nodepath.setPos(self.box, 0., 0., 40.)
+        # tq_render.setLight(self.pl_nodepath)
 
     def setupCollisionObjects(self):
         # creating stuff
@@ -127,21 +127,21 @@ class MyApp(ShowBase):
         # self.render = render
 
         # a ray is a half-inifinite straight line
-        self.pick_collision_ray.setOrigin(base.cam.getPos(self.render))
+        self.pick_collision_ray.setOrigin(base.cam.getPos(self.tq_render))
         # picking in the positive y direction
-        self.pick_collision_ray.setDirection(render.getRelativeVector(camera, Vec3(0, 1, 0)))
+        self.pick_collision_ray.setDirection(tq_render.getRelativeVector(camera, Vec3(0, 1, 0)))
 
         self.pick_collision_node = CollisionNode('pick_collision_ray')
         self.pick_collision_node.addSolid(self.pick_collision_ray)  # the pick ray is actually a 3d object
 
         # attach the CollisionNode to the camera (not the CollisionRay)
-        self.pick_collision_node_nodePath = base.cam.attachNewNode(self.pick_collision_node)
+        self.pick_collision_node_nodepath = base.cam.attachNewNode(self.pick_collision_node)
 
         # set a collide mask to the pick_collision_node, 2 objects that should be able to collide must have the same collide mask!
         self.pick_collision_node.setFromCollideMask(GeomNode.getDefaultCollideMask())  # set bit 20 (Default) to the ray
 
         # add the ray as sth. that can cause collisions, and tell it to fill up our collision queue object when traversing and detecting
-        self.pick_traverser.addCollider(self.pick_collision_node_nodePath, self.collision_queue)
+        self.pick_traverser.addCollider(self.pick_collision_node_nodepath, self.collision_queue)
 
 
     def onMouseTask(self):
@@ -154,7 +154,7 @@ class MyApp(ShowBase):
         self.pick_collision_ray.setFromLens(base.cam.node(), mouse_pos[0], mouse_pos[1])
 
         # now actually (manually) traverse to see if the two objects are collided (traverse the render tree (is the camera included there?))
-        self.pick_traverser.traverse(render)  # this should fill up the collision queue
+        self.pick_traverser.traverse(tq_render)  # this should fill up the collision queue
 
         if self.collision_queue.getNumEntries() > 0:
             # first, sort the entries (? which direction does it do that? to the camera?)
@@ -164,7 +164,7 @@ class MyApp(ShowBase):
 
             # check to see if indeed an object was picked, and which posiition it has
             if not picked_obj_with_tag.isEmpty():
-                picked_obj_pos = entry.getSurfacePoint(render)
+                picked_obj_pos = entry.getSurfacePoint(tq_render)
 
                 print("picked object: ",
                       # picked_obj_with_tag.getTags(), " tag: ",

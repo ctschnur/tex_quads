@@ -6,6 +6,7 @@ from sequence.sequence import Sequence
 from plot_utils.quad import Quad
 
 import numpy as np
+from engine.tq_graphics_basics import TQGraphicsNodePath
 
 
 class WaitingSymbol:
@@ -29,13 +30,13 @@ class WaitingSymbol:
         self.a = None
 
         # -- supporting graphics
-        self.quad = Quad(thickness=3.0, nodePath_creation_parent_node=aspect2d)
+        self.quad = Quad(thickness=3.0, TQGraphicsNodePath_creation_parent_node=tq_aspect2d)
         self.quad.set_pos_vec3(self.position)
         self.quad.set_height(self.size)
         self.quad.set_width(self.size)
 
         self.line = Line1dSolid(
-            thickness=3.0, nodePath_creation_parent_node=aspect2d)
+            thickness=3.0, TQGraphicsNodePath_creation_parent_node=tq_aspect2d)
 
         self.anim_seq = Sequence()
 

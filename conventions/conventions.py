@@ -104,19 +104,19 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     # -- set faint ambient white lighting
     from panda3d.core import AmbientLight
     alight = AmbientLight('alight')
-    alnp = render.attachNewNode(alight)
+    alnp = tq_render.attachNewNode(alight)
     alight.setColor((0.35, 0.35, 0.35, 1))
-    render.setLight(alnp)
+    tq_render.setLight(alnp)
 
 
-def compute2dPosition(nodePath, point = Point3(0, 0, 0)):
+def compute2dPosition(nodepath, point = Point3(0, 0, 0)):
     """ Computes a 3-d point, relative to the indicated node, into a
     2-d point as seen by the camera.  The range of the returned value
     is based on the len's current film size and film offset, which is
     (-1 .. 1) by default. """
 
     # Convert the point into the camera's coordinate space
-    p3d = base.cam.getRelativePoint(nodePath, point)
+    p3d = base.cam.getRelativePoint(nodepath, point)
 
     # Ask the lens to project the 3-d point to 2-d.
     p2d = Point2()

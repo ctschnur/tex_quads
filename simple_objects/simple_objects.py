@@ -5,7 +5,10 @@ from simple_objects import custom_geometry
 
 from local_utils import math_utils
 from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
-from engine.graphics_object import GraphicsObject
+
+from engine.tq_graphics_basics import TQGraphicsNodePath
+from engine.tq_graphics_basics import tq_render, tq_loader
+
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
 from direct.showbase.ShowBase import ShowBase
@@ -64,7 +67,7 @@ class Point3d(Point):
             math_utils.getScalingMatrix4x4(self.scale_ist, self.scale_ist, self.scale_ist))
 
         self.form_from_primitive_trafo = scaling_forrowvecs  # * rotation_forrowvecs
-        self.nodePath.setMat(self.form_from_primitive_trafo)
+        self.setMat(self.form_from_primitive_trafo)
         self.setColor(self.color)
 
         self.setPos(self.pos)
@@ -72,21 +75,21 @@ class Point3d(Point):
     def makeObject(self):
         # load a gltf file
         from panda3d.core import Filename
-        self.nodePath = loader.loadModel(
+        self.tq_graphics_nodepath = tq_loader.loadModel(
             Filename.fromOsSpecific(
                 # root of project
                 os.path.abspath(sys.path[0])).getFullpath()
             + "/models/small_sphere_triangulated_with_face_normals.gltf")
 
-        self.nodePath.reparentTo(render)
-        self.node = self.nodePath.node()
+        self.reparentTo(tq_render)
+        self.node = self.node()
 
-        self.nodePath.setRenderModeFilled()
+        self.setRenderModeFilled()
 
         # override the vertex colors of the model
-        self.nodePath.setColor(self.color)
+        self.setColor(self.color)
 
-        self.nodePath.setLightOff(1)
+        self.setLightOff(1)
 
     def setPos(self, pos):
         """
@@ -95,13 +98,13 @@ class Point3d(Point):
         self.pos = pos
 
         if self.pos is not None:
-            self.nodePath.setPos(pos)
-            self.nodePath.show()
+            self.setPos(pos)
+            self.show()
         else:
-            self.nodePath.hide()
+            self.hide()
 
     def getPos(self):
-        return self.nodePath.getPos()
+        return self.getPos()
 
 
 class PointPrimitive(Point):
@@ -116,9 +119,9 @@ class PointPrimitive(Point):
         self.node = custom_geometry.create_GeomNode_Single_Point(
             color_vec4=Vec4(1., 1., 1., 1.))
 
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
-        self.nodePath.setLightOff(1)
-        # self.nodePath.setRenderModeThickness(5)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.setLightOff(1)
+        # self.setRenderModeThickness(5)
 
 
 class Point2d(Point):
@@ -131,10 +134,10 @@ class Point2d(Point):
         self.node = custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
 
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
 
-        self.nodePath.setTwoSided(True)
-        self.nodePath.setLightOff(1)
+        self.setTwoSided(True)
+        self.setLightOff(1)
 
 
 # ---- lines
@@ -155,8 +158,8 @@ class LinePrimitive(IndicatorPrimitive):
     # def makeObject(self, thickness, color):
     #     self.node = custom_geometry.createColoredUnitLineGeomNode(
     #         thickness=thickness, color_vec4=self.color)
-    #     self.nodePath = render.attachNewNode(self.node)
-    #     self.nodePath.setLightOff(1)
+    #     self.tq_graphics_nodepath = tq_render.attachNewNode(self.node)
+    #     self.setLightOff(1)
 
 
 class Line1dPrimitive(LinePrimitive):
@@ -174,8 +177,8 @@ class Line1dPrimitive(LinePrimitive):
             thickness=thickness,
             color_vec4=self.color)
 
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
-        self.nodePath.setLightOff(1)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.setLightOff(1)
 
     def setTipPoint(self, point):
         # the diff_vec needs to be first scaled and rotated, then translated by it's position
@@ -185,11 +188,11 @@ class Line1dPrimitive(LinePrimitive):
 
         if (self.tip_point is None or self.tail_point is None or self.tip_point == self.tail_point):
             # set vector status to hidden
-            self.nodePath.hide()
+            self.hide()
             print("Warning: setTipPoint exception: transformation skipped")
             return
         else:
-            self.nodePath.show()
+            self.show()
 
         diff_vec = self.tip_point - self.tail_point
 
@@ -213,30 +216,30 @@ class Line1dPrimitive(LinePrimitive):
         scaling_and_rotation_forrowvecs = scaling_forrowvecs * self._rotation_forrowvecs
 
         translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
-            *self.nodePath.getPos())
+            *self.getPos())
 
-        self.nodePath.setMat(self.form_from_primitive_trafo *
+        self.setMat(self.form_from_primitive_trafo *
                              scaling_and_rotation_forrowvecs * translation_forrowvecs)
 
         # for some weird reason, I have to run setTailPoint again ...
         self.setTailPoint(self.tail_point, run_setTipPoint_again=False)
 
     def setTailPoint(self, point, run_setTipPoint_again=True):
-        """ this sets the tailpoint (self.nodePath.getPos()), keeping the tip point at it's original
+        """ this sets the tailpoint (self.getPos()), keeping the tip point at it's original
             position """
 
         self.tail_point = point
 
         if (self.tip_point is None or self.tail_point is None):
-            self.nodePath.hide()
+            self.hide()
             return
         else:
-            self.nodePath.show()
+            self.show()
 
-        self.nodePath.setPos(point)
+        self.setPos(point)
 
         # setTipPoint applies a transformation on an already existing line object, i.e.
-        #   first figure out the difference betweeen the tip point (self.tip_point) and the tail point (self.nodePath.getPos()) to get the length of the vector
+        #   first figure out the difference betweeen the tip point (self.tip_point) and the tail point (self.getPos()) to get the length of the vector
         #   then take the difference vector (diff_vec)
         #   knowing the difference vector, compute the rotation matrix for the position vector diff_vec
         #   if you want to set the rotation using a matrix, then you have to set the position as well using a matrix
@@ -261,7 +264,7 @@ class Line1dPrimitive(LinePrimitive):
 
     def remove(self):
         """ remove the NodePath """
-        self.nodePath.removeNode()
+        self.removeNode()
 
 
 class Line1dSolid(Line1dPrimitive):
@@ -277,12 +280,12 @@ class Line1dSolid(Line1dPrimitive):
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
-        self.form_from_primitive_trafo = self.nodePath.getMat()
+        self.form_from_primitive_trafo = self.getMat()
 
 
-class LineDashedPrimitive(GraphicsObject):
+class LineDashedPrimitive(TQGraphicsNodePath):
     def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.), howmany_periods=5., **kwargs):
-        GraphicsObject.__init__(self, **kwargs)
+        TQGraphicsNodePath.__init__(self, **kwargs)
         self.thickness = thickness
         self.color = color
         self.howmany_periods = howmany_periods
@@ -291,9 +294,9 @@ class LineDashedPrimitive(GraphicsObject):
     def makeObject(self, thickness, color, howmany_periods):
         self.node = custom_geometry.createColoredUnitDashedLineGeomNode(
             thickness=thickness, color_vec4=self.color, howmany_periods=5.)
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
 
-        self.nodePath.setLightOff(1)
+        self.setLightOff(1)
 
     def getRotation_forrowvecs(self):
         """
@@ -314,7 +317,7 @@ class Line1dDashed(LineDashedPrimitive):
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):
-        self.form_from_primitive_trafo = self.nodePath.getMat()
+        self.form_from_primitive_trafo = self.getMat()
 
         self.setTipPoint(Vec3(1., 0., 0.))
 
@@ -337,9 +340,9 @@ class Line2dObject(Box2dCentered):
             0.5, 0, 0)
 
         self.form_from_primitive_trafo = scaling * self.translation_to_xhat_forrowvecs
-        self.nodePath.setMat(self.form_from_primitive_trafo)
+        self.setMat(self.form_from_primitive_trafo)
 
-        # self.form_from_primitive_trafo = self.nodePath.getMat()
+        # self.form_from_primitive_trafo = self.getMat()
         self.setTipPoint(Vec3(1., 0., 0.))
 
     def getRotation_forrowvecs(self):
@@ -358,7 +361,7 @@ class ArrowHead(Box2dCentered):
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
-        # self.nodePath.setScale(self.scale, self.scale, self.scale)
+        # self.setScale(self.scale, self.scale, self.scale)
 
         scaling_forrowvecs = math_utils.getScalingMatrix3d_forrowvecs(
             self.scale,
@@ -373,9 +376,9 @@ class ArrowHead(Box2dCentered):
         """
         self.node = custom_geometry.createColoredArrowGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
 
-        self.nodePath.setTwoSided(True)
+        self.setTwoSided(True)
 
 
 class ArrowHeadCone(Box2dCentered):
@@ -396,7 +399,7 @@ class ArrowHeadCone(Box2dCentered):
 
         self.form_from_primitive_trafo = scaling_forrowvecs * rotation_forrowvecs
 
-        self.nodePath.setMat(self.form_from_primitive_trafo)
+        self.setMat(self.form_from_primitive_trafo)
 
     def makeObject(self):
         self.node = custom_geometry.create_GeomNode_Cone(
@@ -405,8 +408,8 @@ class ArrowHeadCone(Box2dCentered):
         # typically, if the geometry isn't changed in-place,
         # only the NodePath is called at later times
 
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
-        self.nodePath.setTwoSided(True)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.setTwoSided(True)
 
 
 class ArrowHeadConeShaded(IndicatorPrimitive):
@@ -421,7 +424,7 @@ class ArrowHeadConeShaded(IndicatorPrimitive):
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
-        # self.nodePath.setScale(self.scale, self.scale, self.scale)
+        # self.setScale(self.scale, self.scale, self.scale)
 
         scaling_forrowvecs = (
             math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(self.scale,
@@ -433,22 +436,22 @@ class ArrowHeadConeShaded(IndicatorPrimitive):
 
         self.form_from_primitive_trafo = scaling_forrowvecs  # * rotation_forrowvecs
 
-        self.nodePath.setMat(self.form_from_primitive_trafo)
+        self.setMat(self.form_from_primitive_trafo)
 
     def makeObject(self):
         # load a gltf file
         from panda3d.core import Filename
-        self.nodePath = loader.loadModel(
+        self.tq_graphics_nodepath = tq_loader.loadModel(
             Filename.fromOsSpecific(
                 os.path.abspath(sys.path[0])).getFullpath()  # root of project
             + "/models/unit_cone_triangulated_with_face_normals.gltf")
-        self.nodePath.reparentTo(render)
-        self.node = self.nodePath.node()
+        self.reparentTo(tq_render)
+        self.node = self.node()
 
         # override the vertex colors of the model
-        self.nodePath.setColor(self.color)
+        self.setColor(self.color)
 
-        self.nodePath.setRenderModeFilled(True)
+        self.setRenderModeFilled(True)
 
 
 class SphereModelShaded(Box2dCentered):
@@ -466,25 +469,25 @@ class SphereModelShaded(Box2dCentered):
 
         self.form_from_primitive_trafo = scaling_forrowvecs  # * rotation_forrowvecs
 
-        self.nodePath.setMat(self.form_from_primitive_trafo)
+        self.setMat(self.form_from_primitive_trafo)
 
     def makeObject(self):
         # load a gltf file
         from panda3d.core import Filename
-        self.nodePath = loader.loadModel(
+        self.tq_graphics_nodepath = tq_loader.loadModel(
             Filename.fromOsSpecific(
                 os.path.abspath(sys.path[0])).getFullpath()  # root of project
             + "/models/small_sphere_triangulated_with_face_normals.gltf")
-        self.nodePath.reparentTo(render)
-        self.node = self.nodePath.node()
+        self.reparentTo(tq_render)
+        self.node = self.node()
 
         # override the vertex colors of the model
-        self.nodePath.setColor(self.color)
+        self.setColor(self.color)
 
-        self.nodePath.setLightOff(1)
+        self.setLightOff(1)
 
 
-class Pinned2dLabel:
+class Pinned2dLabel(IndicatorPrimitive):
     def __init__(self, refpoint3d=Point3(1., 1., 1.), text="pinned?", xshift=0., yshift=0.,
                  font="cmr12.egg", color=(1., 1., 1., 1.)):
         """ """
@@ -526,7 +529,7 @@ class Pinned2dLabel:
         self.update()
 
     def update(self):
-        pos_rel_to_cam = base.cam.get_relative_point(base.render,
+        pos_rel_to_cam = base.cam.get_relative_point(base.tq_render,
                                                      self.refpoint3d)
         p2d = Point2()
 
@@ -587,7 +590,7 @@ class Fixed2dLabel(IndicatorPrimitive):
             z: 'z' (actually y) position when attaching to aspect2d """
 
         kwargs = {}
-        kwargs['nodePath_creation_parent_node'] = aspect2d
+        kwargs['TQGraphicsNodePath_creation_parent_node'] = aspect2d
 
         IndicatorPrimitive.__init__(self, **kwargs)
 
@@ -634,7 +637,7 @@ class Fixed2dLabel(IndicatorPrimitive):
             self.textNode.setShadowColor(0, 0, 0, 1)
             self.textNode_p3d_generated = self.textNode.generate()
 
-            self.textNodePath = self.get_parent_node_for_nodePath_creation(
+            self.textNodePath = self.get_parent_node_for_nodepath_creation(
             ).attachNewNode(self.textNode_p3d_generated)
 
             self.nodeisattachedtoaspect2d = True
@@ -663,9 +666,9 @@ class OrientedDisk(IndicatorPrimitive):
         self.node = custom_geometry.createColoredUnitDisk(
             color_vec4=Vec4(1., 1., 1., 1.))
 
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
-        self.nodePath.setLightOff(1)
-        self.nodePath.setTwoSided(True)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.setLightOff(1)
+        self.setTwoSided(True)
 
 
 class OrientedCircle(IndicatorPrimitive):
@@ -690,7 +693,7 @@ class OrientedCircle(IndicatorPrimitive):
         self.makeObject(num_of_verts, radius,
                         with_hole=with_hole, thickness=thickness)
 
-        self.nodePath.setMat(
+        self.setMat(
             OrientedCircle.getSetupTransformation(normal_vector, origin_point, scale))
 
     def makeObject(self, num_of_verts, radius, with_hole, thickness):
@@ -701,19 +704,19 @@ class OrientedCircle(IndicatorPrimitive):
             num_of_verts=num_of_verts,
             radius=radius)
 
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
-        self.nodePath.setLightOff(1)
-        self.nodePath.setRenderModeThickness(thickness)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.setLightOff(1)
+        self.setRenderModeThickness(thickness)
 
-        # self.nodePath.setTwoSided(True)
+        # self.setTwoSided(True)
 
         # ---- set orientation from normal vector
-        # self.nodePath.setMat()
+        # self.setMat()
 
     def setPos(self, origin_point):
         self.origin_point = origin_point
 
-        self.nodePath.setMat(
+        self.setMat(
             OrientedCircle.getSetupTransformation(self.normal_vector,
                                                   self.origin_point,
                                                   self.scale))
@@ -737,4 +740,4 @@ class OrientedCircle(IndicatorPrimitive):
             origin_point[0], origin_point[1], origin_point[2])
 
         return scaling_forrowvecs * rotation_forrowvecs * translation_forrowvecs
-        # self.nodePath.setMat()  # reverse order column first row second convention
+        # self.setMat()  # reverse order column first row second convention

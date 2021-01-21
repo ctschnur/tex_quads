@@ -1,3 +1,9 @@
+import engine.tq_graphics_basics
+
+from direct.showbase.ShowBase import ShowBase, DirectObject
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
+from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
+from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
@@ -10,10 +16,7 @@ from local_utils import math_utils
 import numpy as np
 import math
 
-from direct.showbase.ShowBase import ShowBase, DirectObject
-from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
-from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
-from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
+
 
 import local_tests.svgpathtodat.main
 
@@ -22,7 +25,7 @@ import sys
 import pytest
 # import gltf
 
-from cameras.Orbiter import Orbiter
+import cameras.Orbiter
 
 from direct.task import Task
 
@@ -50,16 +53,21 @@ from statemachine.edgeplayer import EdgePlayerSM
 
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
 
+
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
+
+        engine.tq_graphics_basics.prepare_engine(render, aspect2d, loader)
+
         base.setFrameRateMeter(True)
-        render.setAntialias(AntialiasAttrib.MAuto)
+
+        engine.tq_graphics_basics.tq_render.setAntialias(AntialiasAttrib.MAuto)
 
         shade_of_gray = 0.3
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
-        ob = Orbiter(base.cam, radius=3.)
+        ob = cameras.Orbiter.Orbiter(base.cam, radius=3.)
         # ob.set_view_to_xy_plane()
         cs = CoordinateSystem(ob)
 

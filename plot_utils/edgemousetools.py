@@ -112,7 +112,7 @@ class EdgeHoverer:
             if math_utils.isPointBetweenTwoPoints(edge_p1, edge_p2, c1):
                 self.shortest_distance_line.setTipPoint(math_utils.np_to_p3d_Vec3(c1))
                 self.shortest_distance_line.setTailPoint(math_utils.np_to_p3d_Vec3(c2))
-                self.shortest_distance_line.nodePath.show()
+                self.shortest_distance_line.show()
 
                 # -- set the time label
                 # ---- set the position of the label to the position of the mouse cursor,
@@ -148,10 +148,10 @@ class EdgeHoverer:
 
                 self.edge_graphics.set_primary_color(self.edge_graphics.get_primary_color())
 
-                self.shortest_distance_line.nodePath.hide()
+                self.shortest_distance_line.hide()
                 self.time_label.textNodePath.hide()
 
-            self.hoverindicatorpoint.nodePath.setPos(
+            self.hoverindicatorpoint.setPos(
                 math_utils.np_to_p3d_Vec3(ray_aufpunkt + ray_direction * 1.))
 
             # -- color point
@@ -179,12 +179,12 @@ class EdgeHoverer:
 
             # # ---- color in pos
             # for pos in playerline_limiting_positions:
-            #     # pos.nodePath.setColor((1., 0., 1., 1.), 1)
+            #     # pos.setColor((1., 0., 1., 1.), 1)
 
             #     if pos is closestpoint:
-            #         pos.nodePath.setColor((1., 0., 0., 1.), 1)
+            #         pos.setColor((1., 0., 0., 1.), 1)
             #     else:
-            #         pos.nodePath.setColor((1., 1., 1., 1.), 1)
+            #         pos.setColor((1., 1., 1., 1.), 1)
 
     def init_time_label(self):
         """ show a text label at the position of the cursor:

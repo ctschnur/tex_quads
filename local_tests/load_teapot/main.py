@@ -17,7 +17,7 @@ class MyApp(ShowBase):
 
         # # teapot
         self.scene = self.loader.loadModel("models/teapot")
-        self.scene.reparentTo(self.render)
+        self.scene.reparentTo(self.tq_render)
 
         self.camera.setPos(0, -20, 4)
  

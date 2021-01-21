@@ -39,9 +39,9 @@ class MyApp(ShowBase):
 
         # make self-defined camera control possible
         # base.disableMouse()
-        render.setAntialias(AntialiasAttrib.MAuto)
+        tq_render.setAntialias(AntialiasAttrib.MAuto)
 
-        # render.set_two_sided(True)
+        # tq_render.set_two_sided(True)
         # conventions.setupOrthographicProjectionAndViewingAccordingToMyConvention(
         #     lookat_position=Vec3(0, 0, 0),
         #     camera_position=Vec3(5, 5, 2))
@@ -81,7 +81,7 @@ class MyApp(ShowBase):
                 findChildrenAndSetRenderModeRecursively(child)
                 child.setRenderModeFilled()
 
-        findChildrenAndSetRenderModeRecursively(render)
+        findChildrenAndSetRenderModeRecursively(tq_render)
 
 
 app = MyApp()

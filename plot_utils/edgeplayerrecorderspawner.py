@@ -45,7 +45,7 @@ class EdgePlayerRecorderSpawner:
     Every time an EdgeRecorder is created, it is given an instance of an EdgePlayerRecorderSpawner. This object will then spawn an EdgePlayer, once
     the finish() function of the recorder is called. From then on, the EdgePlayerRecorderSpawner (in memory)
     - creates an edgeplayer from the edgerecorder and displays it
-    - removes (removes all nodes from render, and unregisters the DirectObjects (events)) the edgerecorder
+    - removes (removes all nodes from tq_render, and unregisters the DirectObjects (events)) the edgerecorder
 
     (future: - attaches the edgeplayer to the graph where it's been spawned from)
     """

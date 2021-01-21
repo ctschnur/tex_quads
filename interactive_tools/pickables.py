@@ -16,11 +16,12 @@ class PickablePointDragger(DragDropEventManager):
     dragger objects are managed by DragAndDropObjetsManager.
     it bundles the relevant information about a drag's state """
     def __init__(self, pickablepoint, camera):
+        """ """
         self.pickablepoint = pickablepoint
         self.camera = camera
 
-        # FIXME: figure out a better way than passing the nodePath in here
-        self._dragger_nodePath_handle = pickablepoint.nodePath  # this should only be used after the picking event and when the draggers are searched for the nodepath that was picked
+        # FIXME: figure out a better way than passing the nodepath in here
+        self._dragger_nodepath_handle = pickablepoint.nodepath  # this should only be used after the picking event and when the draggers are searched for the nodepath that was picked
 
         self.position_before_dragging = None
         self.last_frame_drag_pos = None
@@ -29,8 +30,9 @@ class PickablePointDragger(DragDropEventManager):
 
         self.add_on_state_change_function(self.update)
 
-    def get_nodepath_handle_for_dragger(self):
-        return self._dragger_nodePath_handle
+    def get_tq_nodepath_handle_for_dragger(self):
+        """ """
+        return self._dragger_nodepath_handle
 
     def init_dragging(self):
         """ save original position """
@@ -47,11 +49,11 @@ class PickablePointDragger(DragDropEventManager):
         # self.counter += 1
         r0_obj = math_utils.p3d_to_np(self.pickablepoint.getPos())
 
-        v_cam_forward = math_utils.p3d_to_np(render.getRelativeVector(self.camera, self.camera.node().getLens().getViewVector()))
+        v_cam_forward = math_utils.p3d_to_np(tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getViewVector()))
         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
         # self.camera.node().getLens().getViewVector()
 
-        v_cam_up = math_utils.p3d_to_np(render.getRelativeVector(self.camera, self.camera.node().getLens().getUpVector()))
+        v_cam_up = math_utils.p3d_to_np(tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getUpVector()))
         v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
 
         r_cam = math_utils.p3d_to_np(self.camera.getPos())
@@ -101,15 +103,17 @@ class PickablePointDragger(DragDropEventManager):
 
 
     def end_dragging(self):
+        """ """
         self.position_before_dragging = None
 
         DragDropEventManager.end_dragging(self)
 
 class PickablePoint(Point3d):
     """ a flat point (2d box) parented by render """
+
     def __init__(self, pickableObjectManager, **kwargs):
         """ """
         Point3d.__init__(self, **kwargs)
 
-        self.nodePath.setColor(1., 0., 0., 1.)
-        pickableObjectManager.tag(self.nodePath)
+        self.setColor(1., 0., 0., 1.)
+        pickableObjectManager.tag(self.nodepath)

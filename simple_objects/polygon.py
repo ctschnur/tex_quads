@@ -5,7 +5,7 @@ from local_utils import texture_utils
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
-from engine.graphics_object import GraphicsObject
+from engine.tq_graphics_basics import TQGraphicsNodePath
 
 
 from direct.showbase.ShowBase import ShowBase
@@ -23,9 +23,9 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 
-class Polygon2d(GraphicsObject):
+class Polygon2d(TQGraphicsNodePath):
     def __init__(self, point_cloud, **kwargs):
-        GraphicsObject.__init__(self, **kwargs)
+        TQGraphicsNodePath.__init__(self, **kwargs)
 
         self.makeObject(point_cloud)
 
@@ -33,12 +33,12 @@ class Polygon2d(GraphicsObject):
         self.node = custom_geometry.create_colored_polygon2d_GeomNode_from_point_cloud(
             point_cloud,
             color_vec4=Vec4(1., 1., 1., 1.))
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
 
 
-class Polygon2dTestTriangles(GraphicsObject):
+class Polygon2dTestTriangles(TQGraphicsNodePath):
     def __init__(self, symbol_geometries, **kwargs):
-        GraphicsObject.__init__(self, **kwargs)
+        TQGraphicsNodePath.__init__(self, **kwargs)
 
         self.makeObject(symbol_geometries)
 
@@ -46,17 +46,17 @@ class Polygon2dTestTriangles(GraphicsObject):
         self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole(symbol_geometries)
         # self.node = custom_geometry.create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries)
 
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
 
 
-class Polygon2dTestLineStrips(GraphicsObject):
+class Polygon2dTestLineStrips(TQGraphicsNodePath):
     def __init__(self, symbol_geometries, **kwargs):
-        GraphicsObject.__init__(self, **kwargs)
+        TQGraphicsNodePath.__init__(self, **kwargs)
 
         self.makeObject(symbol_geometries)
 
     def makeObject(self, symbol_geometries):
         self.node = custom_geometry.create_GeomNode_Simple_Polygon_with_Hole_LineStrips(symbol_geometries)
 
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
-        self.nodePath.setRenderModeWireframe()
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
+        self.setRenderModeWireframe()

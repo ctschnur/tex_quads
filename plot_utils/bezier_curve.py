@@ -27,6 +27,8 @@ from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, 
 
 from simple_objects.primitives import IndicatorPrimitive
 
+from engine.tq_graphics_basics import tq_render, tq_loader
+
 def sayhi():
     print("heylo ------- ######")
 
@@ -88,7 +90,7 @@ class DraggableBezierCurve(BezierCurve):
         # -- add picking utilities
         self.pickableObjectManager = PickableObjectManager()
         self.dragAndDropObjectsManager = DragAndDropObjectsManager()
-        self.collisionPicker = CollisionPicker(self.camera_gear, render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
+        self.collisionPicker = CollisionPicker(self.camera_gear, tq_render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
 
         # -- add a mouse task to check for picking
         self.p3d_direct_object = DirectObject.DirectObject()
@@ -108,8 +110,8 @@ class DraggableBezierCurve(BezierCurve):
 
             self.dragAndDropObjectsManager.add_dragger(pt_dragger)
 
-            pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
-            pt.nodePath.showBounds()
+            pt.setHpr(90, 0, 0)  # 90 degrees yaw
+            pt.showBounds()
 
             self.control_points_pickable_points.append(pt)
 
@@ -124,7 +126,7 @@ class DraggableBezierCurve(BezierCurve):
 
         # # -- add the update dragging tasks for each of the PickablePoints' draggers
         # for cppp in self.control_points_pickable_points:
-        #     dragger = self.dragAndDropObjectsManager.get_dragger_from_nodePath(cppp.nodePath):
+        #     dragger = self.dragAndDropObjectsManager.get_dragger_from_tq_nodepath(cppp.nodepath):
         #     dragger.add_on_state_change_function(self.updateCurveAfterPointCoordsChanged)
 
         # TODO: improve the design by letting DraggableBezierCurve inherit from DragAndDropObjectsManager,
@@ -146,7 +148,7 @@ class DraggableBezierCurve(BezierCurve):
         i.e. here: fully recreate it from the coordinates of the PickablePoints """
 
         # delete the old curve
-        self.beziercurve.nodePath.removeNode()
+        self.beziercurve.removeNode()
 
         # extract the new coordinates from the pickable points
         new_point_coords = []
@@ -183,7 +185,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
 
         self.mesh_points = []
 
-        self.tube_mesh_nodePath = None
+        self.tube_mesh_nodepath = None
 
         DraggableBezierCurve.__init__(self, *args, **kwargs)
 
@@ -206,22 +208,22 @@ class SelectableBezierCurve(DraggableBezierCurve):
 
         # ---- clear out the ancillary objects on update
         for pp in self.point_primitives:
-            pp.nodePath.removeNode()
+            pp.removeNode()
 
         for oc in self.oriented_circles:
-            oc.nodePath.removeNode()
+            oc.removeNode()
 
         for tv in self.tangent_vectors:
-            tv.nodePath.removeNode()
+            tv.removeNode()
 
         for nv in self.normal_vectors:
-            nv.nodePath.removeNode()
+            nv.removeNode()
 
         for bv in self.binormal_vectors:
-            bv.nodePath.removeNode()
+            bv.removeNode()
 
         for mp in self.mesh_points:
-            mp.nodePath.removeNode()
+            mp.removeNode()
 
 
         # ---- then re-generate them anew
@@ -256,7 +258,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
                 tv_line.setTipPoint(points[i] + t_vec*scale)
                 tv_line.setTailPoint(points[i])
 
-                tv_line.nodePath.hide()
+                tv_line.hide()
 
                 self.tangent_vectors.append(tv_line)
                 self.tangent_vectors_logical.append(t_vec)
@@ -267,7 +269,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
                     normal_vector=Vec3(*tuple(t_vec)),
                     radius=radius)
 
-                oc.nodePath.hide()
+                oc.hide()
 
                 self.oriented_circles.append(oc)
 
@@ -286,7 +288,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
                     vd_cc_transformed.append([v[0], v[1], v[2]])
 
                     point = Point3d(pos=np.array([v[0], v[1], v[2]]), scale=0.02)
-                    point.nodePath.hide()
+                    point.hide()
 
                     self.mesh_points.append(point)
 
@@ -357,20 +359,20 @@ class SelectableBezierCurve(DraggableBezierCurve):
         # gn = createColoredUnitQuadGeomNode(color_vec4=Vec4(0., 0., 1., 1.),
         #                                    center_it=False)
 
-        if self.tube_mesh_nodePath:
-            self.tube_mesh_nodePath.removeNode()
+        if self.tube_mesh_nodepath:
+            self.tube_mesh_nodepath.removeNode()
 
-        self.tube_mesh_nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(gn)
-        self.tube_mesh_nodePath.setRenderModeWireframe()
-        self.tube_mesh_nodePath.setTwoSided(True)
-        self.tube_mesh_nodePath.setLightOff(1)
+        self.tube_mesh_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(gn)
+        self.tube_mesh_nodepath.setRenderModeWireframe()
+        self.tube_mesh_nodepath.setTwoSided(True)
+        self.tube_mesh_nodepath.setLightOff(1)
 
     def updateCurveAfterPointCoordsChanged(self):
         """ if a PickablePoint has been dragged, you need to update the curve
         i.e. here: fully recreate it from the coordinates of the PickablePoints """
 
         # delete the old curve
-        self.beziercurve.nodePath.removeNode()
+        self.beziercurve.removeNode()
 
         # extract the new coordinates from the pickable points
         new_point_coords = []

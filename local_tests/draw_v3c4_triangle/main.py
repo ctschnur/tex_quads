@@ -15,7 +15,7 @@ class MyApp(ShowBase):
 
         # # teapot
         # self.scene = self.loader.loadModel("models/teapot")
-        # self.scene.reparentTo(self.render)
+        # self.scene.reparentTo(self.tq_render)
         self.disableMouse()
         self.camera.setPos(0, -5, 0)
 
@@ -53,7 +53,7 @@ class MyApp(ShowBase):
         node = GeomNode('gnode')
         node.addGeom(geom)
 
-        nodePath = render.attachNewNode(node)
+        nodepath = tq_render.attachNewNode(node)
 
 
 app = MyApp()

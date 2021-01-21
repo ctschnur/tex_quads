@@ -3,7 +3,7 @@ from simple_objects.primitives import IndicatorPrimitive
 from local_utils import texture_utils
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 from conventions import conventions
-from engine.graphics_object import GraphicsObject
+from engine.tq_graphics_basics import TQGraphicsNodePath
 
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
@@ -23,7 +23,7 @@ import numpy as np
 
 class LatexTextureObject(IndicatorPrimitive):
     def __init__(self, tex_expression, **kwargs):
-        GraphicsObject.__init__(self, **kwargs)
+        TQGraphicsNodePath.__init__(self, **kwargs)
 
         self.tex_expression = tex_expression
 
@@ -36,14 +36,14 @@ class LatexTextureObject(IndicatorPrimitive):
         background is being scaled so that the pixel height and width fits
         exactly with the screen resolution"""
 
-        self.nodePath.setMat(
+        self.setMat(
             conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution() *
             conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(self.myPNMImage.getXSize(), self.myPNMImage.getYSize()))
 
     def makeObject(self):
         """ only creates geometry (doesn't transform it) """
         self.node = custom_geometry.createTexturedUnitQuadGeomNode()
-        self.nodePath = self.get_parent_node_for_nodePath_creation().attachNewNode(self.node)
+        self.tq_graphics_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(self.node)
 
         def applyImageAndTexture():
             """assign the Texture() to the NodePath() that contains the Geom()
@@ -61,7 +61,7 @@ class LatexTextureObject(IndicatorPrimitive):
 
             self.myPNMImage = myLatexImage.getPNMImage()
             self.myTexture = texture_utils.getTextureFromImage(self.myPNMImage)
-            self.nodePath.setTexture(self.myTexture, 1)
-            self.nodePath.setTransparency(TransparencyAttrib.MAlpha)
+            self.setTexture(self.myTexture, 1)
+            self.setTransparency(TransparencyAttrib.MAlpha)
 
         applyImageAndTexture()

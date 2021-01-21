@@ -16,7 +16,7 @@ class Quad:
             pos_vec3: upper left corner in p3d coordinates in aspect2d
                       (+x is right, +z is up, y has to be 0.)
             **kwargs:
-                nodePath_creation_parent_node: aspect2d or render
+                TQGraphicsNodePath_creation_parent_node: aspect2d or render
                 thickness: thickness of the lines in the quad
         """
 
@@ -26,13 +26,13 @@ class Quad:
 
         self.set_pos_vec3(pos_vec3)
 
-        self.top = Line1dSolid(**kwargs  # nodePath_creation_parent_node=aspect2d
+        self.top = Line1dSolid(**kwargs  
                                )
-        self.bottom = Line1dSolid(**kwargs  # nodePath_creation_parent_node=aspect2d
+        self.bottom = Line1dSolid(**kwargs  
                                   )
-        self.left = Line1dSolid(**kwargs  # nodePath_creation_parent_node=aspect2d
+        self.left = Line1dSolid(**kwargs  
                                 )
-        self.right = Line1dSolid(**kwargs  # nodePath_creation_parent_node=aspect2d
+        self.right = Line1dSolid(**kwargs  
                                  )
         self.set_width(width)
         self.set_height(height)

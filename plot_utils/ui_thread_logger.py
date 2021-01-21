@@ -106,7 +106,7 @@ class ProcessingBox:
             self.elapsed_time_text.setText("{0:.0f} s".format(elapsed_time))
 
             if self.quad is None:
-                self.quad = Quad(thickness=quad_thickness, nodePath_creation_parent_node=aspect2d)
+                self.quad = Quad(thickness=quad_thickness, TQGraphicsNodePath_creation_parent_node=tq_aspect2d)
                 self.quad.set_pos_vec3(Vec3(self.x_pos_left_border, 0., self.y_pos_top_box))
 
                 self.quad.set_height(self.height)

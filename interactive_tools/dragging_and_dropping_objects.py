@@ -16,13 +16,13 @@ import sys
 
 class DragAndDropObjectsManager:
     """ Stores all dragger objects.
-    Picking works using the nodepath. Thus, we need to store somewhere
+    Picking works using the tq_nodepath. Thus, we need to store somewhere
     all pickable objects, and then search their nodepaths to get to the one
     that was picked.
     Each drag and drop object has to have an individual tag,
     at creation, use this class to generate a new individual tag for it.
     Once it's picked for dragging, the dragAndDropObjectsManager of the context
-    is searched for the picked nodepath """
+    is searched for the picked tq_nodepath """
 
     def __init__( self ):
         self.objectIdCounter = 0
@@ -35,13 +35,13 @@ class DragAndDropObjectsManager:
     def clear_draggable_objects(self):
         self.draggers = []
 
-    def get_dragger_from_nodePath(self, nodePath):
+    def get_dragger_from_tq_nodepath(self, tq_nodepath):
         """ Go through draggers and query their nodepaths to search
-        the object with nodePath.
-        Needed e.g. after picking, which gets you back only the lower-level nodePath,
+        the object with tq_nodepath.
+        Needed e.g. after picking, which gets you back only the lower-level tq_nodepath,
         not the dragger or directly the pickableobject """
 
         for c_drg in self.draggers:
-            if c_drg.get_nodepath_handle_for_dragger() == nodePath:
+            if c_drg.get_tq_nodepath_handle_for_dragger() == tq_nodepath:
                 return c_drg
         return None

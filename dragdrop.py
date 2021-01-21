@@ -61,23 +61,23 @@ class ObjectMangerClass:
 
 class dragDropObjectClass:
     def __init__(self, np, objectManager):
-        self.model_nodePath = np
+        self.model_nodepath = np
         self.previousParent = None
-        self.model_nodePath.setCollideMask(dragMask)
+        self.model_nodepath.setCollideMask(dragMask)
         self.objectManager = objectManager
-        self.objectManager.tag(self.model_nodePath, self)
+        self.objectManager.tag(self.model_nodepath, self)
 
     def onPress(self, mouseNp):
-        self.previousParent = self.model_nodePath.getParent()
-        self.model_nodePath.wrtReparentTo(mouseNp)
-        self.model_nodePath.setCollideMask(BitMask32.allOff())
+        self.previousParent = self.model_nodepath.getParent()
+        self.model_nodepath.wrtReparentTo(mouseNp)
+        self.model_nodepath.setCollideMask(BitMask32.allOff())
 
     def onRelease(self):
-        self.model_nodePath.wrtReparentTo(self.previousParent)
-        self.model_nodePath.setCollideMask(dragMask)
+        self.model_nodepath.wrtReparentTo(self.previousParent)
+        self.model_nodepath.setCollideMask(dragMask)
 
     def onCombine(self, otherObj):
-        self.model_nodePath.setPos(otherObj.model_nodePath.getPos())
+        self.model_nodepath.setPos(otherObj.model_nodepath.getPos())
 
 
 class mouseCollisionClass:
@@ -97,20 +97,20 @@ class mouseCollisionClass:
         cn.addSolid(CollisionRay(0, -100, 0, 0, 1, 0))
         cn.setFromCollideMask(dragMask)
         cn.setIntoCollideMask(BitMask32.allOff())
-        self.c_nodePath = render.attachNewNode(cn)
+        self.c_nodepath = tq_render.attachNewNode(cn)
         self.ctrav = CollisionTraverser()
         self.queue = CollisionHandlerQueue()
-        self.ctrav.addCollider(self.c_nodePath, self.queue)
-        self.c_nodePath.show()
+        self.ctrav.addCollider(self.c_nodepath, self.queue)
+        self.c_nodepath.show()
 
     def mouseMoverTask(self, task):
         if base.mouseWatcherNode.hasMouse():
             mpos = base.mouseWatcherNode.getMouse()
-            self.c_nodePath.setPos(render2d, mpos[0], 0, mpos[1])
+            self.c_nodepath.setPos(render2d, mpos[0], 0, mpos[1])
         return task.cont
 
     def collisionCheck(self):
-        self.ctrav.traverse(render)
+        self.ctrav.traverse(tq_render)
         self.queue.sortEntries()
         if self.queue.getNumEntries():
             # self.queue.getNumEntries()-1
@@ -129,11 +129,11 @@ class mouseCollisionClass:
 
         if obj is not None:
             self.draggedObj = obj
-            obj.onPress(self.c_nodePath)
+            obj.onPress(self.c_nodepath)
 
     def onRelease(self):
         obj = self.collisionCheck()
-        self.draggedObj.onRelease()  # self.c_nodePath )
+        self.draggedObj.onRelease()  # self.c_nodepath )
         if obj is not None:
             self.draggedObj.onCombine(obj)
 
@@ -142,7 +142,7 @@ class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
         base.setFrameRateMeter(True)
-        render.setAntialias(AntialiasAttrib.MAuto)
+        tq_render.setAntialias(AntialiasAttrib.MAuto)
 
         ob = Orbiter(radius=3.)
         # cs = CoordinateSystem(ob)
@@ -171,10 +171,10 @@ class MyApp(ShowBase):
         control_points = []
         for p in point_coords_arr:
             pt = PointPrimitive(pos=Vec3(*p), thickness=10)
-            pt.nodePath.setHpr(90, 0, 0)  # 90 degrees yaw
+            pt.setHpr(90, 0, 0)  # 90 degrees yaw
             # control_points.append(pt)
-            draggable = dragDropObjectClass(pt.nodePath, objectManager)
-            pt.nodePath.showBounds()
+            draggable = dragDropObjectClass(pt.nodepath, objectManager)
+            pt.showBounds()
             control_points.append(pt)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
@@ -183,7 +183,7 @@ class MyApp(ShowBase):
                 findChildrenAndSetRenderModeRecursively(child)
                 child.setRenderModeFilled()
 
-        findChildrenAndSetRenderModeRecursively(render)
+        findChildrenAndSetRenderModeRecursively(tq_render)
 
 
 app = MyApp()

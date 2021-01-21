@@ -181,14 +181,14 @@ class EdgeGraphics:
     def remove(self):
         """ removes all
         - p3d sequences
-        - p3d nodes (detaches them from render)
+        - p3d nodes (detaches them from tq_render)
         - p3d events (directobjects)
         their references. """
 
         self.cursor_sequence.pause()  # remove it from the interval manager
         del self.cursor_sequence  # remove the reference
 
-        self.line.nodePath.removeNode()
+        self.line.removeNode()
         self.p_c.remove()
 
 
