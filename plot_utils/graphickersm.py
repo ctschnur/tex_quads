@@ -137,6 +137,7 @@ class GraphickerSM(StateMachine):
 
         # -- do graphics stuff
         self.edge_graphics.p_c = Point3dCursor(self.edge_graphics.get_v1())
+        self.edge_graphics.p_c.reparentTo(self.edge_graphics)
 
         self.edge_graphics.update_line()
 

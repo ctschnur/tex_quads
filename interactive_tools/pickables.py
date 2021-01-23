@@ -10,6 +10,7 @@ from local_utils import math_utils
 import numpy as np
 
 from conventions import conventions
+import engine
 
 class PickablePointDragger(DragDropEventManager):
     """ a dragger object gets assigned a pickable object, and
@@ -21,7 +22,8 @@ class PickablePointDragger(DragDropEventManager):
         self.camera = camera
 
         # FIXME: figure out a better way than passing the nodepath in here
-        self._dragger_nodepath_handle = pickablepoint.nodepath  # this should only be used after the picking event and when the draggers are searched for the nodepath that was picked
+        self._dragger_nodepath_handle = pickablepoint.get_p3d_nodepath()
+        # this should only be used after the picking event and when the draggers are searched for the nodepath that was picked
 
         self.position_before_dragging = None
         self.last_frame_drag_pos = None
@@ -115,5 +117,5 @@ class PickablePoint(Point3d):
         """ """
         Point3d.__init__(self, **kwargs)
 
-        self.setColor(1., 0., 0., 1.)
-        pickableObjectManager.tag(self.nodepath)
+        self.setColor(Vec4(1., 0., 0., 1.))
+        pickableObjectManager.tag(self.get_p3d_nodepath())

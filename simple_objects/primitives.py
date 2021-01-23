@@ -25,6 +25,7 @@ from simple_objects.custom_geometry import createColoredParametricDashedCurveGeo
 
 
 class IndicatorPrimitive(TQGraphicsNodePath):
+    """ """
     def __init__(self, **kwargs):
         TQGraphicsNodePath.__init__(self, **kwargs)
 

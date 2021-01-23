@@ -21,15 +21,19 @@ import os
 
 import inspect
 
+from engine.tq_graphics_basics import TQGraphicsNodePath
+import engine.tq_graphics_basics
 
 
-class EdgeGraphics:
+class EdgeGraphics(TQGraphicsNodePath):
     """ Parent class of recorder and of player
     This class is just an abstraction, and should not be used directly, but
     only be derived from. """
 
     def __init__(self, get_lps_rate_func, get_duration_func):
         """ """
+        TQGraphicsNodePath.__init__(self)
+
         self.v1 = None
         self.v_dir = None
 
@@ -133,6 +137,7 @@ class EdgeGraphics:
         """ set the line to the appropriate dimensions """
         if self.line is None:
             self.line = Line1dSolid()
+            self.line.reparentTo(self)
 
         if update_graphics == True:
             self.line.setTipPoint(self.get_v1())
@@ -208,46 +213,21 @@ class EdgeGraphicsDraggable(EdgeGraphics):
         self.dp1_v1 = None
         self.dp2_v2_override = None
 
-    # def set_dp1_v1(self, dp1_v1, update_graphics=True):
-    #     """ """
-    #     self.dp1_v1 = dp1_v1
-
-    #     if update_graphics == True:
-    #         self.dp1.setPos(dp1_v1)
-
-    #     self.set_v1(dp1_v1 + self.get_v_dir() * self.distance_end_points_draggable_points, update_graphics=update_graphics)
-
-    # def get_dp1_v1(self):
-    #     """ """
-    #     return self.dp1_v1
-
-    # def set_dp2_v2_override(self, v2_override, update_graphics=False):
-    #     """ """
-    #     self.dp2_v2_override = v2_override
-
-    #     if update_graphics == True:
-    #         self.dp2.setPos(v2_override)
-
-    #     return self.set_v2_override(v2_override - self.get_v_dir() * self.distance_end_points_draggable_points)
-
-    # def get_dp2_v2(self):
-    #     """ """
-    #     if self.dp2_v2_override is not None:
-    #         return self.dp2_v2_override
-
-    #     return self.get_v1() + self.get_v_dir() * (self.get_lps_rate_func() * self.get_duration_func() + self.distance_end_points_draggable_points)
-
     def update_line(self, update_graphics=True):
         """ set the line to the appropriate dimensions """
         if self.line is None:
             self.line = Line1dSolid()
+            self.line.reparentTo(self)
 
         from interactive_tools.draggables import DraggablePoint
 
         if self.dp1 is None:
             self.dp1 = DraggablePoint(self.camera_gear)
+            self.dp1.reparentTo(self)
+
         if self.dp2 is None:
             self.dp2 = DraggablePoint(self.camera_gear)
+            self.dp2.reparentTo(self)
 
         if update_graphics == True:
             self.line.setTipPoint(self.get_inset_v1())

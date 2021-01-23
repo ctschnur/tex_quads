@@ -16,6 +16,7 @@ from statemachine.edgeplayer import EdgePlayerSM
 
 from plot_utils.edgegraphics import EdgeGraphicsDraggable
 from plot_utils.graphickersm import GraphickerSM
+import engine
 
 
 class DraggablePoint(PickablePoint):
@@ -44,15 +45,15 @@ class DraggablePoint(PickablePoint):
 
         # base.accept('mouse1', self.collisionPicker.onMouseTask)
 
-        self.add_on_state_change_function(self.sayhi)
+        # self.add_on_state_change_function(self.sayhi)
 
     def add_on_state_change_function(self, func, args=()):
         """ """
         self.pt_dragger.add_on_state_change_function(func, args=args)
 
-    def sayhi(self):
-        """ """
-        print("HELLO")
+    # def sayhi(self):
+    #     """ """
+    #     print("HELLO")
 
 
 class DraggableEdgePlayer(EdgePlayerSM):
@@ -70,6 +71,7 @@ class DraggableEdgePlayer(EdgePlayerSM):
             lambda: GraphickerSM.lps_rate,
             lambda: self.get_duration(),
             self.camera_gear)
+        self.edge_graphics_draggable.attach_to_render()
 
         EdgePlayerSM.__init__(self, wave_file_path, self.camera_gear, taskmgr,
                               *sm_args, edge_graphics=self.edge_graphics_draggable,

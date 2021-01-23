@@ -54,7 +54,7 @@ class CollisionPicker:
 
         # -- a ray is a half-inifinite straight line
         # it is supposed to shoot out orthogonally to the view plane and hit an object
-        self.pick_collision_ray.setOrigin(self.camera.getPos(self.tq_render))
+        self.pick_collision_ray.setOrigin(self.camera.getPos(self.tq_render.get_p3d_nodepath()))
 
         # -- TODO: update this every time the orbiter camera position changes
         # first, transform the (0,1,0) vector into render's coordinate system
@@ -66,7 +66,7 @@ class CollisionPicker:
         self.pick_collision_node.addSolid(self.pick_collision_ray)  # the pick ray is actually a 3d object
 
         # attach the CollisionNode to the camera (not the CollisionRay)
-        self.pick_collision_node_nodepath = self.camera.attachNewNode_p3d(self.pick_collision_node)
+        self.pick_collision_node_nodepath = self.camera.attachNewNode(self.pick_collision_node)
 
         # set a collide mask to the pick_collision_node, 2 objects that should be able to collide must have the same collide mask!
         self.pick_collision_node.setFromCollideMask(GeomNode.getDefaultCollideMask()
@@ -90,7 +90,7 @@ class CollisionPicker:
         self.pick_collision_ray.setFromLens(self.camera.node(), mouse_pos[0], mouse_pos[1])
 
         # now actually (manually) traverse to see if the two objects are collided (traverse the render tree (is the camera included there?))
-        self.pick_traverser.traverse(engine.tq_graphics_basics.tq_render)  # this should fill up the collision queue
+        self.pick_traverser.traverse(engine.tq_graphics_basics.tq_render.get_p3d_nodepath())  # this should fill up the collision queue
 
         if self.collision_queue.getNumEntries() > 0:
             # first, sort the entries (? which direction does it do that? to the camera?)
@@ -100,7 +100,7 @@ class CollisionPicker:
 
             # check to see if indeed an object was picked, and which posiition it has
             if not picked_obj_with_tag.isEmpty():
-                picked_obj_pos = entry.getSurfacePoint(engine.tq_graphics_basics.tq_render)
+                picked_obj_pos = entry.getSurfacePoint(engine.tq_graphics_basics.tq_render.get_p3d_nodepath())
 
                 print("picked object: ",
                       # picked_obj_with_tag.getTags(), " tag: ",

@@ -15,7 +15,6 @@ from local_utils import math_utils
 
 import numpy as np
 import math
-
 import local_tests.svgpathtodat.main
 
 import os
@@ -24,33 +23,19 @@ import pytest
 # import gltf
 
 import cameras.Orbiter
-
 from direct.task import Task
-
 from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, SelectableBezierCurve
-
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
-
 from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
-
 from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
-
 from sequence.sequence import Sequence, WavSequence
-
 from plot_utils.quad import Quad
-
 from plot_utils.symbols.waiting_symbol import WaitingSymbol
-
 from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadLoggerElement
-
 from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
-
 import plot_utils.ui_thread_logger
-
 from statemachine.edgeplayer import EdgePlayerSM
-
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
-
 
 from engine.tq_graphics_basics import TQGraphicsNodePath
 import engine.tq_graphics_basics
@@ -60,7 +45,7 @@ class Foo(TQGraphicsNodePath):
     def __init__(self):
         """ """
         TQGraphicsNodePath.__init__(self)
-        self.attach_to_render()
+        # self.attach_to_render()
 
         print(self.getParent_p3d())
 
@@ -71,6 +56,25 @@ class Foo(TQGraphicsNodePath):
 
         self.ah = ArrowHeadConeShaded()
         self.ah.reparentTo(self)
+
+
+class Foo2(TQGraphicsNodePath):
+    """ """
+    def __init__(self):
+        """ """
+        TQGraphicsNodePath.__init__(self)
+        # self.attach_to_render()
+
+        arrowhead_scale = 1./15.
+        self.color = Vec4(1., 0., 0., 1.)
+        self.thickness1dline = 2.
+
+        self.line1 = Line1dSolid(thickness=self.thickness1dline, color=self.color)
+        self.line1.setTipPoint(Vec3(0.9, 0., 0.))
+        self.line1.setTailPoint(Vec3(0.0, 0.0, 0.0))
+        self.line1.reparentTo(self)
+        self.arrowhead = ArrowHeadConeShaded(color=self.color, scale=arrowhead_scale)
+        self.arrowhead.reparentTo(self)
 
 
 class MyApp(ShowBase):
@@ -86,9 +90,33 @@ class MyApp(ShowBase):
 
         ob = cameras.Orbiter.Orbiter(base.cam, radius=3.)
 
+        # f2 = Foo2()
+        # f2.attach_to_render()
 
-        a = Axis(direction_vector=Vec3(1., 1., 1.))
-        a.attach_to_render()
+        # foo = Foo()
+        # foo.attach_to_render()
+        # foo.setPos(Vec3(1., 0., 0.))
+
+        # line = Line1dSolid()
+        # line.setTipPoint(Vec3(0.9, 0., 0.))
+        # line.setTailPoint(Vec3(0.0, 0.0, 0.0))
+        # line.attach_to_render()
+
+        # a2 = Vector(color=Vec4(0., 1., 0., 1.))
+
+        # a2.setTailPoint(Vec3(1., 1.0, 0.)  # , param=True
+        #                 )
+        # a2.setTipPoint(Vec3(0.5, 0.5, 0.)  # , param=True
+        #                )
+        # a2.attach_to_render()
+
+        # v = Vector()
+        # v.setTipPoint(Vec3(0.9, 0., 0.))
+        # v.setTailPoint(Vec3(0.0, 0.0, 0.0))
+        # v.attach_to_render()
+
+        # a = Axis(direction_vector=Vec3(1., 1., 1.))
+        # a.attach_to_render()
 
         # ah = ArrowHeadConeShaded()
         # ah.attach_to_render()
@@ -128,9 +156,6 @@ class MyApp(ShowBase):
         # line.setTailPoint(Vec3(0.0, 0.0, 0.0))
         # ---------
 
-        foo = Foo()
-        foo.setPos(Vec3(1., 0., 0.))
-
         # line = Line1dSolid()
         # line.setTipPoint(Vec3(1., 0., 0.))
         # line.setTailPoint(Vec3(0.5, 0.5, 0.5))
@@ -142,7 +167,16 @@ class MyApp(ShowBase):
 
         # ob.set_view_to_xy_plane()
 
-        # cs = CoordinateSystem(ob)
+        cs = CoordinateSystem(ob)
+        cs.attach_to_render()
+        cs.setPos(Vec3(0., 0., 0.))
+
+        cs2 = CoordinateSystem(ob)
+        cs2.attach_to_render()
+
+        # cs2.setPos(Vec3(1., 1., 1.))
+
+        cs2.setMat(math_utils.get_R_y_forrowvecs(0.2) * math_utils.get_R_z_forrowvecs(0.2) * math_utils.get_R_x_forrowvecs(0.2) * math_utils.getTranslationMatrix3d_forrowvecs(1., 1., 1.))
 
         # self.render_edge_player(ob)
 
@@ -156,20 +190,20 @@ class MyApp(ShowBase):
         # dp.setPos(Vec3(1., 0., 0.))
         # print(dp.getPos())
 
-        # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
+        dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
 
-        from plot_utils.frame2d import Frame2d
+        # from plot_utils.frame2d import Frame2d
 
-        f2d = Frame2d()
+        # f2d = Frame2d()
 
         # dp1 = DraggablePoint(ob)
+        # dp1.attach_to_render()
         # dp1.setPos(Vec3(1., 0., 0.))
         # print(dp1.getPos())
 
         # dp2 = DraggablePoint(ob)
         # dp2.setPos(Vec3(2., 0., 0.))
         # print(dp2.getPos())
-
 
         # ob.set_view_to_xy_plane()
 

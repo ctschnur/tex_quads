@@ -31,6 +31,7 @@ class TQGraphicsNodePath:
         the p3d Nodepath, each TQGraphicsNodePath object has to call set_p3d_node """
 
     def __init__(self, **kwargs):
+        """ """
         self.TQGraphicsNodePath_creation_parent_node = None
         self.p3d_nodepath = NodePath("empty")
         self.p3d_nodepath_changed_post_init_p = False
@@ -140,6 +141,12 @@ class TQGraphicsNodePath:
         """ """
         new_args = list(args)
         new_args[0] = new_args[0].p3d_nodepath
+        return self.p3d_nodepath.reparentTo(*new_args, **kwargs)
+
+    def reparentTo_p3d(self, *args, **kwargs):
+        """ input a p3d nodepath directly """
+        # new_args = list(args)
+        # new_args[0] = new_args[0].p3d_nodepath
         return self.p3d_nodepath.reparentTo(*new_args, **kwargs)
 
     def get_node_p3d(self):

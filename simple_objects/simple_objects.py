@@ -103,9 +103,6 @@ class Point3d(Point):
         else:
             self.hide()
 
-    def getPos(self):
-        return self.getPos()
-
 
 class PointPrimitive(Point):
     """ a pixel point (no real spatial extent for e.g. picking) """
@@ -496,9 +493,12 @@ class SphereModelShaded(Box2dCentered):
 
 
 class Pinned2dLabel(IndicatorPrimitive):
+    """ """
     def __init__(self, refpoint3d=Point3(1., 1., 1.), text="pinned?", xshift=0., yshift=0.,
                  font="cmr12.egg", color=(1., 1., 1., 1.)):
         """ """
+        IndicatorPrimitive.__init__(self)
+
         self.refpoint3d = refpoint3d
         self.text = text
         self.color = color
@@ -537,6 +537,7 @@ class Pinned2dLabel(IndicatorPrimitive):
         self.update()
 
     def update(self):
+        """ """
         pos_rel_to_cam = base.cam.get_relative_point(engine.tq_graphics_basics.tq_render.get_p3d_nodepath(),
                                                      self.refpoint3d)
         p2d = Point2()
@@ -556,7 +557,7 @@ class Pinned2dLabel(IndicatorPrimitive):
             self.textNode.setShadowColor(0, 0, 0, 1)
             self.textNode_p3d_generated = self.textNode.generate()
 
-            self.textNodePath = aspect2d.attachNewNode_p3d(
+            self.textNodePath = aspect2d.attachNewNode(
                 self.textNode_p3d_generated)
 
             self.nodeisattachedtoaspect2d = True

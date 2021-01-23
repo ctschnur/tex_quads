@@ -47,12 +47,8 @@ class EdgeHoverer:
 
         taskMgr.add(self.mouseMoverTask, 'mouseMoverTask')
 
-        self.hoverindicatorpoint = Point3d()
-
-        # self.c1point = Point3d()
-        # self.c2point = Point3d()
-
         self.shortest_distance_line = Line1dSolid(thickness=2, color=Vec4(1., 0., 1., 0.5))
+        self.shortest_distance_line.reparentTo(edge_graphics)
 
         self.init_time_label()
 
@@ -151,9 +147,6 @@ class EdgeHoverer:
                 self.shortest_distance_line.hide()
                 self.time_label.textNodePath.hide()
 
-            self.hoverindicatorpoint.setPos(
-                math_utils.np_to_p3d_Vec3(ray_aufpunkt + ray_direction * 1.))
-
             # -- color point
             # ---- find closest point,
             # within a certain radius
@@ -176,15 +169,6 @@ class EdgeHoverer:
                 else:
                     d_min_point = d
                     closestpoint = pos
-
-            # # ---- color in pos
-            # for pos in playerline_limiting_positions:
-            #     # pos.setColor((1., 0., 1., 1.), 1)
-
-            #     if pos is closestpoint:
-            #         pos.setColor((1., 0., 0., 1.), 1)
-            #     else:
-            #         pos.setColor((1., 1., 1., 1.), 1)
 
     def init_time_label(self):
         """ show a text label at the position of the cursor:

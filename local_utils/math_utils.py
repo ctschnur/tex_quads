@@ -73,6 +73,7 @@ def getScalingMatrix3d_forrowvecs(vx, vy, vz):
     return Mat4(*tuple(np.transpose(getScalingMatrix4x4(vx, vy, vz)).flatten()))
 
 def getTranslationMatrix3d_forrowvecs(bx, by, bz):
+    """ """
     # bx = 0.5
     # by = 0
     # bz = 0

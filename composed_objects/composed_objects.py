@@ -82,7 +82,7 @@ class ParallelLines:
             line1.setPos(0., 0, idx * self.spacing)
 
 
-class Point3dCursor:
+class Point3dCursor(TQGraphicsNodePath):
     """ a white Point3d with a
     black and a white circle aroud it for accentuation """
 
@@ -102,18 +102,26 @@ class Point3dCursor:
         self.color_circle_outer_second = Vec4(1., 1., 1., 1.)
         # self.color_circle_outer_third = Vec4(0., 0., 0., 1.)
 
+        TQGraphicsNodePath.__init__(self)
+
         self.point_center = Point3d(
             scale=self.scale_total * self.rel_scale_point_center)
+        self.point_center.reparentTo(self)
+
         self.circle_outer_first = OrientedCircle(
             normal_vector=Vec3(0., 0., 1.),
             scale=self.scale_total * self.rel_scale_circle_outer_first,
             num_of_verts=self.num_of_verts,
             thickness=3.)
+        self.circle_outer_first.reparentTo(self)
+
         self.circle_outer_second = OrientedCircle(
             normal_vector=Vec3(0., 0., 1.),
             scale=self.scale_total * self.rel_scale_circle_outer_second,
             num_of_verts=self.num_of_verts,
             thickness=3.)
+        self.circle_outer_second.reparentTo(self)
+
         # self.circle_outer_third = OrientedCircle(
         #     normal_vector=Vec3(0., 0., 1.),
         #     scale=self.scale_total * self.rel_scale_circle_outer_third,
@@ -121,8 +129,6 @@ class Point3dCursor:
         #     thickness=3.)
 
         self._adjust()
-
-
 
     def _adjust(self):
         # TODO: reorient towards the camera
@@ -173,13 +179,14 @@ class Point3dCursor:
         self.circle_outer_second.removeNode()
 
 
-class Vector:
+class Vector(TQGraphicsNodePath):
     """ Documentation for Vector combines an arrowhead and a line1 and applys
         transformations to them so that it looks like a properly drawn vector """
 
     def __init__(self, tail_point_logical=None, tip_point_logical=None,
                  arrowhead_scale=1./15.,
                  **kwargs):
+        TQGraphicsNodePath.__init__(self, **kwargs)
 
         if 'linetype' in kwargs:
             self.linetype = kwargs.get('linetype')
@@ -231,9 +238,8 @@ class Vector:
             self.arrowhead = ArrowHeadConeShaded(
                 color=self.color, scale=arrowhead_scale)
 
-        self.group_node = GroupNode()
-        self.group_node.addChildNodePaths(
-            [self.line1, self.arrowhead])
+        self.line1.reparentTo(self)
+        self.arrowhead.reparentTo(self)
 
         self.tip_point_logical = tip_point_logical
         self.tail_point_logical = tail_point_logical
@@ -245,9 +251,9 @@ class Vector:
 
     def setColor(self, color):
         """ set this color to all panda nodes """
-        children = self.group_node.get_children_p3d()
-        for child in children:
-            child.setColor(*color)
+        # children = self.group_node.get_children_p3d()
+        # for child in children:
+        #     child.setColor(*color)
 
         self.line1.setColor(color)
         self.arrowhead.setColor(color)
@@ -272,13 +278,13 @@ class Vector:
 
         if (self.tip_point_logical is None or self.tail_point_logical is None):
             adjust = False
-            self.group_node.hide()
+            self.hide()
 
             if self.tip_point_logical is not None:
                 self.line1.setTipPoint(self.tip_point_logical)
 
         else:
-            self.group_node.show()
+            self.show()
             self.line1.setTipPoint(self.tip_point_logical)
             self.line1.setTailPoint(self.tail_point_logical)
 
@@ -296,17 +302,16 @@ class Vector:
 
         if (self.tip_point_logical is None or self.tail_point_logical is None):
             adjust = False
-            self.group_node.hide()
+            self.hide()
 
             if self.tail_point_logical is not None:
                 self.line1.setTailPoint(self.tail_point_logical)
         else:
-            self.group_node.show()
+            self.show()
             self.line1.setTipPoint(self.tip_point_logical)
             self.line1.setTailPoint(self.tail_point_logical)
 
         if adjust is True:
-
             # join ArrowHead and Line
             self._adjustArrowHead()
             self._adjustLine()
@@ -407,7 +412,6 @@ class Vector:
         self.line1.show()
         self.arrowhead.show()
 
-
 class Axis(TQGraphicsNodePath):
     """ An axis is a vector with ticks
     TODO: add rendering of numbers
@@ -416,6 +420,8 @@ class Axis(TQGraphicsNodePath):
 
     def __init__(self, direction_vector, axis_length=1.,
                  ticksperunitlength=4, thickness1dline=2., color=Vec4(1., 0., 0., 1.)):
+        TQGraphicsNodePath.__init__(self)
+
         # logical properties
         self.axis_length = axis_length
         self.direction_vector = direction_vector.normalized()
@@ -428,18 +434,8 @@ class Axis(TQGraphicsNodePath):
         self.thickness1dline = thickness1dline
         self.color = color
 
-        # p3d node
-        # TODO: make a class composed_object and have it automatically have a p3d
-        # groupnode
-        self.group_node = GroupNode()
-
-        # build and connect the building blocks according to logical properties
         self._build_vector()
         # self._build_ticks()
-
-        # # add everything together to a transform node
-        # self.group_node.addChildNodePaths([self.axis_vector.group_node,
-        #                                   self.ticks_groupNode])
 
     def _build_vector(self):
         tip_point_logical = self.direction_vector * self.axis_length
@@ -453,52 +449,51 @@ class Axis(TQGraphicsNodePath):
             self.axis_vector.setTailPoint(Vec3(0., 0., 0.))
             self.axis_vector.setTipPoint(tip_point_logical)
 
-            self.group_node.addChildNodePaths(
-                [self.axis_vector.group_node])
+            self.axis_vector.reparentTo(self)
 
-    def _build_ticks(self):
-        # for now, always build new ticks
-        if self.ticks:
-            # remove all tick p3d nodes
-            self.group_node.removeChildNodePaths(
-                [self.ticks_groupNode])
+    # def _build_ticks(self):
+    #     # for now, always build new ticks
+    #     if self.ticks:
+    #         # remove all tick p3d nodes
+    #         self.group_node.removeChildNodePaths(
+    #             [self.ticks_groupNode])
 
-        # build new set of ticks
-        self.ticks = []
-        howmanyticks = self.ticksperunitlength * self.axis_length
-        self.ticks_groupNode = GroupNode()
+    #     # build new set of ticks
+    #     self.ticks = []
+    #     howmanyticks = self.ticksperunitlength * self.axis_length
+    #     self.ticks_groupNode = GroupNode()
 
-        for i in np.arange(0, self.axis_length, step=1./self.ticksperunitlength):
-            trafo_nodepath = NodePath("trafo_nodepath")
-            trafo_nodepath.reparentTo(self.ticks_groupNode)
-            # tick_line = Line2dObject()
-            tick_line = Line1dSolid(thickness=self.thickness1dline)
-            tick_line.reparentTo(trafo_nodepath)
+    #     for i in np.arange(0, self.axis_length, step=1./self.ticksperunitlength):
+    #         trafo_nodepath = NodePath("trafo_nodepath")
+    #         trafo_nodepath.reparentTo(self.ticks_groupNode)
+    #         # tick_line = Line2dObject()
+    #         tick_line = Line1dSolid(thickness=self.thickness1dline)
+    #         tick_line.reparentTo(trafo_nodepath)
 
-            tick_length = 0.2
-            # translation = Vec3(i, 0, -0.25 * tick_length)
-            tick_line.setTipPoint(Vec3(0, 0, tick_length))
-            translation = Vec3(i, 0, -0.25 * tick_length)
-            trafo_nodepath.setPos(
-                translation[0], translation[1], translation[2])
+    #         tick_length = 0.2
+    #         # translation = Vec3(i, 0, -0.25 * tick_length)
+    #         tick_line.setTipPoint(Vec3(0, 0, tick_length))
+    #         translation = Vec3(i, 0, -0.25 * tick_length)
+    #         trafo_nodepath.setPos(
+    #             translation[0], translation[1], translation[2])
 
-            if float(i).is_integer() and i != 0:
-                tick_line.setColor(1, 0, 0, 1)
-            if i == 0:
-                tick_line.setColor(1, 1, 1, 0.2)
+    #         if float(i).is_integer() and i != 0:
+    #             tick_line.setColor(1, 0, 0, 1)
+    #         if i == 0:
+    #             tick_line.setColor(1, 1, 1, 0.2)
 
-            if float(i).is_integer() and i != 0:
-                trafo_nodepath.setScale(.5, 1., .5)
-            else:
-                trafo_nodepath.setScale(.5, 1., .5)
+    #         if float(i).is_integer() and i != 0:
+    #             trafo_nodepath.setScale(.5, 1., .5)
+    #         else:
+    #             trafo_nodepath.setScale(.5, 1., .5)
 
-            self.ticks.append(tick_line)
+    #         self.ticks.append(tick_line)
 
-        # apply rotation to ticks group Node
-        self.ticks_groupNode.setMat(
-            self.axis_vector.line1.getRotation_forrowvecs())
+    #     # apply rotation to ticks group Node
+    #     self.ticks_groupNode.setMat(
+    #         self.axis_vector.line1.getRotation_forrowvecs())
 
-        self.group_node.addChildNodePaths([self.ticks_groupNode])
+    #     self.group_node.addChildNodePaths([self.ticks_groupNode])
 
     def setAxisLength(self, length):
         # set the logical parameter
@@ -506,7 +501,7 @@ class Axis(TQGraphicsNodePath):
 
         # rebuild (reuse or delete and allocate new)
         self._build_vector()
-        self._build_ticks()
+        # self._build_ticks()
 
 
 class CoordinateSystem(TQGraphicsNodePath):
@@ -529,18 +524,17 @@ class CoordinateSystem(TQGraphicsNodePath):
         camera -- e.g. an Orbiter object, to attach 2d labels properly to the
                   3d geometry
         """
+        TQGraphicsNodePath.__init__(self)
 
         self.scatters = []
         self.dimension = dimension
         self.axes = []
         self.camera = camera
 
-        self.group_node = GroupNode()
-
         for direction_vec, color_vec in zip(CoordinateSystem.cartesian_axes_directions[:dimension], CoordinateSystem.cartesian_axes_colors[:dimension]):
             ax = Axis(direction_vec, thickness1dline=5, color=color_vec)
             self.axes.append(ax)
-            self.group_node.addChildNodePaths([ax.group_node])
+            ax.reparentTo(self)
 
         self.attach_axes_labels()
 
@@ -568,23 +562,24 @@ class CoordinateSystem(TQGraphicsNodePath):
                                )
 
     def attach_axes_labels(self):
+        """ """
         from simple_objects.simple_objects import Pinned2dLabel
         import cameras
 
         if isinstance(self.camera, cameras.Orbiter.Orbiter):
-            pos_rel_to_world_x = Point3(1., 0., 0.)
             myPinnedLabelx = Pinned2dLabel(
-                refpoint3d=pos_rel_to_world_x, text="x", xshift=0.02, yshift=0.02)
+                refpoint3d=Vec3(1., 0., 0.), text="x", xshift=0.02, yshift=0.02)
+            myPinnedLabelx.reparentTo(self)
             self.camera.add_camera_move_hook(myPinnedLabelx.update)
 
-            pos_rel_to_world_y = Point3(0., 1., 0.)
             myPinnedLabely = Pinned2dLabel(
-                refpoint3d=pos_rel_to_world_y, text="y", xshift=0.02, yshift=0.02)
+                refpoint3d=Vec3(0., 1., 0.), text="y", xshift=0.02, yshift=0.02)
+            myPinnedLabely.reparentTo(self)
             self.camera.add_camera_move_hook(myPinnedLabely.update)
 
-            pos_rel_to_world_z = Point3(0., 0., 1.)
             myPinnedLabelz = Pinned2dLabel(
-                refpoint3d=pos_rel_to_world_z, text="z", xshift=0.02, yshift=0.02)
+                refpoint3d=Vec3(0., 0., 1.), text="z", xshift=0.02, yshift=0.02)
+            myPinnedLabelz.reparentTo(self)
             self.camera.add_camera_move_hook(myPinnedLabelz.update)
         else:
             print(
