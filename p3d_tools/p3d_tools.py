@@ -4,7 +4,7 @@ from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
 def findChildrenAndSetRenderModeRecursively(parentnode):
-    children = parentnode.get_children()
+    children = parentnode.get_children_p3d()
     for child in children:
         findChildrenAndSetRenderModeRecursively(child)
         child.setRenderModeFilled()

@@ -42,8 +42,8 @@ class LatexTextureObject(IndicatorPrimitive):
 
     def makeObject(self):
         """ only creates geometry (doesn't transform it) """
-        self.node = custom_geometry.createTexturedUnitQuadGeomNode()
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_node_p3d(custom_geometry.createTexturedUnitQuadGeomNode())
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode_p3d(self.p3d_node))
 
         def applyImageAndTexture():
             """assign the Texture() to the NodePath() that contains the Geom()

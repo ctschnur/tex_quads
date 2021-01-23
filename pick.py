@@ -87,7 +87,7 @@ class MyApp(ShowBase):
 
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
-            children = parentnode.get_children()
+            children = parentnode.get_children_p3d()
             for child in children:
                 findChildrenAndSetRenderModeRecursively(child)
                 child.setRenderModeFilled()
@@ -112,7 +112,7 @@ class MyApp(ShowBase):
         # from panda3d.core import PointLight
         # self.plight = PointLight('plight')
         # self.plight.setColor(Vec4(0.7, 0.7, 0.7, 1.))
-        # self.pl_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode(self.plight)
+        # self.pl_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(self.plight)
         # # self.set_pointlight_pos_spherical_coords()
         # self.pl_nodepath.setPos(self.box, 0., 0., 40.)
         # engine.tq_graphics_basics.tq_render.setLight(self.pl_nodepath)
@@ -135,7 +135,7 @@ class MyApp(ShowBase):
         self.pick_collision_node.addSolid(self.pick_collision_ray)  # the pick ray is actually a 3d object
 
         # attach the CollisionNode to the camera (not the CollisionRay)
-        self.pick_collision_node_nodepath = base.cam.attachNewNode(self.pick_collision_node)
+        self.pick_collision_node_nodepath = base.cam.attachNewNode_p3d(self.pick_collision_node)
 
         # set a collide mask to the pick_collision_node, 2 objects that should be able to collide must have the same collide mask!
         self.pick_collision_node.setFromCollideMask(GeomNode.getDefaultCollideMask())  # set bit 20 (Default) to the ray

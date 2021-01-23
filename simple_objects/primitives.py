@@ -40,13 +40,13 @@ class IndicatorPrimitive(TQGraphicsNodePath):
 
 
 class Box2dCentered(IndicatorPrimitive):
-    def __init__(self):
+    def __init__(self, **kwargs):
         IndicatorPrimitive.__init__(self, **kwargs)
 
     def makeObject(self):
-        self.node = custom_geometry.createColoredUnitQuadGeomNode(
-            color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_node_p3d(custom_geometry.createColoredUnitQuadGeomNode(
+            color_vec4=Vec4(1., 1., 1., 1.), center_it=True))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
 
 class SegmentedLinePrimitive(TQGraphicsNodePath):
@@ -72,12 +72,12 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
 
         # create new object
         if self.coords and self.thickness and self.color:
-            self.node = createColoredSegmentedLineGeomNode(
+            self.set_node_p3d(createColoredSegmentedLineGeomNode(
                 self.coords,
                 thickness=self.thickness,
-                color=self.color)
+                color=self.color))
 
-            self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+            self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         # lighting
         if self.nodepath is not None:
@@ -116,10 +116,10 @@ class ParametricLinePrimitive(TQGraphicsNodePath):
     def makeObject(self, func, param_interv, thickness, color, howmany_points):
         # draw a parametric curve
         from simple_objects.custom_geometry import createColoredParametricCurveGeomNode
-        self.node = createColoredParametricCurveGeomNode(
+        self.set_node_p3d(createColoredParametricCurveGeomNode(
             func=func,
-            param_interv=param_interv, thickness=thickness, color=color, howmany_points=howmany_points)
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+            param_interv=param_interv, thickness=thickness, color=color, howmany_points=howmany_points))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setLightOff(1)
 
 
@@ -141,14 +141,14 @@ class ParametricDashedLinePrimitive(TQGraphicsNodePath):
         )
 
     def makeObject(self, func, param_interv, thickness, color, howmany_points):
-        self.node = createColoredParametricDashedCurveGeomNode(
+        self.set_node_p3d(createColoredParametricDashedCurveGeomNode(
             func=func,
             param_interv=param_interv,
             thickness=thickness,
             color=color,
-            howmany_points=howmany_points)
+            howmany_points=howmany_points))
 
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setLightOff(1)
 
 
@@ -157,8 +157,8 @@ class ConePrimitive(TQGraphicsNodePath):
         super(ConePrimitive, self).__init__()
 
     def makeObject(self):
-        self.node = custom_geometry.create_GeomNode_Cone(
-            color_vec4=Vec4(1., 1., 1., 1.))
+        self.set_node_p3d(custom_geometry.create_GeomNode_Cone(
+            color_vec4=Vec4(1., 1., 1., 1.)))
 
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setTwoSided(True)

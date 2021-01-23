@@ -76,7 +76,7 @@ class MyApp(ShowBase):
         ob.add_camera_move_hook(myPinnedLabelz.update)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
-            children = parentnode.get_children()
+            children = parentnode.get_children_p3d()
             for child in children:
                 findChildrenAndSetRenderModeRecursively(child)
                 child.setRenderModeFilled()

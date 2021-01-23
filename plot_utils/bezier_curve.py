@@ -362,7 +362,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
         if self.tube_mesh_nodepath:
             self.tube_mesh_nodepath.removeNode()
 
-        self.tube_mesh_nodepath = self.get_parent_node_for_nodepath_creation().attachNewNode(gn)
+        self.tube_mesh_nodepath = self.getParent_p3d().attachNewNode_p3d(gn)
         self.tube_mesh_nodepath.setRenderModeWireframe()
         self.tube_mesh_nodepath.setTwoSided(True)
         self.tube_mesh_nodepath.setLightOff(1)

@@ -68,7 +68,7 @@ class dragDropObjectClass:
         self.objectManager.tag(self.model_nodepath, self)
 
     def onPress(self, mouseNp):
-        self.previousParent = self.model_nodepath.getParent()
+        self.previousParent = self.model_nodepath.getParent_p3d()
         self.model_nodepath.wrtReparentTo(mouseNp)
         self.model_nodepath.setCollideMask(BitMask32.allOff())
 
@@ -97,7 +97,7 @@ class mouseCollisionClass:
         cn.addSolid(CollisionRay(0, -100, 0, 0, 1, 0))
         cn.setFromCollideMask(dragMask)
         cn.setIntoCollideMask(BitMask32.allOff())
-        self.c_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode(cn)
+        self.c_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(cn)
         self.ctrav = CollisionTraverser()
         self.queue = CollisionHandlerQueue()
         self.ctrav.addCollider(self.c_nodepath, self.queue)
@@ -178,7 +178,7 @@ class MyApp(ShowBase):
             control_points.append(pt)
 
         def findChildrenAndSetRenderModeRecursively(parentnode):
-            children = parentnode.get_children()
+            children = parentnode.get_children_p3d()
             for child in children:
                 findChildrenAndSetRenderModeRecursively(child)
                 child.setRenderModeFilled()

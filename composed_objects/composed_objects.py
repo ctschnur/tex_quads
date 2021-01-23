@@ -47,20 +47,20 @@ class GroupNode(TQGraphicsNodePath):
 
     def hide(self):
         """ hide every child node in the group node """
-        children = self.get_children()
+        children = self.get_children_p3d()
 
         for child in children:
             child.hide()
 
     def show(self):
         """ hide every child node in the group node """
-        children = self.get_children()
+        children = self.get_children_p3d()
         for child in children:
             child.show()
 
-    def get_children(self):
+    def get_children_p3d(self):
         """ """
-        return super().get_children()
+        return super().get_children_p3d()
 
 
 class ParallelLines:
@@ -174,10 +174,8 @@ class Point3dCursor:
 
 
 class Vector:
-    """Documentation for Vector
-       combines an arrowhead and a line1 and applys transformations to them so that it
-       it looks like a properly drawn vector
-    """
+    """ Documentation for Vector combines an arrowhead and a line1 and applys
+        transformations to them so that it looks like a properly drawn vector """
 
     def __init__(self, tail_point_logical=None, tip_point_logical=None,
                  arrowhead_scale=1./15.,
@@ -247,7 +245,7 @@ class Vector:
 
     def setColor(self, color):
         """ set this color to all panda nodes """
-        children = self.group_node.get_children()
+        children = self.group_node.get_children_p3d()
         for child in children:
             child.setColor(*color)
 
@@ -410,7 +408,7 @@ class Vector:
         self.arrowhead.show()
 
 
-class Axis:
+class Axis(TQGraphicsNodePath):
     """ An axis is a vector with ticks
     TODO: add rendering of numbers
     TODO: prevent drawing of ticks in the axis' arrow head
@@ -511,7 +509,7 @@ class Axis:
         self._build_ticks()
 
 
-class CoordinateSystem:
+class CoordinateSystem(TQGraphicsNodePath):
     """ A coordinate system is a set of Axis objects
     """
 
@@ -531,6 +529,7 @@ class CoordinateSystem:
         camera -- e.g. an Orbiter object, to attach 2d labels properly to the
                   3d geometry
         """
+
         self.scatters = []
         self.dimension = dimension
         self.axes = []

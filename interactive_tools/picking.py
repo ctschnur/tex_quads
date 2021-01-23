@@ -66,7 +66,7 @@ class CollisionPicker:
         self.pick_collision_node.addSolid(self.pick_collision_ray)  # the pick ray is actually a 3d object
 
         # attach the CollisionNode to the camera (not the CollisionRay)
-        self.pick_collision_node_nodepath = self.camera.attachNewNode(self.pick_collision_node)
+        self.pick_collision_node_nodepath = self.camera.attachNewNode_p3d(self.pick_collision_node)
 
         # set a collide mask to the pick_collision_node, 2 objects that should be able to collide must have the same collide mask!
         self.pick_collision_node.setFromCollideMask(GeomNode.getDefaultCollideMask()

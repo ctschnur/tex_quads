@@ -24,26 +24,35 @@ def init_engine(p3d_render, p3d_aspect2d, loader):
     tq_loader = TQLoader(loader)
 
 class TQGraphicsNodePath:
-    """ Anything that fundamentally is a only a graphics object in this engine should have these properties. """
+    """ Anything that fundamentally is a only a graphics object in this engine should have these properties.
+
+    Kwargs:
+        TQGraphicsNodePath_creation_parent_node : this is assigned in the constructor, and after makeObject and the return of
+        the p3d Nodepath, each TQGraphicsNodePath object has to call set_p3d_node """
 
     def __init__(self, **kwargs):
         self.TQGraphicsNodePath_creation_parent_node = None
+        self.p3d_nodepath = NodePath("empty")
+        self.p3d_nodepath_changed_post_init_p = False
+        self.p3d_parent_nodepath = NodePath("empty")
 
-        if 'TQGraphicsNodePath_creation_parent_node' in kwargs:
-            self.TQGraphicsNodePath_creation_parent_node = kwargs.get(
-                'TQGraphicsNodePath_creation_parent_node')
-        else:
-            tq_graphics_nodepath_kwargs = {}
-            tq_graphics_nodepath_kwargs['TQGraphicsNodePath_creation_parent_node'] = None
-            self.TQGraphicsNodePath_creation_parent_node = TQGraphicsNodePath.from_p3d_nodepath(render, **tq_graphics_nodepath_kwargs)
+        self.node_p3d = None
 
-        self.set_parent_node_for_nodepath_creation(
-            self.TQGraphicsNodePath_creation_parent_node)
+        self.p3d_nodepath.reparentTo(self.p3d_parent_nodepath)
 
-        if 'p3d_nodepath' in kwargs:
-            p3d_nodepath = kwargs.get(
-                'p3d_nodepath')
-            self.set_p3d_nodepath(p3d_nodepath)
+    def make_groupnode(self):
+        """ this makes this TQGraphicsNodePath a pure group node (includes transformations, ...) and applies them to it's children """
+        self._set_p3d_nodepath_plain_post_init(NodePath("groupnode"))
+
+    def attach_to_render(self):
+        """ """
+        assert self.p3d_nodepath
+        self.p3d_nodepath.reparentTo(render)
+
+    def _set_p3d_nodepath_plain_post_init(p3d_nodepath):
+        """ """
+        self.p3d_nodepath = p3d_nodepath
+        self.p3d_nodepath_changed_post_init_p = True
 
     @staticmethod
     def from_p3d_nodepath(p3d_nodepath, **tq_graphics_nodepath_kwargs):
@@ -54,7 +63,7 @@ class TQGraphicsNodePath:
 
     def set_parent_node_for_nodepath_creation(
             self, TQGraphicsNodePath_creation_parent_node):
-        """ when calling attachNewNode, a new node pat is generated.
+        """ when calling attachNewNode_p3d, a new node pat is generated.
         E.g.: To attach a line to render (3d world) is different than attaching
         it to aspect2d (2d GUI plane), since the aspect2d children are not directly
         affected by camera movements
@@ -66,16 +75,13 @@ class TQGraphicsNodePath:
         # self.set_parent_node_for_nodepath_creation(self.TQGraphicsNodePath_creation_parent_node)
         self.TQGraphicsNodePath_creation_parent_node = TQGraphicsNodePath_creation_parent_node
 
-    def set_p3d_nodepath(self, p3d_nodepath):
+    def set_p3d_nodepath(self, p3d_nodepath, remove_old_nodepath=True):
         """ """
         self.p3d_nodepath = p3d_nodepath
 
     def get_p3d_nodepath(self):
         """ """
         return self.p3d_nodepath
-
-    def get_parent_node_for_nodepath_creation(self):
-        return self.TQGraphicsNodePath_creation_parent_node
 
     def set_render_above_all(self, p):
         """ set render order to be such that it renders normally (false), or above all (true)
@@ -136,9 +142,14 @@ class TQGraphicsNodePath:
         new_args[0] = new_args[0].p3d_nodepath
         return self.p3d_nodepath.reparentTo(*new_args, **kwargs)
 
-    def node(self):
+    def get_node_p3d(self):
         """ """
-        return self.p3d_nodepath.node()
+        # return self.p3d_nodepath.node()
+        return self.node_p3d
+
+    def set_node_p3d(self, node_p3d):
+        """ not available in p3d NodePath class """
+        self.node_p3d = node_p3d
 
     def setRenderModeFilled(self, *args, **kwargs):
         """ """
@@ -176,7 +187,7 @@ class TQGraphicsNodePath:
         """ """
         return self.p3d_nodepath.setCollideMask(*args, **kwargs)
 
-    def getParent(self, *args, **kwargs):
+    def getParent_p3d(self, *args, **kwargs):
         """ """
         return self.p3d_nodepath.getParent(*args, **kwargs)
 
@@ -196,11 +207,11 @@ class TQGraphicsNodePath:
         """ """
         return self.p3d_nodepath.setDepthWrite(*args, **kwargs)
 
-    def get_children(self, *args, **kwargs):
+    def get_children_p3d(self, *args, **kwargs):
         """ """
         return self.p3d_nodepath.get_children(*args, **kwargs)
 
-    def attachNewNode(self, *args, **kwargs):
+    def attachNewNode_p3d(self, *args, **kwargs):
         """ """
         return self.p3d_nodepath.attachNewNode(*args, **kwargs)
 

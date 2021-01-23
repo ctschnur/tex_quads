@@ -66,8 +66,11 @@ def getScalingMatrix4x4(vx, vy, vz):
     return np.array([[vx,  0,  0, 0],
                      [0,  vy,  0, 0],
                      [0,   0, vz, 0],
-                     [0,   0,  0, 1]])
+                     [0, 0, 0, 1]])
 
+def getScalingMatrix3d_forrowvecs(vx, vy, vz):
+    """ """
+    return Mat4(*tuple(np.transpose(getScalingMatrix4x4(vx, vy, vz)).flatten()))
 
 def getTranslationMatrix3d_forrowvecs(bx, by, bz):
     # bx = 0.5

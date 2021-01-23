@@ -82,7 +82,7 @@ class Point3d(Point):
             + "/models/small_sphere_triangulated_with_face_normals.gltf"))
 
         self.reparentTo(engine.tq_graphics_basics.tq_render)
-        self.node = self.node()
+        self.set_node_p3d(self.get_node_p3d())
 
         self.setRenderModeFilled()
 
@@ -116,10 +116,10 @@ class PointPrimitive(Point):
         self.makeObject()
 
     def makeObject(self):
-        self.node = custom_geometry.create_GeomNode_Single_Point(
-            color_vec4=Vec4(1., 1., 1., 1.))
+        self.set_node_p3d(custom_geometry.create_GeomNode_Single_Point(
+            color_vec4=Vec4(1., 1., 1., 1.)))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
         self.setLightOff(1)
         # self.setRenderModeThickness(5)
 
@@ -131,10 +131,10 @@ class Point2d(Point):
         Point.__init__(self, **kwargs)
 
     def makeObject(self):
-        self.node = custom_geometry.createColoredUnitQuadGeomNode(
-            color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
+        self.set_node_p3d(custom_geometry.createColoredUnitQuadGeomNode(
+            color_vec4=Vec4(1., 1., 1., 1.), center_it=True))
 
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         self.setTwoSided(True)
         self.setLightOff(1)
@@ -156,9 +156,9 @@ class LinePrimitive(IndicatorPrimitive):
         # self.makeObject(thickness, color)
 
     # def makeObject(self, thickness, color):
-    #     self.node = custom_geometry.createColoredUnitLineGeomNode(
-    #         thickness=thickness, color_vec4=self.color)
-    #     self.set_p3d_nodepath(engine.tq_graphics_basics.tq_render.attachNewNode(self.node)
+    #     self.set_node_p3d(custom_geometry.createColoredUnitLineGeomNode(
+    #         thickness=thickness, color_vec4=self.color))
+    #     self.set_p3d_nodepath(engine.tq_graphics_basics.tq_render.attachNewNode_p3d(self.get_node_p3d())
     #     self.setLightOff(1))
 
 
@@ -173,11 +173,12 @@ class Line1dPrimitive(LinePrimitive):
         self.setTipPoint(self.tip_point)
 
     def makeObject(self, thickness, color):
-        self.node = custom_geometry.createColoredUnitLineGeomNode(
+        self.set_node_p3d(custom_geometry.createColoredUnitLineGeomNode(
             thickness=thickness,
-            color_vec4=self.color)
+            color_vec4=self.color))
 
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         self.setLightOff(1)
 
@@ -293,9 +294,9 @@ class LineDashedPrimitive(TQGraphicsNodePath):
         self.makeObject(thickness, color, howmany_periods)
 
     def makeObject(self, thickness, color, howmany_periods):
-        self.node = custom_geometry.createColoredUnitDashedLineGeomNode(
-            thickness=thickness, color_vec4=self.color, howmany_periods=5.)
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_node_p3d(custom_geometry.createColoredUnitDashedLineGeomNode(
+            thickness=thickness, color_vec4=self.color, howmany_periods=5.))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         self.setLightOff(1)
 
@@ -325,7 +326,8 @@ class Line1dDashed(LineDashedPrimitive):
 
 class Line2dObject(Box2dCentered):
     def __init__(self, **kwargs):
-        super(Line2dObject, self).__init__()
+        Box2dCentered.__init__(self, **kwargs)
+        self.makeObject()
         self.doInitialSetupTransformation(**kwargs)
 
     def doInitialSetupTransformation(self, **kwargs):
@@ -375,9 +377,9 @@ class ArrowHead(Box2dCentered):
         """
         it's not just a scaled quad, so it needs different Geometry
         """
-        self.node = custom_geometry.createColoredArrowGeomNode(
-            color_vec4=Vec4(1., 1., 1., 1.), center_it=True)
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_node_p3d(custom_geometry.createColoredArrowGeomNode(
+            color_vec4=Vec4(1., 1., 1., 1.), center_it=True))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         self.setTwoSided(True)
 
@@ -386,7 +388,7 @@ class ArrowHeadCone(Box2dCentered):
     scale = .1
 
     def __init__(self, **kwargs):
-        Box2dCentered.__init__(**kwargs)
+        Box2dCentered.__init__(self, **kwargs)
         self.doInitialSetupTransformation()
 
     def doInitialSetupTransformation(self):
@@ -403,22 +405,25 @@ class ArrowHeadCone(Box2dCentered):
         self.setMat(self.form_from_primitive_trafo)
 
     def makeObject(self):
-        self.node = custom_geometry.create_GeomNode_Cone(
-            color_vec4=Vec4(1., 1., 1., 1.))  # the self.'node' is a geomnode
+        self.set_node_p3d(custom_geometry.create_GeomNode_Cone(
+            color_vec4=Vec4(1., 1., 1., 1.)))
+                          # the self.'node' is a geomnode
         # or more generally a PandaNode
         # typically, if the geometry isn't changed in-place,
         # only the NodePath is called at later times
 
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setTwoSided(True)
 
 
 class ArrowHeadConeShaded(IndicatorPrimitive):
-    def __init__(self, color=Vec4(0., 0., 0., 0.), scale=1./5.):
+    """ """
+    def __init__(self, color=Vec4(0., 0., 0., 0.), scale=1./5., **kwargs):
+        """ """
         self.color = color
         self.scale = scale
 
-        super(ArrowHeadConeShaded, self).__init__()
+        super(ArrowHeadConeShaded, self).__init__(**kwargs)
 
         self.makeObject()
 
@@ -446,8 +451,10 @@ class ArrowHeadConeShaded(IndicatorPrimitive):
             Filename.fromOsSpecific(
                 os.path.abspath(sys.path[0])).getFullpath()  # root of project
             + "/models/unit_cone_triangulated_with_face_normals.gltf"))
-        self.reparentTo(engine.tq_graphics_basics.tq_render)
-        self.node = self.node()
+
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        # print("self.getParent_p3d(): ", self.getParent_p3d())
+        # self.reparentTo(self.getParent_p3d())
 
         # override the vertex colors of the model
         self.setColor(self.color)
@@ -480,7 +487,7 @@ class SphereModelShaded(Box2dCentered):
                 os.path.abspath(sys.path[0])).getFullpath()  # root of project
             + "/models/small_sphere_triangulated_with_face_normals.gltf"))
         self.reparentTo(engine.tq_graphics_basics.tq_render)
-        self.node = self.node()
+        self.set_node_p3d(self.get_node_p3d())
 
         # override the vertex colors of the model
         self.setColor(self.color)
@@ -549,7 +556,7 @@ class Pinned2dLabel(IndicatorPrimitive):
             self.textNode.setShadowColor(0, 0, 0, 1)
             self.textNode_p3d_generated = self.textNode.generate()
 
-            self.textNodePath = aspect2d.attachNewNode(
+            self.textNodePath = aspect2d.attachNewNode_p3d(
                 self.textNode_p3d_generated)
 
             self.nodeisattachedtoaspect2d = True
@@ -638,8 +645,8 @@ class Fixed2dLabel(IndicatorPrimitive):
             self.textNode.setShadowColor(0, 0, 0, 1)
             self.textNode_p3d_generated = self.textNode.generate()
 
-            self.textNodePath = self.get_parent_node_for_nodepath_creation(
-            ).attachNewNode(self.textNode_p3d_generated)
+            self.textNodePath = self.getParent_p3d(
+            ).attachNewNode_p3d(self.textNode_p3d_generated)
 
             self.nodeisattachedtoaspect2d = True
             self.textNodePath.setScale(0.07)
@@ -664,10 +671,10 @@ class OrientedDisk(IndicatorPrimitive):
         self.makeObject()
 
     def makeObject(self):
-        self.node = custom_geometry.createColoredUnitDisk(
-            color_vec4=Vec4(1., 1., 1., 1.))
+        self.set_node_p3d(custom_geometry.createColoredUnitDisk(
+            color_vec4=Vec4(1., 1., 1., 1.)))
 
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setLightOff(1)
         self.setTwoSided(True)
 
@@ -699,13 +706,13 @@ class OrientedCircle(IndicatorPrimitive):
 
     def makeObject(self, num_of_verts, radius, with_hole, thickness):
 
-        self.node = custom_geometry.createCircle(
+        self.set_node_p3d(custom_geometry.createCircle(
             color_vec4=Vec4(1., 1., 1., 1.),
             with_hole=with_hole,
             num_of_verts=num_of_verts,
-            radius=radius)
+            radius=radius))
 
-        self.set_p3d_nodepath(self.get_parent_node_for_nodepath_creation().attachNewNode(self.node))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setLightOff(1)
         self.setRenderModeThickness(thickness)
 

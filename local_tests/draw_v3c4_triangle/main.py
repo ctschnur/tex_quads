@@ -53,7 +53,7 @@ class MyApp(ShowBase):
         node = GeomNode('gnode')
         node.addGeom(geom)
 
-        nodepath = engine.tq_graphics_basics.tq_render.attachNewNode(node)
+        nodepath = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(node)
 
 
 app = MyApp()

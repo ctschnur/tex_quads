@@ -191,14 +191,14 @@ class Orbiter:
         # --- fix a point light to the side of the camera
         from panda3d.core import PointLight
         self.plight = PointLight('plight')
-        self.pl_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode(self.plight)
+        self.pl_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(self.plight)
         self.set_pointlight_pos_spherical_coords()
         engine.tq_graphics_basics.tq_render.setLight(self.pl_nodepath)
 
         # -- set faint ambient white lighting
         from panda3d.core import AmbientLight
         self.alight = AmbientLight('alight')
-        self.alnp = engine.tq_graphics_basics.tq_render.attachNewNode(self.alight)
+        self.alnp = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(self.alight)
         self.alight.setColor((0.25, 0.25, 0.25, 1))
         engine.tq_graphics_basics.tq_render.setLight(self.alnp)
 

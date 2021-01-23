@@ -89,7 +89,7 @@ class MyApp(ShowBase):
         # np.reparentTo(engine.tq_graphics_basics.tq_render)
 
         # def findChildrenAndSetRenderModeRecursively(parentnode):
-        #     children = parentnode.get_children()
+        #     children = parentnode.get_children_p3d()
         #     for child in children:
         #         findChildrenAndSetRenderModeRecursively(child)
         #         child.setRenderModeFilled()

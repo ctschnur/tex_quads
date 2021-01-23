@@ -16,8 +16,6 @@ from local_utils import math_utils
 import numpy as np
 import math
 
-
-
 import local_tests.svgpathtodat.main
 
 import os
@@ -54,24 +52,97 @@ from statemachine.edgeplayer import EdgePlayerSM
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
 
 
+from engine.tq_graphics_basics import TQGraphicsNodePath
+import engine.tq_graphics_basics
+
+class Foo(TQGraphicsNodePath):
+    """ """
+    def __init__(self):
+        """ """
+        TQGraphicsNodePath.__init__(self)
+        self.attach_to_render()
+
+        print(self.getParent_p3d())
+
+        self.line = Line1dSolid()
+        self.line.setTipPoint(Vec3(1., 0., 0.))
+        self.line.setTailPoint(Vec3(0.0, 0.0, 0.0))
+        self.line.reparentTo(self)
+
+        self.ah = ArrowHeadConeShaded()
+        self.ah.reparentTo(self)
+
+
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
-
         engine.tq_graphics_basics.init_engine(render, aspect2d, loader)
 
-        print(engine.tq_graphics_basics.tq_render)
-
         base.setFrameRateMeter(True)
-
         engine.tq_graphics_basics.tq_render.setAntialias(AntialiasAttrib.MAuto)
 
         shade_of_gray = 0.3
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
         ob = cameras.Orbiter.Orbiter(base.cam, radius=3.)
+
+
+        a = Axis(direction_vector=Vec3(1., 1., 1.))
+        a.attach_to_render()
+
+        # ah = ArrowHeadConeShaded()
+        # ah.attach_to_render()
+
+        # ----------
+        # class Foo2(TQGraphicsNodePath):
+        #     """ """
+        #     def __init__(self):
+        #         """ """
+
+        # new_p3d_nodepath = NodePath("my_new_p3d_nodepath")
+        # new_p3d_nodepath.setPos(Vec3(1., 0., 0.))
+        # new_p3d_nodepath.reparentTo(render)
+
+        # new_p3d_nodepath_2 = NodePath("my_new_p3d_nodepath_2")
+        # new_p3d_nodepath_2.setPos(Vec3(2., 0., 0.))
+        # new_p3d_nodepath_2.reparentTo(render)
+
+        # line = Line1dSolid(TQGraphicsNodePath_creation_parent_node=new_p3d_nodepath)
+        # line.setTipPoint(Vec3(1., 1., 0.))
+        # line.setTailPoint(Vec3(0.0, 0.0, 0.0))
+
+        # line.get_p3d_nodepath().reparentTo(new_p3d_nodepath_2)
+
+        # line.reparentTo(new_p3d_nodepath_2)
+
+        # ---------
+
+
+        # ----------
+        # new_p3d_nodepath = NodePath("my_new_p3d_nodepath")
+        # new_p3d_nodepath.setPos(Vec3(1., 0., 0.))
+        # new_p3d_nodepath.reparentTo(render)
+
+        # line = Line1dSolid(TQGraphicsNodePath_creation_parent_node=new_p3d_nodepath)
+        # line.setTipPoint(Vec3(1., 1., 0.))
+        # line.setTailPoint(Vec3(0.0, 0.0, 0.0))
+        # ---------
+
+        foo = Foo()
+        foo.setPos(Vec3(1., 0., 0.))
+
+        # line = Line1dSolid()
+        # line.setTipPoint(Vec3(1., 0., 0.))
+        # line.setTailPoint(Vec3(0.5, 0.5, 0.5))
+
+        # ah = ArrowHeadConeShaded()
+
+        # line.setScale(2.)
+        # line.setPos(0., 0, 0)
+
         # ob.set_view_to_xy_plane()
-        cs = CoordinateSystem(ob)
+
+        # cs = CoordinateSystem(ob)
 
         # self.render_edge_player(ob)
 
@@ -100,7 +171,7 @@ class MyApp(ShowBase):
         # print(dp2.getPos())
 
 
-        ob.set_view_to_xy_plane()
+        # ob.set_view_to_xy_plane()
 
     def render_edge_player(self, camera_gear):
         """ Render the edge player """

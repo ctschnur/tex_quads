@@ -15,7 +15,7 @@ model = loader.loadModel('smiley')
 model.reparentTo(engine.tq_graphics_basics.tq_render)
 
 # dummy node for camera
-parentnode = engine.tq_graphics_basics.tq_render.attachNewNode('camparent')
+parentnode = engine.tq_graphics_basics.tq_render.attachNewNode_p3d('camparent')
 parentnode.reparentTo(model) # inherit transforms
 parentnode.setEffect(CompassEffect.make(engine.tq_graphics_basics.tq_render)) # NOT inherit rotation
 
@@ -83,7 +83,7 @@ base.accept('s-up', setKey, ["s",0])
 # model.reparentTo(engine.tq_graphics_basics.tq_render)
 
 # # dummy node for camera, we will rotate the dummy node fro camera rotation
-# parentnode = engine.tq_graphics_basics.tq_render.attachNewNode('camparent')
+# parentnode = engine.tq_graphics_basics.tq_render.attachNewNode_p3d('camparent')
 # parentnode.reparentTo(model) # inherit transforms
 # parentnode.setEffect(CompassEffect.make(engine.tq_graphics_basics.tq_render)) # NOT inherit rotation
 
