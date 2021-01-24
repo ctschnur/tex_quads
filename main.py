@@ -9,7 +9,7 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel, TextureOf2dImageData, TextureOfMatplotlibFigure
 from simple_objects import primitives
 from local_utils import math_utils
 
@@ -40,43 +40,6 @@ from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
 from engine.tq_graphics_basics import TQGraphicsNodePath
 import engine.tq_graphics_basics
 
-class Foo(TQGraphicsNodePath):
-    """ """
-    def __init__(self):
-        """ """
-        TQGraphicsNodePath.__init__(self)
-        # self.attach_to_render()
-
-        print(self.getParent_p3d())
-
-        self.line = Line1dSolid()
-        self.line.setTipPoint(Vec3(1., 0., 0.))
-        self.line.setTailPoint(Vec3(0.0, 0.0, 0.0))
-        self.line.reparentTo(self)
-
-        self.ah = ArrowHeadConeShaded()
-        self.ah.reparentTo(self)
-
-
-class Foo2(TQGraphicsNodePath):
-    """ """
-    def __init__(self):
-        """ """
-        TQGraphicsNodePath.__init__(self)
-        # self.attach_to_render()
-
-        arrowhead_scale = 1./15.
-        self.color = Vec4(1., 0., 0., 1.)
-        self.thickness1dline = 2.
-
-        self.line1 = Line1dSolid(thickness=self.thickness1dline, color=self.color)
-        self.line1.setTipPoint(Vec3(0.9, 0., 0.))
-        self.line1.setTailPoint(Vec3(0.0, 0.0, 0.0))
-        self.line1.reparentTo(self)
-        self.arrowhead = ArrowHeadConeShaded(color=self.color, scale=arrowhead_scale)
-        self.arrowhead.reparentTo(self)
-
-
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -85,13 +48,26 @@ class MyApp(ShowBase):
         base.setFrameRateMeter(True)
         engine.tq_graphics_basics.tq_render.setAntialias(AntialiasAttrib.MAuto)
 
-        shade_of_gray = 0.3
+        shade_of_gray = 0.
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
         ob = cameras.Orbiter.Orbiter(base.cam, radius=3.)
 
-        # f2 = Foo2()
-        # f2.attach_to_render()
+        # mto = TextureOf2dImageData(scaling=10.)
+        # mto.attach_to_render()
+
+        mto = TextureOf2dImageData(scaling=10.)
+        mto.attach_to_render()
+
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots(1)
+        x = np.linspace(0, np.pi * 2., 50)
+        ax.plot(x, np.sin(x))
+
+        tmplf = TextureOfMatplotlibFigure(fig, scaling=1.)
+        tmplf.attach_to_render()
+
+        ob.set_view_to_xz_plane()
 
         # foo = Foo()
         # foo.attach_to_render()
@@ -192,9 +168,11 @@ class MyApp(ShowBase):
 
         dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
 
-        # from plot_utils.frame2d import Frame2d
+        from plot_utils.frame2d import Frame2d
 
-        # f2d = Frame2d()
+        f2d = Frame2d()
+        # f2d.attach_to_aspect2d()
+        f2d.attach_to_render()
 
         # dp1 = DraggablePoint(ob)
         # dp1.attach_to_render()

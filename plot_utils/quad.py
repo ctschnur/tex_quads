@@ -5,8 +5,9 @@ from sequence.sequence import Sequence
 
 import numpy as np
 
+from engine.tq_graphics_basics import TQGraphicsNodePath
 
-class Quad:
+class Quad(TQGraphicsNodePath):
     """ Just a quad in which things are displayed. Originally invented for display with
     aspect2d, but display with render is also possible. """
 
@@ -24,16 +25,22 @@ class Quad:
         self.width = None
         self.height = None
 
+        TQGraphicsNodePath.__init__(self)
+
         self.set_pos_vec3(pos_vec3)
 
-        self.top = Line1dSolid(**kwargs  
-                               )
-        self.bottom = Line1dSolid(**kwargs  
-                                  )
-        self.left = Line1dSolid(**kwargs  
-                                )
-        self.right = Line1dSolid(**kwargs  
-                                 )
+        self.top = Line1dSolid(**kwargs)
+        self.top.reparentTo(self)
+
+        self.bottom = Line1dSolid(**kwargs)
+        self.bottom.reparentTo(self)
+
+        self.left = Line1dSolid(**kwargs)
+        self.left.reparentTo(self)
+
+        self.right = Line1dSolid(**kwargs)
+        self.right.reparentTo(self)
+
         self.set_width(width)
         self.set_height(height)
 

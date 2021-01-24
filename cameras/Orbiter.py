@@ -26,8 +26,11 @@ from local_utils import math_utils
 
 import engine
 
+from engine.tq_graphics_basics import TQGraphicsNodePath
+import engine.tq_graphics_basics
 
-class OrbiterVisualAids:
+
+class OrbiterVisualAids(TQGraphicsNodePath):
     """ A set of graphics that helps the orbiter """
 
     def __init__(self, orbiter):
@@ -36,13 +39,17 @@ class OrbiterVisualAids:
             orbiter : the orbiter object that gets these visual aids """
         self.orbiter = orbiter
 
+        TQGraphicsNodePath.__init__(self)
+
         # self.crosshair = None
         self.crosshair = CrossHair3d(self.orbiter, lines_length=0.25)
+        self.crosshair.reparentTo(self)
 
     def on(self):
         """ show them """
         if not self.crosshair:
             self.crosshair = CrossHair3d(self.orbiter)
+            self.crosshair.reparentTo(self)
 
     def update(self):
         """ """
@@ -203,6 +210,8 @@ class Orbiter:
         engine.tq_graphics_basics.tq_render.setLight(self.alnp)
 
         self.visual_aids = OrbiterVisualAids(self)
+        self.visual_aids.attach_to_render()
+
         if enable_visual_aids == True:
             self.visual_aids.on()
         else:

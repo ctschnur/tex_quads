@@ -107,7 +107,9 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
 class ParametricLinePrimitive(TQGraphicsNodePath):
     def __init__(self, func, param_interv=np.array([0, 1]),
                  thickness=1., color=Vec4(1., 1., 1., 1.), howmany_points=50, **kwargs):
+        """ """
         TQGraphicsNodePath.__init__(self, **kwargs)
+
         self.thickness = thickness
         self.color = color
         self.howmany_points = howmany_points

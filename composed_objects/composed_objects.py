@@ -703,7 +703,7 @@ class CoordinateSystemP3dPlain:
         self.group_node.addChildNodePaths([nodepath])
 
 
-class CrossHair3d:
+class CrossHair3d(TQGraphicsNodePath):
     """ """
 
     def __init__(self, camera_gear, lines_length=1., outer_line_thickness=6.0, alpha=0.5):
@@ -729,6 +729,8 @@ class CrossHair3d:
         self.l3i = None
         self.l3o = None
 
+        TQGraphicsNodePath.__init__(self)
+
         self.update()
 
     def update(self):
@@ -738,7 +740,9 @@ class CrossHair3d:
         if not self.l1o:
             self.l1o = Line1dSolid(
                 thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
+            self.l1o.reparentTo(self)
             self.l1o.set_render_above_all(True)
+
 
         self.l1o.setTailPoint(
             orbit_center - Vec3(self.crosshair_outer_lines_length/2., 0., 0.))
@@ -748,6 +752,7 @@ class CrossHair3d:
         if not self.l2o:
             self.l2o = Line1dSolid(
                 thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
+            self.l2o.reparentTo(self)
             self.l2o.set_render_above_all(True)
 
         self.l2o.setTailPoint(
@@ -759,6 +764,7 @@ class CrossHair3d:
         if not self.l3o:
             self.l3o = Line1dSolid(
                 thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)
+            self.l3o.reparentTo(self)
             self.l3o.set_render_above_all(True)
 
         self.l3o.setTailPoint(
@@ -771,6 +777,7 @@ class CrossHair3d:
             self.l1i = Line1dSolid(
                 thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
             self.l1i.set_render_above_all(True)
+            self.l1i.reparentTo(self)
 
         self.l1i.setTailPoint(
             orbit_center - Vec3(self.crosshair_inner_lines_length/2., 0., 0.))
@@ -782,6 +789,7 @@ class CrossHair3d:
             self.l2i = Line1dSolid(
                 thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
             self.l2i.set_render_above_all(True)
+            self.l2i.reparentTo(self)
 
         self.l2i.setTailPoint(
             orbit_center - Vec3(0., self.crosshair_inner_lines_length/2., 0.))
@@ -793,6 +801,7 @@ class CrossHair3d:
             self.l3i = Line1dSolid(
                 thickness=self.crosshair_inner_thickness, color=self.crosshair_inner_color)
             self.l3i.set_render_above_all(True)
+            self.l3i.reparentTo(self)
 
         self.l3i.setTailPoint(
             orbit_center - Vec3(0., 0., self.crosshair_inner_lines_length/2.))

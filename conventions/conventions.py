@@ -9,6 +9,8 @@ from panda3d.core import (
     AmbientLight,
     Point3)
 
+import numpy as np
+
 print("Panda version:", PandaSystem.getVersionString())
 
 svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
@@ -30,7 +32,7 @@ win_aspect_ratio = winsizex/winsizey
 loadPrcFileData('', 'win-origin 10 -1')
 
 
-def getMat4_scale_unit_quad_to_image_aspect_ratio(image_width_pixels, image_height_pixels):
+def getMat4_scale_unit_quad_to_image_aspect_ratio_forrowvecs(image_width_pixels, image_height_pixels):
     # the height stays constant (height of 1 in world coords)
     quad_scalex = float(image_width_pixels)
     quad_scalez = float(image_height_pixels)
@@ -38,6 +40,28 @@ def getMat4_scale_unit_quad_to_image_aspect_ratio(image_width_pixels, image_heig
                 0, 1, 0, 0,
                 0, 0, quad_scalez * 1., 0,
                 0, 0, 0, 1)
+
+
+def getMat4_scale_unit_quad_to_image_aspect_ratio(image_width_pixels, image_height_pixels):
+    # the height stays constant (height of 1 in world coords)
+    quad_scalex = float(image_width_pixels)
+    quad_scalez = float(image_height_pixels)
+    return np.array([[quad_scalex * 1., 0, 0, 0],
+                     [0, 1, 0, 0],
+                     [0, 0, quad_scalez * 1., 0],
+                     [0, 0, 0, 1]])
+
+
+def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution_forrowvecs():
+    # a single unit takes an amount of pixels of the p3d window
+    # by convention here, the height of what the initial fixed camera
+    # displays is exactly 2, i.e. the distance d((0,0,-1), (0,0,1))
+    pixel_per_unit = winsizey/2.
+    return Mat4(1./pixel_per_unit, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1./pixel_per_unit, 0,
+                0, 0, 0, 1)
+
 
 def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution():
     # a single unit takes an amount of pixels of the p3d window
@@ -49,8 +73,9 @@ def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution():
                 0, 0, 1./pixel_per_unit, 0,
                 0, 0, 0, 1)
 
+
 def setupOrthographicProjectionAndViewingAccordingToMyConvention(
-        lookat_position=Vec3(0,0,0),
+        lookat_position=Vec3(0, 0, 0),
         camera_position=Vec3(5, 5, 2)):
     # setup orthographic projection, make camera fixed and look at origin.
     # In this script, the convention is to have the z axis (z axis is up in
@@ -84,7 +109,8 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     # I call it a *viewing box* if the projection matrix produces
     # orthogonal projection, and *viewing frustum* if the projection
     # matrix includes perspective)
-    lens.setFilmSize(lens_view_width_in_world_coords, lens_view_height_in_world_coords)
+    lens.setFilmSize(lens_view_width_in_world_coords,
+                     lens_view_height_in_world_coords)
     lens.setNearFar(0.001, 50.)
 
     # you can also check for the properties of your lens/camera
@@ -98,7 +124,8 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     # vary doesn't do anything to the displayed content (except maybe
     # hiding it beyond the near/far planes)
 
-    base.cam.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
+    # this manipulates the viewing matrix
+    base.cam.setPos(camera_position[0], camera_position[1], camera_position[2])
     base.cam.lookAt(lookat_position)  # this manipulates the viewing matrix
 
     # -- set faint ambient white lighting
@@ -109,7 +136,7 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     engine.tq_graphics_basics.tq_render.setLight(alnp)
 
 
-def compute2dPosition(nodepath, point = Point3(0, 0, 0)):
+def compute2dPosition(nodepath, point=Point3(0, 0, 0)):
     """ Computes a 3-d point, relative to the indicated node, into a
     2-d point as seen by the camera.  The range of the returned value
     is based on the len's current film size and film offset, which is

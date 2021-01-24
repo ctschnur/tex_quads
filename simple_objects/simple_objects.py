@@ -1,9 +1,10 @@
 from panda3d.core import TextNode
+from panda3d.core import SamplerState
 from conventions.conventions import compute2dPosition
 from conventions import conventions
 from simple_objects import custom_geometry
 
-from local_utils import math_utils
+from local_utils import math_utils, texture_utils
 from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
 
 from engine.tq_graphics_basics import TQGraphicsNodePath
@@ -115,7 +116,8 @@ class PointPrimitive(Point):
     def makeObject(self):
         self.set_node_p3d(custom_geometry.create_GeomNode_Single_Point(
             color_vec4=Vec4(1., 1., 1., 1.)))
-        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         self.setLightOff(1)
         # self.setRenderModeThickness(5)
@@ -131,7 +133,8 @@ class Point2d(Point):
         self.set_node_p3d(custom_geometry.createColoredUnitQuadGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True))
 
-        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         self.setTwoSided(True)
         self.setLightOff(1)
@@ -218,7 +221,7 @@ class Line1dPrimitive(LinePrimitive):
             *self.getPos())
 
         self.setMat(self.form_from_primitive_trafo *
-                             scaling_and_rotation_forrowvecs * translation_forrowvecs)
+                    scaling_and_rotation_forrowvecs * translation_forrowvecs)
 
         # for some weird reason, I have to run setTailPoint again ...
         self.setTailPoint(self.tail_point, run_setTipPoint_again=False)
@@ -293,7 +296,8 @@ class LineDashedPrimitive(TQGraphicsNodePath):
     def makeObject(self, thickness, color, howmany_periods):
         self.set_node_p3d(custom_geometry.createColoredUnitDashedLineGeomNode(
             thickness=thickness, color_vec4=self.color, howmany_periods=5.))
-        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         self.setLightOff(1)
 
@@ -376,7 +380,8 @@ class ArrowHead(Box2dCentered):
         """
         self.set_node_p3d(custom_geometry.createColoredArrowGeomNode(
             color_vec4=Vec4(1., 1., 1., 1.), center_it=True))
-        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         self.setTwoSided(True)
 
@@ -404,17 +409,19 @@ class ArrowHeadCone(Box2dCentered):
     def makeObject(self):
         self.set_node_p3d(custom_geometry.create_GeomNode_Cone(
             color_vec4=Vec4(1., 1., 1., 1.)))
-                          # the self.'node' is a geomnode
+        # the self.'node' is a geomnode
         # or more generally a PandaNode
         # typically, if the geometry isn't changed in-place,
         # only the NodePath is called at later times
 
-        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setTwoSided(True)
 
 
 class ArrowHeadConeShaded(IndicatorPrimitive):
     """ """
+
     def __init__(self, color=Vec4(0., 0., 0., 0.), scale=1./5., **kwargs):
         """ """
         self.color = color
@@ -494,6 +501,7 @@ class SphereModelShaded(Box2dCentered):
 
 class Pinned2dLabel(IndicatorPrimitive):
     """ """
+
     def __init__(self, refpoint3d=Point3(1., 1., 1.), text="pinned?", xshift=0., yshift=0.,
                  font="cmr12.egg", color=(1., 1., 1., 1.)):
         """ """
@@ -675,7 +683,8 @@ class OrientedDisk(IndicatorPrimitive):
         self.set_node_p3d(custom_geometry.createColoredUnitDisk(
             color_vec4=Vec4(1., 1., 1., 1.)))
 
-        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setLightOff(1)
         self.setTwoSided(True)
 
@@ -713,7 +722,8 @@ class OrientedCircle(IndicatorPrimitive):
             num_of_verts=num_of_verts,
             radius=radius))
 
-        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
         self.setLightOff(1)
         self.setRenderModeThickness(thickness)
 
@@ -750,3 +760,152 @@ class OrientedCircle(IndicatorPrimitive):
 
         return scaling_forrowvecs * rotation_forrowvecs * translation_forrowvecs
         # self.setMat()  # reverse order column first row second convention
+
+
+# class TextureOf2dImageData(TQGraphicsNodePath):
+#     """ """
+#     def __init__(self, mpl_fig, **kwargs):
+#         """ get a 2d textured quad from a matplotlib figure object """
+#         TQGraphicsNodePath.__init__(self, **kwargs)
+
+#         self.tex_expression = tex_expression
+
+#         self.makeObject()
+
+#         self.doInitialSetupTransformation()
+
+#     def doInitialSetupTransformation(self):
+#         """ initial setup transformation: a unit quad with an image in the
+#         background is being scaled so that the pixel height and width fits
+#         exactly with the screen resolution"""
+
+#         self.setMat(
+#             conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution() *
+#             conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(self.myPNMImage.getXSize(), self.myPNMImage.getYSize()))
+
+#     def makeObject(self):
+#         """ only creates geometry (doesn't transform it) """
+#         self.set_node_p3d(custom_geometry.createTexturedUnitQuadGeomNode())
+#         self.set_p3d_nodepath(self.getParent_p3d().attachNewNode_p3d(self.p3d_node))
+
+#         def applyImageAndTexture():
+#             """assign the Texture() to the NodePath() that contains the Geom()
+#             load image with the object's hash"""
+#             expr_hash = hashlib.sha256(
+#                 str(self.tex_expression).encode("utf-8")).hexdigest()
+
+#             myLatexImage = LatexImageManager.retrieveLatexImageFromHash(
+#                 expr_hash)
+#             if myLatexImage is None:
+#                 myLatexImage = LatexImage(expression_str=self.tex_expression)
+#                 myLatexImage.compileToPNG()
+#                 LatexImageManager.addLatexImageToCompiledSet(myLatexImage)
+#                 LatexImageManager.addLatexImageToLoadedSet(myLatexImage)
+
+#             self.myPNMImage = myLatexImage.getPNMImage()
+#             self.myTexture = texture_utils.getTextureFromImage(self.myPNMImage)
+#             self.setTexture(self.myTexture, 1)
+#             self.setTransparency(TransparencyAttrib.MAlpha)
+
+#         applyImageAndTexture()
+
+
+class TextureOf2dImageData(TQGraphicsNodePath):
+    """ """
+
+    def __init__(self, np_2d_arr=None, scaling=1.0, **kwargs):
+        """ get a textured quad from a 2d array of pixel data """
+        # self.np_2d_arr = np_2d_arr
+        self.myTexture = None
+        self.num_of_pixels_x = None
+        self.num_of_pixels_y = None
+        self.scaling = scaling
+
+        TQGraphicsNodePath.__init__(self, **kwargs)
+
+        self.makeObject()
+
+        self.doInitialSetupTransformation()
+
+    def doInitialSetupTransformation(self):
+        """ initial setup transformation: a unit quad with an image in the
+        background is being scaled so that the pixel height and width fits
+        exactly with the screen resolution"""
+
+        self.setMat_normal(
+            conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(self.num_of_pixels_x, self.num_of_pixels_y).dot(
+                conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution()
+            ).dot(math_utils.getScalingMatrix4x4(self.scaling, self.scaling, self.scaling)))
+
+    def makeObject(self):
+        """ only creates geometry (doesn't transform it) """
+        self.set_node_p3d(custom_geometry.createTexturedUnitQuadGeomNode())
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+
+        self.myTexture, self.num_of_pixels_x, self.num_of_pixels_y = texture_utils.getTextureFrom2d_bw_arr()
+        self.myTexture.setMagfilter(SamplerState.FT_nearest)
+        self.myTexture.setMinfilter(SamplerState.FT_nearest)
+        self.setTexture(self.myTexture, 1)
+
+        # self.setTransparency(TransparencyAttrib.MAlpha)
+
+        self.setTwoSided(True)
+        self.setLightOff(True)
+
+
+class TextureOfMatplotlibFigure(TQGraphicsNodePath):
+    """ """
+
+    def __init__(self, mpl_figure, scaling=1.0, **kwargs):
+        """ get a textured quad from a 2d array of pixel data """
+        # self.np_2d_arr = np_2d_arr
+        self.myTexture = None
+        self.num_of_pixels_x = None
+        self.num_of_pixels_y = None
+        self.scaling = scaling
+
+        self.mpl_figure = mpl_figure
+
+        TQGraphicsNodePath.__init__(self, **kwargs)
+
+        self.makeObject()
+
+        self.doInitialSetupTransformation()
+
+    def doInitialSetupTransformation(self):
+        """ initial setup transformation: a unit quad with an image in the
+        background is being scaled so that the pixel height and width fits
+        exactly with the screen resolution"""
+
+        self.setMat_normal(
+            conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(
+                self.num_of_pixels_x, self.num_of_pixels_y)
+            .dot(
+                conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution()
+            )
+            .dot(math_utils.getScalingMatrix4x4(self.scaling, self.scaling, self.scaling))
+            # .dot(math_utils.getScalingMatrix4x4(-1., 1., 1.))
+        )
+
+    def makeObject(self):
+        """ only creates geometry (doesn't transform it) """
+        self.set_node_p3d(custom_geometry.createTexturedUnitQuadGeomNode())
+        self.set_p3d_nodepath(
+            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+
+        self.myTexture, self.num_of_pixels_x, self.num_of_pixels_y = (
+            texture_utils.getTextureFromMatplotlibFigure(
+                self.mpl_figure,
+                flip_over_y_axis=True,
+                # make_white_transparent=True
+            ))
+
+        # self.myTexture.setMagfilter(SamplerState.FT_nearest)
+        # self.myTexture.setMinfilter(SamplerState.FT_nearest)
+        self.setTexture(self.myTexture, 1)
+
+        self.setTransparency(TransparencyAttrib.MAlpha)
+
+        self.setTwoSided(True)
+        self.setLightOff(True)

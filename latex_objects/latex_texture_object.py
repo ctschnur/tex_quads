@@ -37,8 +37,8 @@ class LatexTextureObject(IndicatorPrimitive):
         exactly with the screen resolution"""
 
         self.setMat(
-            conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution() *
-            conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(self.myPNMImage.getXSize(), self.myPNMImage.getYSize()))
+            conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution_forrowvecs() *
+            conventions.getMat4_scale_unit_quad_to_image_aspect_ratio_forrowvecs(self.myPNMImage.getXSize(), self.myPNMImage.getYSize()))
 
     def makeObject(self):
         """ only creates geometry (doesn't transform it) """

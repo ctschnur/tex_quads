@@ -14,6 +14,8 @@ from direct.interval.LerpInterval import LerpFunc
 
 import numpy as np
 
+from local_utils import math_utils
+
 def init_engine(p3d_render, p3d_aspect2d, loader):
     """ """
     global tq_render
@@ -49,6 +51,11 @@ class TQGraphicsNodePath:
         """ """
         assert self.p3d_nodepath
         self.p3d_nodepath.reparentTo(render)
+
+    def attach_to_aspect2d(self):
+        """ """
+        assert self.p3d_nodepath
+        self.p3d_nodepath.reparentTo(aspect2d)
 
     def _set_p3d_nodepath_plain_post_init(p3d_nodepath):
         """ """
@@ -116,6 +123,11 @@ class TQGraphicsNodePath:
     def setMat(self, *args, **kwargs):
         """ """
         return self.p3d_nodepath.setMat(*args, **kwargs)
+
+    def setMat_normal(self, mat4x4_normal_np):
+        """ normal convention (in numpy array), i.e. convert to forrowvecs convention for p3d setMat call """
+        return self.p3d_nodepath.setMat(math_utils.to_forrowvecs(mat4x4_normal_np))
+
 
     def getMat(self):
         """ """
@@ -237,6 +249,10 @@ class TQGraphicsNodePath:
     def getRelativeVector(self, *args, **kwargs):
         """ """
         return self.p3d_nodepath.getRelativeVector(*args, **kwargs)
+
+    def setTransparency(self, *args, **kwargs):
+        """ """
+        return self.p3d_nodepath.setTransparency(*args, **kwargs)
 
 
 class TQLoader:

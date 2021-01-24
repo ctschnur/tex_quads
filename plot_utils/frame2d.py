@@ -1,4 +1,5 @@
 import engine
+from engine.tq_graphics_basics import TQGraphicsNodePath
 
 import numpy as np
 import math
@@ -18,7 +19,7 @@ import scipy.special
 
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk
 
-class Frame2d():
+class Frame2d(TQGraphicsNodePath):
     """ a 2d frame within which 2d data can be displayed, i.e. numpy x and y arrays """
     def __init__(self):
         """ """
@@ -35,7 +36,11 @@ class Frame2d():
         self.x_pos_left_border = x_start_pos
         self.y_pos_top_box = y_start_pos
 
-        self.quad = Quad(thickness=2.0, TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
+        TQGraphicsNodePath.__init__(self)
+
+        self.quad = Quad(thickness=2.0)
+        self.quad.reparentTo(self)
+
         self.quad.set_pos_vec3(Vec3(self.x_pos_left_border, 0., self.y_pos_top_box))
 
         self.quad.set_height(self.height)
@@ -43,22 +48,27 @@ class Frame2d():
 
         self.plp1 = None
 
-        self.update_parametric_line(lambda t: np.array([
-                    np.cos(t*(2.*np.pi)*1.),
-                    np.sin(t*(2.*np.pi)*1.),
-                ]))
+        self.update_parametric_line(
+            # lambda t: np.array([
+            #         np.cos(t*(2.*np.pi)*1.),
+            #         np.sin(t*(2.*np.pi)*1.),
+            #     ])
+            lambda x: np.array([
+                    x,
+                    np.sin(x),
+                ])
+        )
 
         # self.plp1.remove()
-
-        point = Point3d(pos=(Vec3(1., 0., 1.)), TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
-        pass
+        # point = Point3d(pos=(Vec3(1., 0., 1.)), TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
 
     def update_parametric_line(self, func_xy_of_t=None):
         """ """
         if func_xy_of_t is not None:
             self.plp1 = ParametricLinePrimitive(
                 lambda t: np.array([func_xy_of_t(t)[0], 0., func_xy_of_t(t)[1]]),
-                howmany_points=100, TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
+                howmany_points=100, param_interv=np.array([0, 2.0 * np.pi]))
+            self.plp1.reparentTo(self)
 
             self.plp1.setPos(self.quad.get_pos_vec3())
             print("hi")
