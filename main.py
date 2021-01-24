@@ -60,12 +60,21 @@ class MyApp(ShowBase):
         mto.attach_to_render()
 
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(1)
+        fig, ax = plt.subplots(1, figsize=(3, 3))
         x = np.linspace(0, np.pi * 2., 50)
         ax.plot(x, np.sin(x))
 
-        tmplf = TextureOfMatplotlibFigure(fig, scaling=1.)
-        tmplf.attach_to_render()
+        fig.tight_layout()
+        tmplf = TextureOfMatplotlibFigure(fig, scaling=1.0, backgroud_opacity=0.1)
+
+        tmplf.attach_to_aspect2d()
+
+        width, height = tmplf.get_dimensions_from_calc()
+        print(width, height)
+
+        from conventions.conventions import win_aspect_ratio
+
+        tmplf.setPos(Vec3(1.0 * win_aspect_ratio - width, 0., -1.))
 
         ob.set_view_to_xz_plane()
 

@@ -857,13 +857,14 @@ class TextureOf2dImageData(TQGraphicsNodePath):
 class TextureOfMatplotlibFigure(TQGraphicsNodePath):
     """ """
 
-    def __init__(self, mpl_figure, scaling=1.0, **kwargs):
+    def __init__(self, mpl_figure, scaling=1.0, backgroud_opacity=0.2, **kwargs):
         """ get a textured quad from a 2d array of pixel data """
         # self.np_2d_arr = np_2d_arr
         self.myTexture = None
         self.num_of_pixels_x = None
         self.num_of_pixels_y = None
         self.scaling = scaling
+        self.backgroud_opacity = backgroud_opacity
 
         self.mpl_figure = mpl_figure
 
@@ -879,14 +880,24 @@ class TextureOfMatplotlibFigure(TQGraphicsNodePath):
         exactly with the screen resolution"""
 
         self.setMat_normal(
+            self.get_scaling_matrix()
+        )
+
+    def get_scaling_matrix(self):
+        """ """
+        return (
             conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(
                 self.num_of_pixels_x, self.num_of_pixels_y)
             .dot(
                 conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution()
             )
             .dot(math_utils.getScalingMatrix4x4(self.scaling, self.scaling, self.scaling))
-            # .dot(math_utils.getScalingMatrix4x4(-1., 1., 1.))
         )
+
+    def get_dimensions_from_calc(self):
+        """ return the width and height of the textured quad in p3d coordinates """
+        _ = np.abs(np.diag(self.get_scaling_matrix()))
+        return _[0], _[2]       # in p3d aspect2d, x is to the right, z is up
 
     def makeObject(self):
         """ only creates geometry (doesn't transform it) """
@@ -899,6 +910,7 @@ class TextureOfMatplotlibFigure(TQGraphicsNodePath):
                 self.mpl_figure,
                 flip_over_y_axis=True,
                 # make_white_transparent=True
+                backgroud_opacity=self.backgroud_opacity
             ))
 
         # self.myTexture.setMagfilter(SamplerState.FT_nearest)

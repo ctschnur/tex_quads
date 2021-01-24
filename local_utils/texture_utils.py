@@ -33,7 +33,8 @@ def getTextureFrom2d_bw_arr():
 def getTextureFromMatplotlibFigure(fig,
                                    flip_over_y_axis=False,
                                    make_white_transparent=False,
-                                   make_black_white=False):
+                                   make_black_white=False,
+                                   backgroud_opacity=0.):
     """ the matplotlib image produces a numpy array in the following form:
     array([[[255, 255, 255, 255],
         [255, 255, 255, 255],
@@ -59,7 +60,7 @@ def getTextureFromMatplotlibFigure(fig,
     fig_axes = fig.get_axes()
 
     # make background transparent (of all axes)
-    fig.patch.set_alpha(0.0)
+    fig.patch.set_alpha(backgroud_opacity)
 
     for ax in fig_axes:
         ax.patch.set_alpha(0.0)
