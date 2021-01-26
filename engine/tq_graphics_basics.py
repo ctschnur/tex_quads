@@ -254,6 +254,14 @@ class TQGraphicsNodePath:
         """ """
         return self.p3d_nodepath.setTransparency(*args, **kwargs)
 
+    def getHpr(self, *args, **kwargs):
+        """ """
+        return self.p3d_nodepath.getHpr(*args, **kwargs)
+
+    def setHpr(self, *args, **kwargs):
+        """ """
+        return self.p3d_nodepath.setHpr(*args, **kwargs)
+
 
 class TQLoader:
     """ """

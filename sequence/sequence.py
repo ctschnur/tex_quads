@@ -125,7 +125,7 @@ class Sequence:
 
     def remove(self):
         """ unregister the sequence """
-        self._finish_up_resouces_from_inside_play_loop()
+        pass
 
     def get_t(self):
         return self.p3d_sequence.get_t()
@@ -291,6 +291,8 @@ class WavSequence:
 
     def remove(self):
         """ unregister the sequence """
+        # self._finish_up_resouces_from_inside_play_loop()
+
         if self.wf:
             self.wf.close()
             self.wf = None

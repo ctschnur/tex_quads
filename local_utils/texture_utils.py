@@ -2,6 +2,7 @@ from panda3d.core import (PNMImage, Filename, Texture)
 import numpy as np
 from PIL import Image
 from io import BytesIO
+from matplotlib.backends.backend_agg import FigureCanvasAgg
 
 def getImageFromFile(filename="sample.png"):
     """ """
@@ -34,7 +35,7 @@ def getTextureFromMatplotlibFigure(fig,
                                    flip_over_y_axis=False,
                                    make_white_transparent=False,
                                    make_black_white=False,
-                                   backgroud_opacity=0.):
+                                   ):
     """ the matplotlib image produces a numpy array in the following form:
     array([[[255, 255, 255, 255],
         [255, 255, 255, 255],
@@ -57,25 +58,11 @@ def getTextureFromMatplotlibFigure(fig,
     """
     # import matplotlib.pyplot as plt # import it on demand
     # # fig, ax = plt.subplots(1)
-    fig_axes = fig.get_axes()
-
-    # make background transparent (of all axes)
-    fig.patch.set_alpha(backgroud_opacity)
-
-    for ax in fig_axes:
-        ax.patch.set_alpha(0.0)
-
-    default_color_for_borders_and_labels = "white"
-
-    for ax, color in zip(fig_axes, [default_color_for_borders_and_labels] * len(fig_axes)):
-        ax.tick_params(color=color, labelcolor=color)
-        for spine in ax.spines.values():
-            spine.set_edgecolor(color)
 
     # x = np.linspace(0., 2.*np.pi, num=50)
     # ax.plot(x, np.sin(x))
 
-    from matplotlib.backends.backend_agg import FigureCanvasAgg
+
     canvas = FigureCanvasAgg(fig)
     imgIO = BytesIO()
     canvas.print_png(imgIO, # dpi=my_dpi_resolution
@@ -89,6 +76,7 @@ def getTextureFromMatplotlibFigure(fig,
 
     if flip_over_y_axis == True:
         img_arr_2d = np.flip(img_arr_2d, 0).astype(img_arr_2d.dtype)
+        # None
 
     if make_white_transparent == True:
         final_pixel_arr = img_arr_2d.copy()

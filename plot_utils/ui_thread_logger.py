@@ -20,8 +20,11 @@ from plot_utils.symbols.waiting_symbol import WaitingSymbol
 
 from simple_objects.simple_objects import Fixed2dLabel
 
+import engine
+from engine.tq_graphics_basics import TQGraphicsNodePath
 
-class ProcessingBox:
+
+class ProcessingBox(TQGraphicsNodePath):
     """ an individual box with text, position, loading symbol, elapsed time since start e"""
 
     def __init__(self, is_done_function, description):
@@ -58,6 +61,8 @@ class ProcessingBox:
         if self.width is None:
             self.width = 0.9
 
+        TQGraphicsNodePath.__init__(self)
+
         pass
 
     def set_xy_pos(self, x_pos_left_border, y_pos_top_box):
@@ -89,16 +94,19 @@ class ProcessingBox:
 
             if self.waiting_symbol is None:
                 self.waiting_symbol = WaitingSymbol(self.is_done_function, Vec3(x_pos_waiting_symbol, 0., y_pos_waiting_symbol), size=0.1)
+                self.waiting_symbol.reparentTo(self)
             else:
                 self.waiting_symbol.set_position(Vec3(x_pos_waiting_symbol, 0., y_pos_waiting_symbol))
 
             if self.text is None:
                 self.text = Fixed2dLabel(text=self.description, font="fonts/arial.egg", x=x_pos_text, y=y_pos_text)
+                self.text.reparentTo(self)
             else:
                 self.text.setPos(x_pos_text, y_pos_text)
 
             if self.elapsed_time_text is None:
                 self.elapsed_time_text = Fixed2dLabel(text="elapsed time", font="fonts/arial.egg", x=x_pos_elapsed_time, y=y_pos_elapsed_time)
+                self.elapsed_time_text.reparentTo(self)
             else:
                 self.elapsed_time_text.setPos(x_pos_elapsed_time, y_pos_elapsed_time)
 
@@ -107,6 +115,8 @@ class ProcessingBox:
 
             if self.quad is None:
                 self.quad = Quad(thickness=quad_thickness, TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
+                self.quad.reparentTo(self)
+
                 self.quad.set_pos_vec3(Vec3(self.x_pos_left_border, 0., self.y_pos_top_box))
 
                 self.quad.set_height(self.height)
@@ -154,7 +164,7 @@ class ProcessingBox:
             self.quad.remove()
 
 
-class UIThreadLoggerElement:
+class UIThreadLoggerElement(TQGraphicsNodePath):
     """ holds description, is_alive_func for a single parallel task,
     encapsulates also the ProcessingBox """
 
@@ -167,14 +177,16 @@ class UIThreadLoggerElement:
         self.description = description
         self.is_alive_func = is_alive_func
 
+        TQGraphicsNodePath.__init__(self)
+
         self.processing_box = ProcessingBox(lambda: not is_alive_func(), description)
-        pass
+        self.processing_box.reparentTo(self)
 
 
 # global uiThreadLogger
 uiThreadLogger = None
 
-class UIThreadLogger:
+class UIThreadLogger(TQGraphicsNodePath):
     """ A visual queue/cue of which threads are processing in parallel and what they are doing
     (e.g. loading or recording an audio file in the background) """
 
@@ -187,9 +199,9 @@ class UIThreadLogger:
 
         self.task_obj_update = taskMgr.add(self.update, 'update')
 
-        # -- create some sample boxes
+        TQGraphicsNodePath.__init__(self)
 
-        pass
+
 
     def append_new_parallel_task(self, description, is_alive_func):
         """ when launching a thread, this logger can be called with
@@ -198,7 +210,9 @@ class UIThreadLogger:
             is_alive_func: if return value turns from True to False,
                            kill the log """
         # pb = ProcessingBox(my_done_function)
-        self.log_list.append(UIThreadLoggerElement(description, is_alive_func))
+        _ = UIThreadLoggerElement(description, is_alive_func)
+        _.reparentTo(self)
+        self.log_list.append(_)
 
     def update(self, task):
         """ updates the visual queue:

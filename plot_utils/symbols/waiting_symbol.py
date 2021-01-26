@@ -6,10 +6,12 @@ from sequence.sequence import Sequence
 from plot_utils.quad import Quad
 
 import numpy as np
+
+import engine
 from engine.tq_graphics_basics import TQGraphicsNodePath
 
 
-class WaitingSymbol:
+class WaitingSymbol(TQGraphicsNodePath):
     """ An animation that runs as long as done_function returns False. """
 
     def __init__(self, done_function, position, size=0.2, frequency=1):
@@ -29,14 +31,19 @@ class WaitingSymbol:
 
         self.a = None
 
+        TQGraphicsNodePath.__init__(self)
+
         # -- supporting graphics
         self.quad = Quad(thickness=3.0, TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
+        self.quad.reparentTo(self)
+
         self.quad.set_pos_vec3(self.position)
         self.quad.set_height(self.size)
         self.quad.set_width(self.size)
 
         self.line = Line1dSolid(
             thickness=3.0, TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
+        self.line.reparentTo(self)
 
         self.anim_seq = Sequence()
 

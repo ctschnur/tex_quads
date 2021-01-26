@@ -655,7 +655,7 @@ class Fixed2dLabel(IndicatorPrimitive):
             self.textNode_p3d_generated = self.textNode.generate()
 
             self.textNodePath = self.getParent_p3d(
-            ).attachNewNode_p3d(self.textNode_p3d_generated)
+            ).attachNewNode(self.textNode_p3d_generated)
 
             self.nodeisattachedtoaspect2d = True
             self.textNodePath.setScale(0.07)
@@ -905,19 +905,63 @@ class TextureOfMatplotlibFigure(TQGraphicsNodePath):
         self.set_p3d_nodepath(
             self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
+        self._set_texture(update_full=True)
+
+        self.setTransparency(TransparencyAttrib.MAlpha)
+
+        self.setTwoSided(True)
+        self.setLightOff(True)
+
+    def _setup_figure_for_tex_quads_convention(self):
+        """ """
+        fig_axes = self.mpl_figure.get_axes()
+
+        # make background transparent (of all axes)
+        self.mpl_figure.patch.set_alpha(self.backgroud_opacity)
+
+        for ax in fig_axes:
+            ax.patch.set_alpha(self.backgroud_opacity)
+
+        default_color_for_borders_and_labels = "white"
+
+        for ax, color in zip(fig_axes,
+                             [default_color_for_borders_and_labels] * len(fig_axes)):
+            ax.tick_params(color=color, labelcolor=color)
+            for spine in ax.spines.values():
+                spine.set_edgecolor(color)
+
+    def _generate_and_set_texture(self):
+        """ """
         self.myTexture, self.num_of_pixels_x, self.num_of_pixels_y = (
             texture_utils.getTextureFromMatplotlibFigure(
                 self.mpl_figure,
                 flip_over_y_axis=True,
                 # make_white_transparent=True
-                backgroud_opacity=self.backgroud_opacity
+                # backgroud_opacity=self.backgroud_opacity
             ))
 
         # self.myTexture.setMagfilter(SamplerState.FT_nearest)
         # self.myTexture.setMinfilter(SamplerState.FT_nearest)
         self.setTexture(self.myTexture, 1)
 
-        self.setTransparency(TransparencyAttrib.MAlpha)
+    def _set_texture(self, update_full=False, tight_layout=False):
+        """ """
+        if update_full == True:
+            self._setup_figure_for_tex_quads_convention()
 
-        self.setTwoSided(True)
-        self.setLightOff(True)
+        if tight_layout == True:
+            if self.mpl_figure:
+                self.mpl_figure.tight_layout()
+
+        self._generate_and_set_texture()
+
+    def update_figure_texture(self, update_full=False, tight_layout=False):
+        """ """
+        # preserve the matrices of rotation and position
+        pos = self.getPos()
+        rot = self.getHpr()
+
+        self._set_texture(update_full=update_full, tight_layout=tight_layout)
+
+        self.setPos(pos)
+        self.setHpr(rot)
