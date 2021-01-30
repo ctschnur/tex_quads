@@ -326,7 +326,7 @@ class Vector(TQGraphicsNodePath):
         assert self.line1.getPos() == self.line1.tail_point
         assert self.line1.getPos() == self.tail_point_logical
 
-        translation_to_tip_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+        translation_to_tip_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(
             self.tip_point_logical[0],
             self.tip_point_logical[1],
             self.tip_point_logical[2])
@@ -339,7 +339,7 @@ class Vector(TQGraphicsNodePath):
             math_utils.multiply_scalar_with_vec3(
                 arrowhead_length, arrowhead_direction)
 
-        translation_to_match_point_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+        translation_to_match_point_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(
             b_tilde[0], b_tilde[1], b_tilde[2])
 
         # translation_forrowvecs = (
@@ -393,11 +393,11 @@ class Vector(TQGraphicsNodePath):
 
         self.line1.setMat(
             (self.line1.getMat() *
-             math_utils.getTranslationMatrix3d_forrowvecs(-self.tail_point_logical[0],
+             math_utils.getTranslationMatrix4x4_forrowvecs(-self.tail_point_logical[0],
                                                           -self.tail_point_logical[1],
                                                           -self.tail_point_logical[2]) *
              scaling_forrowvecs *
-             math_utils.getTranslationMatrix3d_forrowvecs(self.tail_point_logical[0],
+             math_utils.getTranslationMatrix4x4_forrowvecs(self.tail_point_logical[0],
                                                           self.tail_point_logical[1],
                                                           self.tail_point_logical[2])
              ))
@@ -676,8 +676,11 @@ class Box2dOfLines:
             [lines for lines in self.lines])
 
 
-class CoordinateSystemP3dPlain:
+class CoordinateSystemP3dPlain(TQGraphicsNodePath):
     def __init__(self):
+        """ """
+        TQGraphicsNodePath.__init__(self)
+
         ls = LineSegs()
         ls.setThickness(1)
 
@@ -697,10 +700,11 @@ class CoordinateSystemP3dPlain:
         ls.drawTo(0.0, 0.0, 1.0)
 
         geomnode = ls.create()
-        nodepath = NodePath(geomnode)
+        self.set_p3d_nodepath(NodePath(geomnode))
+        self.setLightOff(1)
 
-        self.group_node = GroupNode()
-        self.group_node.addChildNodePaths([nodepath])
+        # self.group_node = GroupNode()
+        # self.group_node.addChildNodePaths([nodepath])
 
 
 class CrossHair3d(TQGraphicsNodePath):

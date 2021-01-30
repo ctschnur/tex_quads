@@ -1,5 +1,6 @@
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Mat4
 
+from scipy.linalg import polar
 import numpy as np
 import math
 
@@ -60,6 +61,9 @@ def to_forrowvecs(m4x4):
     """
     return Mat4(*tuple(np.transpose(m4x4).flatten()))
 
+def from_forrowvecs(p3d_forrowvecs):
+    """ """
+    return np.ravel(np.array(list(p3d_forrowvecs))).reshape((4, 4)).T
 
 def getScalingMatrix4x4(vx, vy, vz):
     """ in usual math notation convention, not in p3d hardware-optimized convention """
@@ -68,23 +72,22 @@ def getScalingMatrix4x4(vx, vy, vz):
                      [0,   0, vz, 0],
                      [0, 0, 0, 1]])
 
+
 def getScalingMatrix3d_forrowvecs(vx, vy, vz):
     """ """
     return Mat4(*tuple(np.transpose(getScalingMatrix4x4(vx, vy, vz)).flatten()))
 
-def getTranslationMatrix3d_forrowvecs(bx, by, bz):
+
+def getTranslationMatrix4x4(bx, by, bz):
     """ """
-    # bx = 0.5
-    # by = 0
-    # bz = 0
-    translation_to_xhat = np.array(
-        [[1, 0, 0, bx],
-         [0, 1, 0, by],
-         [0, 0, 1, bz],
-         [0, 0, 0,  1]])
-    translation_forrowvecs = Mat4(
-        *tuple(np.transpose(translation_to_xhat).flatten()))
-    return translation_forrowvecs
+    return np.array([[1, 0, 0, bx],
+                     [0, 1, 0, by],
+                     [0, 0, 1, bz],
+                     [0, 0, 0,  1]])
+
+def getTranslationMatrix4x4_forrowvecs(bx, by, bz):
+    """ """
+    return to_forrowvecs(getTranslationMatrix4x4(bx, by, bz))
 
 
 def getNormFromP3dVector(p3dvec3):
@@ -367,3 +370,61 @@ def get_circle_vertices(num_of_verts=10, radius=1.):
 def equal_up_to_epsilon(num1, num2, epsilon=0.001):
     """ """
     return np.abs(num1 - num2) <= epsilon
+
+
+def generate_polynomial(x, coeffs, shifts):
+    """ """
+    my_sum = 0.
+    for i, coeff in enumerate(coeffs):
+        my_sum += coeffs[i] * (x + shifts[i])**float(i)
+
+    return my_sum
+
+
+def random_polynomial(x):
+    """ """
+    num_of_coeffs = int(np.random.rand() * 10.) + 1
+    coeffs = np.random.rand(num_of_coeffs) * \
+        np.sign(0.5 - np.random.rand(num_of_coeffs))
+    shifts = np.random.rand(num_of_coeffs) * \
+        np.sign(0.5 - np.random.rand(num_of_coeffs))
+    print(len(coeffs), len(shifts))
+    return generate_polynomial(x, coeffs, shifts)
+
+def decompose_affine_trafo_4x4(mat4x4_np):
+    """
+    Args:
+        mat4x4_np: 4x4 numpy array (matrix), affine transformation
+    Return:
+        Translation, Rotation, Scale Matrices (2d numpy arrays)
+    """
+    H = mat4x4_np
+
+    # get translation matrix T (from last column vector of H)
+    T = np.eye(4)
+    T[:3,3] = H[:3,3]
+    # print(T)
+
+    # get linear transformation component of the affine transformation
+    L = H.copy()
+    L[:3,3] = 0
+    # print(L)
+
+    # polar decomposition -> get Rotation Matrix R and Stretch Matrix K
+    R, K = polar(L)
+
+    if np.linalg.det(R) < 0:
+        R[:3,:3] = -R[:3,:3]
+        K[:3,:3] = -K[:3,:3]
+
+    f, X = np.linalg.eig(K)
+    # print(f)
+
+    S = []
+    for factor, axis in zip(f, X.T):
+        if not np.isclose(factor, 1):
+            scale = np.eye(4) + np.outer(axis, axis) * (factor-1)
+            S.append(scale)
+            # print(scale)
+
+    return np.array(T), np.array(R), np.array(S)

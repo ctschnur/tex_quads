@@ -75,6 +75,7 @@ class OrbiterLens:
                  ):
         self.camera = camera
         self.lens = OrthographicLens()
+        print("self.lens : ", self.lens)
         self.setOrthoLensRange(None, 5.)  # only initially!
         # ^ the point is to change this interactively
 
@@ -106,12 +107,12 @@ class OrbiterLens:
         """
 
         if width is None and height:
-            width = height * (conventions.winsizex/conventions.winsizey)
+            width = height * engine.tq_graphics_basics.get_window_aspect_ratio()
         elif height is None:
             print("ERR: height is None")
             exit(1)
 
-        width = height * (conventions.winsizex/conventions.winsizey)
+        width = height * engine.tq_graphics_basics.get_window_aspect_ratio()
         # print("Ortho Lens Film: ", "width: ", width, ", height: ", height)
         # setFilmSize specifies the size of the Lens box
         # I call it a *viewing box* if the projection matrix produces
@@ -145,6 +146,8 @@ class Orbiter:
         self.orbit_center = None
         self.set_orbit_center(Vec3(0., 0., 0.), not_just_init=False)
 
+        self.before_aspect_ratio_changed_at_init = True
+
         self.r = radius
         self.phi = 0.
         self.theta = np.pi/3.
@@ -155,11 +158,14 @@ class Orbiter:
         # --- hooks for camera movement
         self.camera_move_hooks = []  # store function objects
 
+        # --- hooks for window resize
+        self.window_resize_hooks = []  # store function objects
+
         # --- set the lens
         self.orbiterLens = OrbiterLens(camera)
 
         # --- initial setting of the position
-        self.set_camera_pos_spherical_coords()
+        self.set_camera_pos_spherical_coords(recalculate_film_size=True)
 
         # --- event handling to reorient the camera
         from panda3d.core import ModifierButtons
@@ -198,14 +204,16 @@ class Orbiter:
         # --- fix a point light to the side of the camera
         from panda3d.core import PointLight
         self.plight = PointLight('plight')
-        self.pl_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(self.plight)
+        self.pl_nodepath = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(
+            self.plight)
         self.set_pointlight_pos_spherical_coords()
         engine.tq_graphics_basics.tq_render.setLight(self.pl_nodepath)
 
         # -- set faint ambient white lighting
         from panda3d.core import AmbientLight
         self.alight = AmbientLight('alight')
-        self.alnp = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(self.alight)
+        self.alnp = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(
+            self.alight)
         self.alight.setColor((0.25, 0.25, 0.25, 1))
         engine.tq_graphics_basics.tq_render.setLight(self.alnp)
 
@@ -220,6 +228,17 @@ class Orbiter:
         # TODO: append a drag drop event manager here
         base.accept('shift-mouse1', self.handle_shift_mouse1  # , extraArgs=[ob]
                     )
+
+        # p3d throws an aspectRatiochanged event after calling MyApp.run()
+        # This variable controls which aspect ratio to take (initial aspect ratio (hard-coded or in configuration file)
+        # or asking for it from the window manager)
+
+        self.set_film_size_from_window_dimensions(
+            called_from_orbiter_init=True)
+
+        base.accept("aspectRatioChanged", self.run_window_resize_hooks)
+        self.add_window_resize_hook(self.set_film_size_from_window_dimensions)
+        self.add_window_resize_hook(self.scale_aspect2d_from_window_dimensions)
 
     def handle_shift_mouse1(self):
         """ """
@@ -379,7 +398,6 @@ class Orbiter:
 
         returnval = [x, y, z]
 
-
         if get_up_vector == True:
             if on_other_side == True:
                 returnval.append(Vec3(0., 0., -1))  # -z is up
@@ -388,7 +406,8 @@ class Orbiter:
 
         if get_eye_vector == True:
             if on_other_side == True:
-                returnval.append(Vec3(-1., 0., 0.))  # in the case where -z is up, to provide visual consistency when flipping over
+                # in the case where -z is up, to provide visual consistency when flipping over
+                returnval.append(Vec3(-1., 0., 0.))
             else:
                 returnval.append(Vec3(1., 0., 0.))  # in the case where z is up
 
@@ -420,17 +439,31 @@ class Orbiter:
             print("self.orbit_center is None")
             exit(1)
 
-    def set_camera_pos_spherical_coords(self):
-        x, y, z, up_vector, eye_vector = self.get_spherical_coords(get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
+    def set_camera_pos_spherical_coords(self, recalculate_film_size=False):
+        x, y, z, up_vector, eye_vector = self.get_spherical_coords(
+            get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
         self.camera.setPos(x, y, z)
         # self.camera.node().getLens().setViewMat(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1))
 
         self.camera.node().getLens().setViewMat(
             Mat4(eye_vector[0], 0, 0, 0, 0, 1, 0, 0, 0, 0, up_vector[2], 0, 0, 0, 0, 1))
 
-        self.orbiterLens.setOrthoLensRange(None, self.r + 0.1)
+        # if self.before_aspect_ratio_changed_at_init == True:
+        #     self.orbiterLens.setOrthoLensRange(None, self.get_ortho_lense_range_to_height_from_radius_contrib())
+        # else:
+        #     self.orbiterLens.setOrthoLensRange(None, self.get_ortho_lense_range_to_height_from_radius_contrib())
+
+        # base the film size on the window dimensions, not on the radius of the camera around the orbit center
+
+        if recalculate_film_size == True:
+            self.set_film_size_from_window_dimensions()
+
         self.camera.lookAt(self.get_orbit_center())
         self.run_camera_move_hooks()
+
+    def get_ortho_lense_range_to_height_from_radius_contrib(self):
+        """ """
+        return self.r + 0.1
 
     def set_pointlight_pos_spherical_coords(self):
         x, y, z = self.get_spherical_coords(offset_phi=np.pi/2.)
@@ -450,7 +483,7 @@ class Orbiter:
     def set_view_to_xy_plane(self):
         """ set view to the xy plane """
         self.phi = -np.pi/2.
-        self.theta = 0. #  # np.pi/2.
+        self.theta = 0.  # np.pi/2.
         # self.theta = Orbiter.theta_epsilon
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
@@ -510,7 +543,104 @@ class Orbiter:
         self.camera_move_hooks.remove(func)
 
     def run_camera_move_hooks(self):
-
         for c_hook in self.camera_move_hooks:
             # run the function
             c_hook()
+
+    def add_window_resize_hook(self, func):
+        """ func is the function to run when the window resizes;
+        if it depends on parameters, they can be set upon adding
+        the hook by just using a lambda function """
+        self.window_resize_hooks.append(func)
+
+    def remove_window_resize_hook(self, func):
+        """ remove the hook """
+        self.window_resize_hooks.remove(func)
+
+    def run_window_resize_hooks(self):
+        for c_hook in self.window_resize_hooks:
+            # run the function
+            c_hook()
+
+    def get_lens(self):
+        """ get my lens """
+        return self.orbiterLens
+
+    def set_film_size_from_window_dimensions(self, called_from_orbiter_init=False):
+        """ """
+        print("aspect ratio changed")
+
+        aspect_ratio = None
+        if self.before_aspect_ratio_changed_at_init == True or called_from_orbiter_init == True:
+            print("self.before_aspect_ratio_changed_at_init : ",
+                  self.before_aspect_ratio_changed_at_init)
+            aspect_ratio = conventions.winsizex_0/conventions.winsizey_0
+
+            if called_from_orbiter_init == False:
+                self.before_aspect_ratio_changed_at_init = False
+        else:
+            print("self.before_aspect_ratio_changed_at_init : ",
+                  self.before_aspect_ratio_changed_at_init)
+            aspect_ratio = engine.tq_graphics_basics.get_window_aspect_ratio()
+            print("aspect ratio : ", aspect_ratio)
+            print(engine.tq_graphics_basics.get_window_size_x(),
+                  engine.tq_graphics_basics.get_window_size_y())
+            # self.lens.setOrthoLensRange(None, 2. * aspect_ratio)
+
+            # scale_factor = 1./320. # engine.tq_graphics_basics.get_window_size_y()
+            # engine.tq_graphics_basics.get_window_size_y()
+            scale_factor = 1./(conventions.winsizey_0/2.)
+            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+            # offset = self.get_ortho_lense_range_to_height_from_radius_contrib()
+            # offset = 0
+            # print("offset: ", offset)
+
+            filmsize_x = engine.tq_graphics_basics.get_window_size_x()*scale_factor
+            filmsize_y = engine.tq_graphics_basics.get_window_size_y()*scale_factor
+
+            # filmsize_y += float(filmsize_x) % float(self.get_ortho_lense_range_to_height_from_radius_contrib())
+
+            self.get_lens().lens.setFilmSize(filmsize_x, filmsize_y)
+
+    def scale_aspect2d_from_window_dimensions(self):
+        """ when window dimensions change by resizing the window, I want the aspect2d viewport to scale with it, so that
+            e.g. fonts attached to it stay the same size w.r.t the screen """
+
+        # engine.tq_graphics_basics.tq_aspect2d.
+        print("getMat p3d native format: \n", aspect2d.getMat())
+        print("getMat from_forrowvecs: \n",
+              math_utils.from_forrowvecs(aspect2d.getMat()))
+
+        T, R, S = math_utils.decompose_affine_trafo_4x4(
+            math_utils.from_forrowvecs(aspect2d.getMat()))
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+        # S = np.array([[0.5497, 0.,     0.,     0.],
+        #               [0.,     1.,     0.,     0.],
+        #               [0.,     0.,     1.,     0.],
+        #               [0.,     0.,     0.,     1.]])
+
+        # aspect2d.setMat(math_utils.to_forrowvecs(T.dot(R).dot(S)))
+
+
+        # render2d.setPos
+
+        # scale = 1./(engine.tq_graphics_basics.get_window_size_y()/conventions.winsizey_0)
+        # aspect2d.setScale(scale,
+        #                   1.,
+        #                   scale)
+
+        aspect2d.setScale(conventions.winsizex_0/engine.tq_graphics_basics.get_window_size_x() * 1./(conventions.winsizex_0/conventions.winsizey_0),
+                          1.,
+                          conventions.winsizey_0/engine.tq_graphics_basics.get_window_size_y())
+
+        aspect2d.setPos(-1 + conventions.winsizex_0/engine.tq_graphics_basics.get_window_size_x() * 1./(conventions.winsizex_0/conventions.winsizey_0),
+                        0.,
+                        1 - conventions.winsizey_0/engine.tq_graphics_basics.get_window_size_y())
+
+        print("window sizes: ", engine.tq_graphics_basics.get_window_size_x(),
+              engine.tq_graphics_basics.get_window_size_y())
+
+        # aspect2d.setScale(1., 1., 1.)
+        # aspect2d.setScale(1./400, 1, 1./300)

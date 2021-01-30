@@ -25,6 +25,37 @@ def init_engine(p3d_render, p3d_aspect2d, loader):
     tq_aspect2d = TQGraphicsNodePath.from_p3d_nodepath(aspect2d)
     tq_loader = TQLoader(loader)
 
+    global _screen_size_x
+    global _screen_size_y
+    _screen_size_x = base.win.getProperties().getXSize()
+    _screen_size_y = base.win.getProperties().getYSize()
+
+    global _window_size_x
+    global _window_size_y
+    _window_size_x = base.pipe.getDisplayWidth()
+    _window_size_y = base.pipe.getDisplayHeight()
+
+
+def get_screen_size_x():
+    """ """
+    return base.pipe.getDisplayWidth()
+
+def get_screen_size_y():
+    """ """
+    return base.pipe.getDisplayHeight()
+
+def get_window_size_x():
+    """ """
+    return base.win.getProperties().getXSize()
+
+def get_window_size_y():
+    """ """
+    return base.win.getProperties().getYSize()
+
+def get_window_aspect_ratio():
+    """ """
+    return get_window_size_x()/get_window_size_y()
+
 class TQGraphicsNodePath:
     """ Anything that fundamentally is a only a graphics object in this engine should have these properties.
 

@@ -8,7 +8,8 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel, TextureOf2dImageData, TextureOfMatplotlibFigure
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel, TextureOf2dImageData
+
 from simple_objects import primitives
 from local_utils import math_utils
 
@@ -22,6 +23,7 @@ import pytest
 # import gltf
 
 import cameras.Orbiter
+import cameras.plain_camera_gear
 from direct.task import Task
 from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, SelectableBezierCurve
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
@@ -38,27 +40,7 @@ from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
 
 from engine.tq_graphics_basics import TQGraphicsNodePath
 import engine.tq_graphics_basics
-
-import threading
-
-from mpl_toolkits.mplot3d import axes3d
-import matplotlib.pyplot as plt
-
-def generate_polynomial(x, coeffs, shifts):
-    """ """
-    my_sum = 0.
-    for i, coeff in enumerate(coeffs):
-        my_sum += coeffs[i] * (x + shifts[i])**float(i)
-
-    return my_sum
-
-def random_polynomial(x):
-    """ """
-    num_of_coeffs = int(np.random.rand() * 10.) + 1
-    coeffs = np.random.rand(num_of_coeffs) * np.sign(0.5 - np.random.rand(num_of_coeffs))
-    shifts = np.random.rand(num_of_coeffs) * np.sign(0.5 - np.random.rand(num_of_coeffs))
-    print(len(coeffs), len(shifts))
-    return generate_polynomial(x, coeffs, shifts)
+from simple_objects.mpl_integration import RotatingMatplotlibFigure
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -71,168 +53,69 @@ class MyApp(ShowBase):
         shade_of_gray = 0.
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
-        # self.thread_loggers_demo()
+        # cg = cameras.plain_camera_gear.PlainCameraGear(base.cam)
+        # cg.setPos(Vec3(0., -1., 0.))
 
-        ob = cameras.Orbiter.Orbiter(base.cam, radius=3.)
+        cg = cameras.Orbiter.Orbiter(base.cam, radius=3.)
 
-        # mto = TextureOf2dImageData(scaling=10.)
-        # mto.attach_to_render()
+        self.cg = cg
 
-        # mto = TextureOf2dImageData(scaling=10.)
-        # mto.attach_to_render()
+        p1 = Point3d(scale=1.0)
+        p1.attach_to_render()
+        p1.setPos(Vec3(0.25, 0.5, 0.75))
 
-        import matplotlib.pyplot as plt
-        fig = plt.figure(figsize=(5, 5))
-        # ax = fig.add_axes([0.2, 0.2, 0.7, 0.7])
-        # x = np.linspace(0, np.pi * 2., 50)
-        # ax.plot(x, np.sin(x))
+        p2 = Point3d(scale=1.0)
+        p2.attach_to_aspect2d()
+        p2.setPos(Vec3(0.25, 0., 0.75))
 
-        # fig.tight_layout()
-        tmplf = TextureOfMatplotlibFigure(fig, scaling=1.0, backgroud_opacity=0.0)
-        tmplf.attach_to_aspect2d()
-        width, height = tmplf.get_dimensions_from_calc()
-        from conventions.conventions import win_aspect_ratio
-        tmplf.setPos(Vec3(1.0 * win_aspect_ratio - width, 0., -1.))
+        # render.setScale(1., 1., 5.)
 
-        # # ax.plot(x, np.cos(x))
-        # # tmplf.update_figure_texture()
-        # ob.set_view_to_xz_plane()
+        # def onWindowEvent(window):
+        #     width = base.win.getProperties().getXSize()
+        #     height = base.win.getProperties().getYSize()
+        #     base.cam.node().getLens().setFilmSize(width, height)
+        #     base.cam.node().getLens().setFocalLength(200)
 
-        # x1, x2 = -2., 2.
-        # y1, y2 = -2., 2.
+        # base.accept(base.win.getWindowEvent(), onWindowEvent)
 
-        # x = np.linspace(x1, x2, 1000)
-        # # fig, ax = plt.subplots(1)
+        # plot_utils.ui_thread_logger.uiThreadLogger = UIThreadLogger()
+        # plot_utils.ui_thread_logger.uiThreadLogger.attach_to_aspect2d()
 
-        # ax.set_xlim(x1, x2)
-        # ax.set_ylim(y1, y2)
+        # rmplf = RotatingMatplotlibFigure()
+        # rmplf.attach_to_aspect2d()
 
-        self.angle = 0.
-
-        self.ax = fig.add_subplot(111, projection='3d')
-
-        import time
-        # initial_time = time.time()
-        # angle = 0.
-
-        def my_is_alive_function(time_offset, initial_time=None):
-            cond = initial_time + time_offset > time.time()
-            # print(initial_time, time.time(), cond)
-            return cond
-
-        plot_utils.ui_thread_logger.uiThreadLogger = UIThreadLogger()
-        plot_utils.ui_thread_logger.uiThreadLogger.attach_to_aspect2d()
-        # plot_utils.ui_thread_logger.uiThreadLogger.setPos(Vec3(0., 0., 0.))
-
-        def add_plot_thread_wrapped():
-            """ """
-            td = threading.Thread(target=self.add_plot, daemon=True)
-            td.start()
-
-            def wait_for_thread_to_finish_task(task):
-                """ """
-                if td.is_alive():
-                    return task.cont
-
-                self.ax.w_xaxis.line.set_color("white")
-                self.ax.w_yaxis.line.set_color("white")
-                self.ax.w_zaxis.line.set_color("white")
-
-                tmplf.update_figure_texture(update_full=True, # tight_layout=True
-                )
-                # base.acceptOnce("c", add_plot_thread_wrapped)
-
-                # time.sleep(0.2)
-                # Wait(0.001)
-                add_plot_thread_wrapped()
-
-                return task.done
-
-            taskMgr.add(wait_for_thread_to_finish_task, 'foo')
-
-            # plot_utils.ui_thread_logger.uiThreadLogger.append_new_parallel_task(
-            #     "plotting", lambda: td.is_alive())
-
-        # base.acceptOnce("c", add_plot_thread_wrapped)
-
-        add_plot_thread_wrapped()
-
-        # plot_utils.ui_thread_logger.uiThreadLogger.append_new_parallel_task(
-        #         "plotting", lambda initial_time=time.time(): (
-        #             my_is_alive_function(2., initial_time=initial_time)))
-
-
-        cs = CoordinateSystem(ob)
+        cs = CoordinateSystem(cg)
         cs.attach_to_render()
         cs.setPos(Vec3(0., 0., 0.))
 
-        # cs2 = CoordinateSystem(ob)
-        # cs2.attach_to_render()
-
-        # # cs2.setPos(Vec3(1., 1., 1.))
-
-        # cs2.setMat(math_utils.get_R_y_forrowvecs(0.2) * math_utils.get_R_z_forrowvecs(0.2) * math_utils.get_R_x_forrowvecs(0.2) * math_utils.getTranslationMatrix3d_forrowvecs(1., 1., 1.))
-
-        # # self.render_edge_player(ob)
+        csp = CoordinateSystemP3dPlain()
+        csp.attach_to_aspect2d()
+        csp.setPos(Vec3(0., 0., 0.))
 
         base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
 
-        # # esm = EdgePlayerSM("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr)
-        # # esm.transition_into(esm.state_load)
-        # # esm.gcsm.edge_graphics.set_v2_override(Vec3(1., 0., 0.))
+        dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
 
-        # # dp = DraggablePoint(ob)
-        # # dp.setPos(Vec3(1., 0., 0.))
-        # # print(dp.getPos())
+        from plot_utils.frame2d import Frame2d, Ticks
 
-        # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", ob, taskMgr) #
+        # x_ticks = Ticks()
+        # # x_ticks.reparentTo(self)
+        # x_ticks.attach_to_render()
 
-        # from plot_utils.frame2d import Frame2d
+        from simple_objects.simple_objects import BasicText
+
+        bt = BasicText()
+
+        # f2l = Fixed2dLabel(text=str(1))
+        # f2l.attach_to_aspect2d()
+        # # f2l.setPos2d(pos_x=1., pos_y=1.)
+        # f2l.setPos(Vec3(0., 0., 0.))
+        # print(f2l.getPos())
 
         # f2d = Frame2d()
-        # # f2d.attach_to_aspect2d()
+        # f2d.attach_to_aspect2d()
         # f2d.attach_to_render()
 
-        # # dp1 = DraggablePoint(ob)
-        # # dp1.attach_to_render()
-        # # dp1.setPos(Vec3(1., 0., 0.))
-        # # print(dp1.getPos())
-
-        # # dp2 = DraggablePoint(ob)
-        # # dp2.setPos(Vec3(2., 0., 0.))
-        # # print(dp2.getPos())
-
-        # # ob.set_view_to_xy_plane()
-
-    def add_plot(self):
-        """ """
-        self.ax.cla()
-
-        # make the panes transparent
-        self.ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-        self.ax.yaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-        self.ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
-
-        # self.ax.plot(x, random_polynomial(x))
-
-        # fig = plt.figure()
-        # ax = fig.add_subplot(111, projection='3d')
-
-        # Grab some test data.
-        X, Y, Z = axes3d.get_test_data(0.05)
-
-        u = np.linspace(0, 2 * np.pi, 100)
-        v = np.linspace(0, np.pi, 100)
-        x = 10 * np.outer(np.cos(u), np.sin(v))
-        y = 10 * np.outer(np.sin(u), np.sin(v))
-        z = 10 * np.outer(np.ones(np.size(u)), np.cos(v))
-
-        # Plot the surface
-
-        # Plot a basic wireframe.
-        self.ax.plot_wireframe(X, Y, Z, rstride=10, cstride=10)
-        self.angle += 0.75 * 1.
-        self.ax.view_init(30, self.angle)
 
     def render_edge_player(self, camera_gear):
         """ Render the edge player """
@@ -309,6 +192,7 @@ class MyApp(ShowBase):
 
         l3.setTipPoint(Vec3(0.5, 0.5, 0.))
         l3.setTailPoint(Vec3(0.0, 0.5, 0.))
+
 
         l4 = Line1dSolid()
 

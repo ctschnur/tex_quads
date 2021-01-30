@@ -1,4 +1,4 @@
-from panda3d.core import TextNode
+from panda3d.core import TextNode, TextFont, AntialiasAttrib, Texture
 from panda3d.core import SamplerState
 from conventions.conventions import compute2dPosition
 from conventions import conventions
@@ -8,7 +8,7 @@ from local_utils import math_utils, texture_utils
 from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
 
 from engine.tq_graphics_basics import TQGraphicsNodePath
-import engine
+import engine.tq_graphics_basics
 
 from latex_objects.latex_expression_manager import LatexImageManager, LatexImage
 
@@ -30,6 +30,10 @@ import hashlib
 import numpy as np
 import sys
 import os
+
+import threading
+from mpl_toolkits.mplot3d import axes3d
+import matplotlib.pyplot as plt
 
 
 class Point(IndicatorPrimitive):
@@ -217,7 +221,7 @@ class Line1dPrimitive(LinePrimitive):
 
         scaling_and_rotation_forrowvecs = scaling_forrowvecs * self._rotation_forrowvecs
 
-        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+        translation_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(
             *self.getPos())
 
         self.setMat(self.form_from_primitive_trafo *
@@ -340,7 +344,7 @@ class Line2dObject(Box2dCentered):
         scaling = math_utils.getScalingMatrix3d_forrowvecs(1., 1., self.width)
 
         self.length = 1.
-        self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+        self.translation_to_xhat_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(
             0.5, 0, 0)
 
         self.form_from_primitive_trafo = scaling * self.translation_to_xhat_forrowvecs
@@ -513,7 +517,7 @@ class Pinned2dLabel(IndicatorPrimitive):
         self.nodeisattachedtoaspect2d = False
 
         self.font = font
-        self.font_p3d = loader.loadFont(font)
+        self._font_p3d = loader.loadFont(font)
 
         self.xshift = xshift
         self.yshift = yshift
@@ -558,7 +562,7 @@ class Pinned2dLabel(IndicatorPrimitive):
             # load a font
             # cmr12 = loader.loadFont('cmr12.egg')
 
-            self.textNode.setFont(self.font_p3d)
+            self.textNode.setFont(self._font_p3d)
 
             # set a shadow
             self.textNode.setShadow(0.05, 0.05)
@@ -583,9 +587,8 @@ class Pinned2dLabel(IndicatorPrimitive):
         # place text in x, z in [-1, 1] boundaries and
         # the y coordinate gets ignored for the TextNode
         # parented by aspect2d
-        from conventions.conventions import win_aspect_ratio
         self.textNodePath.setPos(
-            (p2d[0] + self.xshift) * win_aspect_ratio, 0, p2d[1] + self.yshift)
+            (p2d[0] + self.xshift) * engine.tq_graphics_basics.get_window_aspect_ratio(), 0, p2d[1] + self.yshift)
 
     def remove(self):
         """ removes all p3d nodes """
@@ -596,79 +599,76 @@ class Fixed2dLabel(IndicatorPrimitive):
     """ a text label attached to aspect2d,  """
 
     def __init__(self,
-                 text="fixed?", x=0., y=0., z=0.,
-                 font="cmr12.egg"
-                 # , **kwargs
-                 ):
+                 text="fixed?",
+                 font="cmr12.egg"):
         """
         Args:
             x: x position in GUI-xy-plane
             y: y position in GUI-xy-plane
             z: 'z' (actually y) position when attaching to aspect2d """
 
-        kwargs = {}
-        kwargs['TQGraphicsNodePath_creation_parent_node'] = aspect2d
-
-        IndicatorPrimitive.__init__(self, **kwargs)
+        IndicatorPrimitive.__init__(self)
 
         self.text = text
-        self.nodeisattachedtoaspect2d = False
-
         self.font = font
-        self.font_p3d = loader.loadFont(font)
+        self._font_p3d = loader.loadFont(font)
+        self.textNode = None    # this thing gets updated in a weird way
 
-        self.x = x
-        self.y = y
-        self.z = z
+        self.pos_x = 0.
+        self.pos_y = 0.
 
         self.update()
 
-    def setPos(self, x, y, z=0.):
-        """ essentially sets the 3d position of the pinned label
-        Args:
-            x: x position in GUI-xy-plane
-            y: 'y' position in GUI-xy-plane
-            z: 'z' (actually y) position when attaching to aspect2d """
+    def setPos2d(self, pos_x=None, pos_y=None):
+        """ """
+        if pos_x is not None:
+            self.pos_x = pos_x
 
-        self.x = x
-        self.y = y
-        self.z = z
+        if pos_y is not None:
+            self.pos_y = pos_y
+
+        self.update()
+
+    def setPos(self, pos_vec3):
+        """ """
+        self.pos_x = pos_vec3[0]
+        self.pos_y = pos_vec3[2]
+
+        super().setPos(pos_vec3)
+
         self.update()
 
     def setText(self, text):
         """ sets the text and updates the pinned label """
         self.text = text
         self.textNode.setText(self.text)
-        self.textNodePath.removeNode()
-        self.nodeisattachedtoaspect2d = False
         self.update()
 
     def update(self):
-        if not self.nodeisattachedtoaspect2d:
+        """ """
+        # TODO: continue with ticks
+        self.removeNode()
+
+        if self.textNode is None:
             self.textNode = TextNode('myFixed2dLabel')
-            self.textNode.setText(self.text)
-            self.textNode.setFont(self.font_p3d)
 
-            # set a shadow
-            self.textNode.setShadow(0.05, 0.05)
-            self.textNode.setShadowColor(0, 0, 0, 1)
-            self.textNode_p3d_generated = self.textNode.generate()
+        self.textNode.setText(self.text)
+        self.textNode.setFont(self._font_p3d)
 
-            self.textNodePath = self.getParent_p3d(
-            ).attachNewNode(self.textNode_p3d_generated)
+        # set a shadow
+        self.textNode.setShadow(0.05, 0.05)
+        self.textNode.setShadowColor(0, 0, 0, 1)
 
-            self.nodeisattachedtoaspect2d = True
-            self.textNodePath.setScale(0.07)
-            self.textNodePath.show()
+        self.set_p3d_nodepath(NodePath(self.textNode.generate()))
 
-        # from conventions.conventions import win_aspect_ratio
-        self.textNodePath.setPos(self.x,
-                                 self.z,
-                                 self.y)
+        self.do_trafo()
 
-    def remove(self):
-        """ removes all p3d nodes """
-        self.textNodePath.removeNode()
+    def do_trafo(self):
+        """ """
+        text_size_base_scale = 0.07
+        self.setMat_normal(math_utils.getScalingMatrix4x4(text_size_base_scale, 1., text_size_base_scale).dot(
+            math_utils.getTranslationMatrix4x4(self.pos_x, 0., self.pos_y)
+        ))
 
 
 class OrientedDisk(IndicatorPrimitive):
@@ -755,7 +755,7 @@ class OrientedCircle(IndicatorPrimitive):
         scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(
             math_utils.getScalingMatrix4x4(scale, scale, scale))
 
-        translation_forrowvecs = math_utils.getTranslationMatrix3d_forrowvecs(
+        translation_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(
             origin_point[0], origin_point[1], origin_point[2])
 
         return scaling_forrowvecs * rotation_forrowvecs * translation_forrowvecs
@@ -854,114 +854,90 @@ class TextureOf2dImageData(TQGraphicsNodePath):
         self.setLightOff(True)
 
 
-class TextureOfMatplotlibFigure(TQGraphicsNodePath):
-    """ """
+class BasicText(# IndicatorPrimitive
+):
+    """ a text label attached to aspect2d,  """
 
-    def __init__(self, mpl_figure, scaling=1.0, backgroud_opacity=0.2, **kwargs):
-        """ get a textured quad from a 2d array of pixel data """
-        # self.np_2d_arr = np_2d_arr
-        self.myTexture = None
-        self.num_of_pixels_x = None
-        self.num_of_pixels_y = None
-        self.scaling = scaling
-        self.backgroud_opacity = backgroud_opacity
+    def __init__(self,
+                 text="Basic text",
+                 font=None):
 
-        self.mpl_figure = mpl_figure
+        # IndicatorPrimitive.__init__(self)
 
-        TQGraphicsNodePath.__init__(self, **kwargs)
+        # self.height = 0.5               # in units of one panda unit
 
-        self.makeObject()
+        self.pointsize = 11
 
-        self.doInitialSetupTransformation()
+        def get_height_p3d_from_pointsize(pt):
+            """ let 1 p3d units be 100/pt_to_height_p3d_scale pt """
+            pt_to_height_p3d_scale = 0.6
+            return pt_to_height_p3d_scale * float(pt)/(100.)
 
-    def doInitialSetupTransformation(self):
-        """ initial setup transformation: a unit quad with an image in the
-        background is being scaled so that the pixel height and width fits
-        exactly with the screen resolution"""
+        def get_font_bmp_pixels_from_height(height):
+            """ 10 pixels from height of 0.1
+                the aspect2d viewport goes in the up direction from -1 to 1 -> range of 2
+            """
+            pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
+            return pixels_per_p3d_length_unit * height  # how many pixels
 
-        self.setMat_normal(
-            self.get_scaling_matrix()
-        )
+        self.text = text
 
-    def get_scaling_matrix(self):
-        """ """
-        return (
-            conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(
-                self.num_of_pixels_x, self.num_of_pixels_y)
-            .dot(
-                conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution()
-            )
-            .dot(math_utils.getScalingMatrix4x4(self.scaling, self.scaling, self.scaling))
-        )
+        self.font = None
+        if font is not None:
+            self.font = font
+        else:
+            # self.font = "fonts/arial.egg"
+            self.font = "fonts/arial.ttf"
 
-    def get_dimensions_from_calc(self):
-        """ return the width and height of the textured quad in p3d coordinates """
-        _ = np.abs(np.diag(self.get_scaling_matrix()))
-        return _[0], _[2]       # in p3d aspect2d, x is to the right, z is up
+        self.textNode = TextNode('foo')
+        self.textNode.setText(self.text)
+        self._font_p3d = loader.loadFont(self.font)
 
-    def makeObject(self):
-        """ only creates geometry (doesn't transform it) """
-        self.set_node_p3d(custom_geometry.createTexturedUnitQuadGeomNode())
-        self.set_p3d_nodepath(
-            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+        self.pixels_per_unit = get_font_bmp_pixels_from_height(get_height_p3d_from_pointsize(self.pointsize))
+        self._font_p3d.setPixelsPerUnit(self.pixels_per_unit)
 
-        self._set_texture(update_full=True)
+        # self._font_p3d.setPointSize(64)
+        # self._font_p3d.setSpaceAdvance(2)
+        # self._font_p3d.setRenderMode(TextFont.RMPolygon)  # render font as polygons instead of bitmap
 
-        self.setTransparency(TransparencyAttrib.MAlpha)
+        self._font_p3d.setPointSize(self.pointsize)
+        # self._font_p3d.setPixelsPerUnit(15)
+        # self._font_p3d.setScaleFactor(1)
+        # self._font_p3d.setTextureMargin(2)
+        # self._font_p3d.setMinfilter(Texture.FTNearest)
+        # self._font_p3d.setMagfilter(Texture.FTNearest)
 
-        self.setTwoSided(True)
-        self.setLightOff(True)
+        self.textNode.setFont(self._font_p3d)
 
-    def _setup_figure_for_tex_quads_convention(self):
-        """ """
-        fig_axes = self.mpl_figure.get_axes()
+        # self.textNode.setShadow(0.05, 0.05)
+        # self.textNode.setShadowColor(0, 0, 0, 1)
+        # self.set_p3d_nodepath(NodePath(self.textNode.generate()))
 
-        # make background transparent (of all axes)
-        self.mpl_figure.patch.set_alpha(self.backgroud_opacity)
+        self.text_p3d_nodepath = NodePath(self.textNode.generate())
+        self.text_p3d_nodepath.reparentTo(aspect2d)
+        self.text_p3d_nodepath.setPos(Vec3(0., 0., 0.))
 
-        for ax in fig_axes:
-            ax.patch.set_alpha(self.backgroud_opacity)
+        def get_scale_matrix_initial_to_font_size():
+            """ """
+            initial_height = self.textNode.getHeight()
+            print("initial_height", initial_height)
+            scale_factor_to_height_1 = 1./initial_height
 
-        default_color_for_borders_and_labels = "white"
+            pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
 
-        for ax, color in zip(fig_axes,
-                             [default_color_for_borders_and_labels] * len(fig_axes)):
-            ax.tick_params(color=color, labelcolor=color)
-            for spine in ax.spines.values():
-                spine.set_edgecolor(color)
+            scale_height_1_to_pixels = 1./pixels_per_p3d_length_unit
+            # print(scale_height_1_to_pixels * self.pixels_per_unit * 2.0)
 
-    def _generate_and_set_texture(self):
-        """ """
-        self.myTexture, self.num_of_pixels_x, self.num_of_pixels_y = (
-            texture_utils.getTextureFromMatplotlibFigure(
-                self.mpl_figure,
-                flip_over_y_axis=True,
-                # make_white_transparent=True
-                # backgroud_opacity=self.backgroud_opacity
-            ))
+            scale = scale_height_1_to_pixels * self.pixels_per_unit
+            self.text_p3d_nodepath.setScale(scale, 1., scale)
 
-        # self.myTexture.setMagfilter(SamplerState.FT_nearest)
-        # self.myTexture.setMinfilter(SamplerState.FT_nearest)
-        self.setTexture(self.myTexture, 1)
+        get_scale_matrix_initial_to_font_size()
 
-    def _set_texture(self, update_full=False, tight_layout=False):
-        """ """
-        if update_full == True:
-            self._setup_figure_for_tex_quads_convention()
+    #     # self.do_trafo()
 
-        if tight_layout == True:
-            if self.mpl_figure:
-                self.mpl_figure.tight_layout()
-
-        self._generate_and_set_texture()
-
-    def update_figure_texture(self, update_full=False, tight_layout=False):
-        """ """
-        # preserve the matrices of rotation and position
-        pos = self.getPos()
-        rot = self.getHpr()
-
-        self._set_texture(update_full=update_full, tight_layout=tight_layout)
-
-        self.setPos(pos)
-        self.setHpr(rot)
+    # # def do_trafo(self):
+    # #     """ """
+    # #     text_size_base_scale = 0.07
+    # #     self.setMat_normal(math_utils.getScalingMatrix4x4(text_size_base_scale, 1., text_size_base_scale).dot(
+    # #         math_utils.getTranslationMatrix4x4(self.pos_x, 0., self.pos_y)
+    # #     ))

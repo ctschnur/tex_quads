@@ -279,7 +279,7 @@ class SelectableBezierCurve(DraggableBezierCurve):
                 for v in vd_cc:
                     # transform the vertices of the circles appropriately (you want one mesh)
                     trafo = math_utils.p3d_mat4_to_math_convention(
-                        math_utils.getTranslationMatrix3d_forrowvecs(v[0], v[1], v[2]) *
+                        math_utils.getTranslationMatrix4x4_forrowvecs(v[0], v[1], v[2]) *
                         OrientedCircle.getSetupTransformation(t_vec, points[i], scale=0.5))
 
                     # transform the coordinates

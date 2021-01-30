@@ -21,6 +21,7 @@ from plot_utils.symbols.waiting_symbol import WaitingSymbol
 from simple_objects.simple_objects import Fixed2dLabel
 
 import engine
+import engine.tq_graphics_basics
 from engine.tq_graphics_basics import TQGraphicsNodePath
 
 
@@ -219,9 +220,7 @@ class UIThreadLogger(TQGraphicsNodePath):
         - check if any of the queue's UIThreadLoggerElements is_alive_func returns false
         - calculates and applies the positions to the boxes in the queue """
 
-        from conventions.conventions import win_aspect_ratio
-
-        x_start_pos = -1.0 * win_aspect_ratio + 0.05
+        x_start_pos = -1.0 * engine.tq_graphics_basics.get_window_aspect_ratio() + 0.05
         y_start_pos = -0.75
         y_spacing = 0.05
 

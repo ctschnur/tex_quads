@@ -9,6 +9,8 @@ from panda3d.core import (
     AmbientLight,
     Point3)
 
+import engine.tq_graphics_basics
+
 import numpy as np
 
 print("Panda version:", PandaSystem.getVersionString())
@@ -16,16 +18,13 @@ print("Panda version:", PandaSystem.getVersionString())
 svgcleaner_path = 'tests/svgpathmanipulaton/svgcleaner/svgcleaner'
 
 # p3d window
-winsize_scale_factor = 100 * 0.75
-winsizex = int(16. * winsize_scale_factor)
-winsizey = int(9. * winsize_scale_factor)
+winsize_scale_factor_0 = 100 * 0.75
+winsizex_0 = int(16. * winsize_scale_factor_0)
+winsizey_0 = int(9. * winsize_scale_factor_0)
 
-print("winsizex = ", winsizex, ", ", "winsizey = ", winsizey)
+print("winsizex_0 = ", winsizex_0, ", ", "winsizey_0 = ", winsizey_0)
 
-loadPrcFileData('', 'win-size ' + str(winsizex) + ' ' + str(winsizey))
-
-# utility variable
-win_aspect_ratio = winsizex/winsizey
+loadPrcFileData('', 'win-size ' + str(winsizex_0) + ' ' + str(winsizey_0))
 
 # p3d window positon within OS gui in pixels; (0,0) is upper left of OS GUI
 # puts the upper left corner of the p3d window at that position
@@ -56,7 +55,7 @@ def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution_forrowvecs(
     # a single unit takes an amount of pixels of the p3d window
     # by convention here, the height of what the initial fixed camera
     # displays is exactly 2, i.e. the distance d((0,0,-1), (0,0,1))
-    pixel_per_unit = winsizey/2.
+    pixel_per_unit = engine.tq_graphics_basics.get_window_size_y()/2.
     return Mat4(1./pixel_per_unit, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1./pixel_per_unit, 0,
@@ -67,7 +66,7 @@ def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution():
     # a single unit takes an amount of pixels of the p3d window
     # by convention here, the height of what the initial fixed camera
     # displays is exactly 2, i.e. the distance d((0,0,-1), (0,0,1))
-    pixel_per_unit = winsizey/2.
+    pixel_per_unit = engine.tq_graphics_basics.get_window_size_y()/2.
     return Mat4(1./pixel_per_unit, 0, 0, 0,
                 0, 1, 0, 0,
                 0, 0, 1./pixel_per_unit, 0,
@@ -101,7 +100,8 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
 
     lens_view_height_in_world_coords = 5.
     lens_view_width_in_world_coords = (
-        lens_view_height_in_world_coords * (winsizex/winsizey))
+        lens_view_height_in_world_coords * engine.tq_graphics_basics.get_window_aspect_ratio())
+
     print(
         lens_view_width_in_world_coords,
         lens_view_height_in_world_coords)
