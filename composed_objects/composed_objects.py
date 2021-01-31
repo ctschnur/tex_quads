@@ -27,6 +27,8 @@ from direct.interval.LerpInterval import LerpFunc
 import hashlib
 import numpy as np
 
+import numpy as np
+
 
 class GroupNode(TQGraphicsNodePath):
     """ Documentation for GroupNode
@@ -86,9 +88,9 @@ class Point3dCursor(TQGraphicsNodePath):
     """ a white Point3d with a
     black and a white circle aroud it for accentuation """
 
-    def __init__(self, origin_point, scale=0.05):
+    def __init__(self, camera_gear, scale=0.05):
         """ """
-        self.origin_point = origin_point
+        self.camera_gear = camera_gear # needed for re-orientation towards the camera whenever it's updated or the camera moves
 
         self.scale_total = scale
         self.rel_scale_point_center = 0.4
@@ -102,6 +104,8 @@ class Point3dCursor(TQGraphicsNodePath):
         self.color_circle_outer_second = Vec4(1., 1., 1., 1.)
         # self.color_circle_outer_third = Vec4(0., 0., 0., 1.)
 
+        self._initial_normal_vector = Vec3(1., 0., 0.)
+
         TQGraphicsNodePath.__init__(self)
 
         self.point_center = Point3d(
@@ -109,48 +113,49 @@ class Point3dCursor(TQGraphicsNodePath):
         self.point_center.reparentTo(self)
 
         self.circle_outer_first = OrientedCircle(
-            normal_vector=Vec3(0., 0., 1.),
-            scale=self.scale_total * self.rel_scale_circle_outer_first,
+            target_normal_vector=self._initial_normal_vector,
+            initial_scaling=self.scale_total * self.rel_scale_circle_outer_first,
             num_of_verts=self.num_of_verts,
             thickness=3.)
         self.circle_outer_first.reparentTo(self)
 
         self.circle_outer_second = OrientedCircle(
-            normal_vector=Vec3(0., 0., 1.),
-            scale=self.scale_total * self.rel_scale_circle_outer_second,
+            target_normal_vector=self._initial_normal_vector,
+            initial_scaling=self.scale_total * self.rel_scale_circle_outer_second,
             num_of_verts=self.num_of_verts,
             thickness=3.)
         self.circle_outer_second.reparentTo(self)
-
-        # self.circle_outer_third = OrientedCircle(
-        #     normal_vector=Vec3(0., 0., 1.),
-        #     scale=self.scale_total * self.rel_scale_circle_outer_third,
-        #     num_of_verts=self.num_of_verts,
-        #     thickness=3.)
 
         self._adjust()
 
     def _adjust(self):
         # TODO: reorient towards the camera
         # TODO: keep it the same size w.r.t. the camera (on zooming)
-        self.point_center.setPos(self.origin_point)
+
         self.point_center.setColor(self.color_point_center)
-
-        self.circle_outer_first.setPos(self.origin_point)
         self.circle_outer_first.setColor(self.color_circle_outer_first)
-
-        self.circle_outer_second.setPos(self.origin_point)
         self.circle_outer_second.setColor(self.color_circle_outer_second)
 
-        # self.circle_outer_third.setPos(self.origin_point)
-        # # self.circle_outer_third.setColor(self.color_circle_outer_third)
+        self._adjust_rotation_to_camera()
 
-    def setPos(self, position):
-        self.origin_point = position
-        self._adjust()
+    def _adjust_rotation_to_camera(self):
+        """ """
+        # -- get the forward vector of the camera in the coordinate system of the cursor
+        v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
+            self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
+        v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
 
-    def getPos(self):
-        return self.origin_point
+        # now set the rotation to point into the direction of v_cam_forward
+
+        rot_mat_to_apply = math_utils.getMat4by4_to_rotate_xhat_to_vector(-v_cam_forward, a=self._initial_normal_vector)
+
+        print("adjusting, ", np.random.rand())
+        # TODO: check if order is correct
+        print("v_cam_forward ", v_cam_forward)
+        print("self.camera_gear.camera.getPos()", self.camera_gear.camera.getPos())
+        # print("getViewVector ", self.camera_gear.camera.node().getLens().getViewVector())
+        print(rot_mat_to_apply)
+        self.setMat(math_utils.to_forrowvecs(rot_mat_to_apply))
 
     def setColor(self, primary_color, color_point_center=False):
         if color_point_center == True:

@@ -7,7 +7,8 @@ from panda3d.core import (
     GeomLinestrips,
     GeomLines,
     LineSegs,
-    GeomNode, 
+    GeomNode,
+    Vec3,
     Vec4,
     GeomPoints)
 
@@ -514,7 +515,7 @@ def create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries):
     return polygonGeomNode
 
 
-def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.)):
+def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.), num_of_verts=10):
     # Own Geometry
     # format = GeomVertexFormat.getV3c4t2()
     format = GeomVertexFormat.getV3c4()
@@ -523,7 +524,7 @@ def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.)):
 
     vertexPosWriter = GeomVertexWriter(vdata, "vertex")
 
-    num_of_verts = 10
+    # num_of_verts = 10
 
     # phi = 0.
     r = 1.
@@ -533,6 +534,8 @@ def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.)):
     vertexPosWriter.addData3f(origin_point_x, 0, origin_point_z)
 
     circle_points = math_utils.get_circle_vertices(num_of_verts=num_of_verts, radius=r)
+
+    _normal_vector_info = Vec3(0., 1., 0.)      # this is returned just as info about the normal vector of the generated geometry
     for p in circle_points:
         vertexPosWriter.addData3f(p[0], 0, p[1])
 
@@ -567,7 +570,7 @@ def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.)):
     geom_node = GeomNode("colored_circle_node")
     geom_node.addGeom(geom)
 
-    return geom_node
+    return geom_node, _normal_vector_info
 
 
 from panda3d.core import LineSegs

@@ -13,6 +13,7 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
  
 * Development Notes
 ** Integration
+- [ ] make the cursor ui element lock it's orientation to the camera
 ** Branched Podcast Interface
 - [X] Plot parametric curves
 - [X] Make blender-like side, top, front view (map to number keys)
@@ -46,7 +47,7 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
   - [X] using pyaudio, which produces a ~.wav~ file
 - [X] implement audio recording parallel to ui
 - [-] implement audio playback parallel to ui
-  - [ ] create a small frame in the corner of the screen displaying the audio wave while during playback
+  - [ ] create a small frame in the corner of the screen displaying the audio wave during playback
   - [ ] optimization: use a thread-safe queue in an additional thread to continuously write back fetched frames. This could be better suited for handling the recording of large audio files and for converting between wave and mp3 before saving. Here, one could would use a callback function (created by pyaudio, in yet another thread), which would ~.put(in_data)~ to a global queue which would then be accessed by another thread to write back larger chunks to an e.g. ~.wav~ file. 
   
   - [X] cutting away spacebar sounds at beginning/end of recording section

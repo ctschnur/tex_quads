@@ -267,7 +267,7 @@ class Orbiter:
         v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
             camera_gear.camera, camera_gear.camera.node().getLens().getViewVector()))
         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
-        # camera_gear.camera.node().getLens().getViewVector()
+        # print("--- > View Vector", camera_gear.camera.node().getLens().getViewVector())
 
         v_cam_up = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
             camera_gear.camera, camera_gear.camera.node().getLens().getUpVector()))

@@ -202,7 +202,8 @@ def get_3d_vec_from_nd_vec(np_vec_nd):
 
 
 def getMat4by4_to_rotate_xhat_to_vector(target_position_vector, a=np.array([1., 0., 0.], dtype=np.float)):
-    """ Apply the rodriguez formula to get the rotation matrix to rotate [1., 0., 0.] to an arbitrary position vector """
+    """ Apply the rodriguez formula to get the rotation matrix to rotate the vector a into the direcition
+        of an arbitrary vector """
 
     # --- Rodriguez rotation formula ---
     # apply rodriguez formula to rotate the geometrie's given

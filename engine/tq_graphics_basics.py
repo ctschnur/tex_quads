@@ -16,6 +16,8 @@ import numpy as np
 
 from local_utils import math_utils
 
+import engine.tq_graphics_basics
+
 def init_engine(p3d_render, p3d_aspect2d, loader):
     """ """
     global tq_render
@@ -80,13 +82,17 @@ class TQGraphicsNodePath:
 
     def attach_to_render(self):
         """ """
+        # assert self.p3d_nodepath
+        # self.p3d_nodepath.reparentTo(render)
         assert self.p3d_nodepath
-        self.p3d_nodepath.reparentTo(render)
+        self.reparentTo(engine.tq_graphics_basics.tq_render)
 
     def attach_to_aspect2d(self):
         """ """
+        # assert self.p3d_nodepath
+        # self.p3d_nodepath.reparentTo(aspect2d)
         assert self.p3d_nodepath
-        self.p3d_nodepath.reparentTo(aspect2d)
+        self.reparentTo(engine.tq_graphics_basics.tq_aspect2d)
 
     def _set_p3d_nodepath_plain_post_init(p3d_nodepath):
         """ """
@@ -151,12 +157,20 @@ class TQGraphicsNodePath:
         """ """
         return self.p3d_nodepath.getPos()
 
+    def setScale(self, *args, **kwargs):
+        """ """
+        return self.p3d_nodepath.setScale(*args, **kwargs)
+
+    def getScale(self):
+        """ """
+        return self.p3d_nodepath.getScale()
+
     def setMat(self, *args, **kwargs):
         """ """
         return self.p3d_nodepath.setMat(*args, **kwargs)
 
     def setMat_normal(self, mat4x4_normal_np):
-        """ normal convention (in numpy array), i.e. convert to forrowvecs convention for p3d setMat call """
+        """ normal convention (numpy array), i.e. convert to forrowvecs convention for p3d setMat call """
         return self.p3d_nodepath.setMat(math_utils.to_forrowvecs(mat4x4_normal_np))
 
 
@@ -190,7 +204,7 @@ class TQGraphicsNodePath:
         """ input a p3d nodepath directly """
         # new_args = list(args)
         # new_args[0] = new_args[0].p3d_nodepath
-        return self.p3d_nodepath.reparentTo(*new_args, **kwargs)
+        return self.p3d_nodepath.reparentTo(*args, **kwargs)
 
     def get_node_p3d(self):
         """ """
@@ -304,9 +318,3 @@ class TQLoader:
     def loadModel(self, *args, **kwargs):
         """ wrapper for p3d's loader.loadModel(...) """
         return self.p3d_loader.loadModel(*args, **kwargs)
-
-
-# engine.tq_graphics_basics.tq_render = None
-# tq_aspect2d = None
-# engine.tq_graphics_basics.tq_loader = None
-

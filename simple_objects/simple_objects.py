@@ -34,6 +34,7 @@ import os
 import threading
 from mpl_toolkits.mplot3d import axes3d
 import matplotlib.pyplot as plt
+from simple_objects.custom_geometry import createCircle
 
 
 class Point(IndicatorPrimitive):
@@ -526,7 +527,7 @@ class Pinned2dLabel(IndicatorPrimitive):
 
     def setPos(self, x, y, z):
         """ essentially sets the 3d position of the pinned label """
-        self.refpoint3d = Point3(x, y, z)
+        self.refpoint3d = Point3(x + 2, y, z)
         self.update()
 
     def setText(self, text):
@@ -672,142 +673,155 @@ class Fixed2dLabel(IndicatorPrimitive):
 
 
 class OrientedDisk(IndicatorPrimitive):
-    """ a disk with a normal vector (rotation) and a radius
-    TODO: implement normal vector orientaion """
+    """ a disk with a normal vector (rotation) and a radius """
 
-    def __init__(self, thickness=5., **kwargs):
+    def __init__(self, thickness=5., target_normal_vector=Vec3(1., 0., 0.), initial_scaling=1., num_of_verts=10, **kwargs):
         IndicatorPrimitive.__init__(self, **kwargs)
+
+        self.from_geometry_generator_normal_vector = None  # as generated from geometry routine, see makeObject
+        self.initial_scaling = initial_scaling
+        self.target_normal_vector = target_normal_vector  # target normal vector
+        self.num_of_verts = num_of_verts
+        self.additional_trafo_nodepath = TQGraphicsNodePath()
         self.makeObject()
+        self.doInitialSetupTransformation()
 
     def makeObject(self):
-        self.set_node_p3d(custom_geometry.createColoredUnitDisk(
-            color_vec4=Vec4(1., 1., 1., 1.)))
+        node_p3d, _normal_vector_info = custom_geometry.createColoredUnitDisk(color_vec4=Vec4(1., 1., 1., 1.), num_of_verts=self.num_of_verts)
+        self.from_geometry_generator_normal_vector = _normal_vector_info
+        self.set_node_p3d(node_p3d)
 
+        # nodepath order: original parent -> additional_trafo nodepath (setup transformations) -> actual OrientedDisk nodepath (it's own transformations)
+        self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
         self.set_p3d_nodepath(
-            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+            self.additional_trafo_nodepath.attachNewNode_p3d(self.get_node_p3d()))
+
         self.setLightOff(1)
         self.setTwoSided(True)
 
+    def get_additional_trafo_mat(self):
+        """ """
+        return math_utils.getMat4by4_to_rotate_xhat_to_vector(
+            self.target_normal_vector, a=self.from_geometry_generator_normal_vector).dot(math_utils.getScalingMatrix4x4(self.initial_scaling, self.initial_scaling, self.initial_scaling))
+
+    def doInitialSetupTransformation(self):
+        """ initial setup transformation: a unit quad with an image in the
+        background is being scaled so that the pixel height and width fits
+        exactly with the screen resolution"""
+
+        # make a new transformation node between it's current parent and itself and
+        # give it a transform
+        self.additional_trafo_nodepath.setMat_normal(self.get_additional_trafo_mat()
+            # math_utils.getTranslationMatrix4x4(1.0, 0., 0.)
+        )
+
+        # TODO : CHECK WHY THIS IS NOT EVEN APPLIED
+        print("----SETTING additional trafo: \n", self.additional_trafo_nodepath.getMat())
+
+    def reparentTo(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
+
+class OrientedDisk(IndicatorPrimitive):
+    """ a disk with a normal vector (rotation) and a radius """
+
+    def __init__(self, thickness=5., target_normal_vector=Vec3(1., 0., 0.), initial_scaling=1., num_of_verts=10, **kwargs):
+        IndicatorPrimitive.__init__(self, **kwargs)
+
+        self.from_geometry_generator_normal_vector = None  # as generated from geometry routine, see makeObject
+        self.initial_scaling = initial_scaling
+        self.target_normal_vector = target_normal_vector  # target normal vector
+        self.num_of_verts = num_of_verts
+        self.additional_trafo_nodepath = TQGraphicsNodePath()
+        self.makeObject()
+        self.doInitialSetupTransformation()
+
+    def makeObject(self):
+        node_p3d, _normal_vector_info = custom_geometry.createColoredUnitDisk(color_vec4=Vec4(1., 1., 1., 1.), num_of_verts=self.num_of_verts)
+        self.from_geometry_generator_normal_vector = _normal_vector_info
+        self.set_node_p3d(node_p3d)
+
+        # nodepath order: original parent -> additional_trafo nodepath (setup transformations) -> actual OrientedDisk nodepath (it's own transformations)
+        self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
+        self.set_p3d_nodepath(
+            self.additional_trafo_nodepath.attachNewNode_p3d(self.get_node_p3d()))
+
+        self.setLightOff(1)
+        self.setTwoSided(True)
+
+    def get_additional_trafo_mat(self):
+        """ """
+        return math_utils.getMat4by4_to_rotate_xhat_to_vector(
+            self.target_normal_vector, a=self.from_geometry_generator_normal_vector).dot(math_utils.getScalingMatrix4x4(self.initial_scaling, self.initial_scaling, self.initial_scaling))
+
+    def doInitialSetupTransformation(self):
+        """ initial setup transformation: a unit quad with an image in the
+        background is being scaled so that the pixel height and width fits
+        exactly with the screen resolution"""
+
+        # make a new transformation node between it's current parent and itself and
+        # give it a transform
+        self.additional_trafo_nodepath.setMat_normal(self.get_additional_trafo_mat()
+            # math_utils.getTranslationMatrix4x4(1.0, 0., 0.)
+        )
+
+        # TODO : CHECK WHY THIS IS NOT EVEN APPLIED
+        print("----SETTING additional trafo: \n", self.additional_trafo_nodepath.getMat())
+
+    def reparentTo(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
+
 
 class OrientedCircle(IndicatorPrimitive):
-    """ a circle with a normal vector (rotation) and a radius
-    TODO: implement normal vector orientaion """
+    """ a disk with a normal vector (rotation) and a radius """
 
-    def __init__(self,
-                 origin_point=Vec3(1., 1., 1.),
-                 normal_vector=Vec3(1., 1., 1.),
-                 radius=1.,
-                 scale=1.,
-                 num_of_verts=10,
-                 with_hole=False,
-                 thickness=1.,
-                 **kwargs):
-
-        self.origin_point = origin_point
-        self.normal_vector = normal_vector
-        self.scale = scale
-
+    def __init__(self, thickness=5., target_normal_vector=Vec3(1., 0., 0.), initial_scaling=1., num_of_verts=10, **kwargs):
         IndicatorPrimitive.__init__(self, **kwargs)
-        self.makeObject(num_of_verts, radius,
-                        with_hole=with_hole, thickness=thickness)
 
-        self.setMat(
-            OrientedCircle.getSetupTransformation(normal_vector, origin_point, scale))
+        self.from_geometry_generator_normal_vector = None  # as generated from geometry routine, see makeObject
+        self.initial_scaling = initial_scaling
+        self.target_normal_vector = target_normal_vector  # target normal vector
+        self.num_of_verts = num_of_verts
+        self.additional_trafo_nodepath = TQGraphicsNodePath()
+        self.makeObject()
+        self.doInitialSetupTransformation()
 
-    def makeObject(self, num_of_verts, radius, with_hole, thickness):
+    def makeObject(self):
+        node_p3d = custom_geometry.createCircle(color_vec4=Vec4(1., 1., 1., 1.), with_hole=False, num_of_verts=self.num_of_verts, radius=1.)
+        self.from_geometry_generator_normal_vector = Vec3(0., 0., 1.)
+        self.set_node_p3d(node_p3d)
 
-        self.set_node_p3d(custom_geometry.createCircle(
-            color_vec4=Vec4(1., 1., 1., 1.),
-            with_hole=with_hole,
-            num_of_verts=num_of_verts,
-            radius=radius))
-
+        # nodepath order: original parent -> additional_trafo nodepath (setup transformations) -> actual OrientedCircle nodepath (it's own transformations)
+        self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
         self.set_p3d_nodepath(
-            self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+            self.additional_trafo_nodepath.attachNewNode_p3d(self.get_node_p3d()))
+
         self.setLightOff(1)
-        self.setRenderModeThickness(thickness)
+        self.setTwoSided(True)
 
-        # self.setTwoSided(True)
+    def get_additional_trafo_mat(self):
+        """ """
+        return math_utils.getMat4by4_to_rotate_xhat_to_vector(
+            self.target_normal_vector, a=self.from_geometry_generator_normal_vector).dot(math_utils.getScalingMatrix4x4(self.initial_scaling, self.initial_scaling, self.initial_scaling))
 
-        # ---- set orientation from normal vector
-        # self.setMat()
+    def doInitialSetupTransformation(self):
+        """ initial setup transformation: a unit quad with an image in the
+        background is being scaled so that the pixel height and width fits
+        exactly with the screen resolution"""
 
-    def setPos(self, origin_point):
-        self.origin_point = origin_point
+        # make a new transformation node between it's current parent and itself and
+        # give it a transform
+        self.additional_trafo_nodepath.setMat_normal(self.get_additional_trafo_mat()
+            # math_utils.getTranslationMatrix4x4(1.0, 0., 0.)
+        )
 
-        self.setMat(
-            OrientedCircle.getSetupTransformation(self.normal_vector,
-                                                  self.origin_point,
-                                                  self.scale))
+        # TODO : CHECK WHY THIS IS NOT EVEN APPLIED
+        print("----SETTING additional trafo: \n", self.additional_trafo_nodepath.getMat())
 
-    @staticmethod
-    def getSetupTransformation(normal_vector=np.array([0., 0., 1.]),
-                               origin_point=np.array([0., 0., 0.]),
-                               scale=1.):
-        """ return forrowvecs matrix """
-        normal_vector = np.array(
-            [normal_vector[0], normal_vector[1], normal_vector[2]])
-
-        rotation = math_utils.getMat4by4_to_rotate_xhat_to_vector(
-            normal_vector, a=np.array([0., 0., 1.]))
-        rotation_forrowvecs = math_utils.math_convention_to_p3d_mat4(rotation)
-
-        scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(
-            math_utils.getScalingMatrix4x4(scale, scale, scale))
-
-        translation_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(
-            origin_point[0], origin_point[1], origin_point[2])
-
-        return scaling_forrowvecs * rotation_forrowvecs * translation_forrowvecs
-        # self.setMat()  # reverse order column first row second convention
-
-
-# class TextureOf2dImageData(TQGraphicsNodePath):
-#     """ """
-#     def __init__(self, mpl_fig, **kwargs):
-#         """ get a 2d textured quad from a matplotlib figure object """
-#         TQGraphicsNodePath.__init__(self, **kwargs)
-
-#         self.tex_expression = tex_expression
-
-#         self.makeObject()
-
-#         self.doInitialSetupTransformation()
-
-#     def doInitialSetupTransformation(self):
-#         """ initial setup transformation: a unit quad with an image in the
-#         background is being scaled so that the pixel height and width fits
-#         exactly with the screen resolution"""
-
-#         self.setMat(
-#             conventions.getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution() *
-#             conventions.getMat4_scale_unit_quad_to_image_aspect_ratio(self.myPNMImage.getXSize(), self.myPNMImage.getYSize()))
-
-#     def makeObject(self):
-#         """ only creates geometry (doesn't transform it) """
-#         self.set_node_p3d(custom_geometry.createTexturedUnitQuadGeomNode())
-#         self.set_p3d_nodepath(self.getParent_p3d().attachNewNode_p3d(self.p3d_node))
-
-#         def applyImageAndTexture():
-#             """assign the Texture() to the NodePath() that contains the Geom()
-#             load image with the object's hash"""
-#             expr_hash = hashlib.sha256(
-#                 str(self.tex_expression).encode("utf-8")).hexdigest()
-
-#             myLatexImage = LatexImageManager.retrieveLatexImageFromHash(
-#                 expr_hash)
-#             if myLatexImage is None:
-#                 myLatexImage = LatexImage(expression_str=self.tex_expression)
-#                 myLatexImage.compileToPNG()
-#                 LatexImageManager.addLatexImageToCompiledSet(myLatexImage)
-#                 LatexImageManager.addLatexImageToLoadedSet(myLatexImage)
-
-#             self.myPNMImage = myLatexImage.getPNMImage()
-#             self.myTexture = texture_utils.getTextureFromImage(self.myPNMImage)
-#             self.setTexture(self.myTexture, 1)
-#             self.setTransparency(TransparencyAttrib.MAlpha)
-
-#         applyImageAndTexture()
+    def reparentTo(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
 
 
 class TextureOf2dImageData(TQGraphicsNodePath):

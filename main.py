@@ -60,13 +60,13 @@ class MyApp(ShowBase):
 
         self.cg = cg
 
-        p1 = Point3d(scale=1.0)
-        p1.attach_to_render()
-        p1.setPos(Vec3(0.25, 0.5, 0.75))
+        # p1 = Point3d(scale=1.0)
+        # p1.attach_to_render()
+        # p1.setPos(Vec3(0.25, 0.5, 0.75))
 
-        p2 = Point3d(scale=1.0)
-        p2.attach_to_aspect2d()
-        p2.setPos(Vec3(0.25, 0., 0.75))
+        # p2 = Point3d(scale=1.0)
+        # p2.attach_to_aspect2d()
+        # p2.setPos(Vec3(0.25, 0., 0.75))
 
         # render.setScale(1., 1., 5.)
 
@@ -84,17 +84,47 @@ class MyApp(ShowBase):
         # rmplf = RotatingMatplotlibFigure()
         # rmplf.attach_to_aspect2d()
 
-        cs = CoordinateSystem(cg)
-        cs.attach_to_render()
-        cs.setPos(Vec3(0., 0., 0.))
+        # cs = CoordinateSystem(cg)
+        # cs.attach_to_render()
+        # cs.setPos(Vec3(0., 0., 0.))
 
-        csp = CoordinateSystemP3dPlain()
-        csp.attach_to_aspect2d()
-        csp.setPos(Vec3(0., 0., 0.))
+        # csp = CoordinateSystemP3dPlain()
+        # csp.attach_to_aspect2d()
+        # csp.setPos(Vec3(0., 0., 0.))
+
+        csp2 = CoordinateSystemP3dPlain()
+        csp2.attach_to_render()
+        csp2.setPos(Vec3(0., 0., 0.))
 
         base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
 
-        dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
+        # oc1 = OrientedDisk(target_normal_vector=Vec3(1., 0., 1.), initial_scaling=0.5, num_of_verts=30)
+        # oc1.reparentTo(engine.tq_graphics_basics.tq_render)
+
+        # TODO: make attach_to_render use reparentTo internally!
+
+        # oc2 = OrientedCircle(thickness=5., target_normal_vector=Vec3(0., 1., 0.), initial_scaling=0.5, num_of_verts=30)
+        # oc2.reparentTo(engine.tq_graphics_basics.tq_render)
+
+        p_c = Point3dCursor(cg)
+        p_c.reparentTo(engine.tq_graphics_basics.tq_render)
+
+        cg.add_camera_move_hook(p_c._adjust)
+
+        self.forward_vec = Vector()
+        self.forward_vec.attach_to_render()
+
+        def update_forward_vector():
+            self.forward_vec.setTailPoint(Vec3(0., 0., 0.))
+            v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
+                self.cg.camera, self.cg.camera.node().getLens().getViewVector()))
+            v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
+
+            self.forward_vec.setTipPoint(Vec3(*v_cam_forward))
+
+        cg.add_camera_move_hook(update_forward_vector)
+
+        # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
 
         from plot_utils.frame2d import Frame2d, Ticks
 
@@ -115,6 +145,8 @@ class MyApp(ShowBase):
         # f2d = Frame2d()
         # f2d.attach_to_aspect2d()
         # f2d.attach_to_render()
+
+        cg.set_view_to_xy_plane()
 
 
     def render_edge_player(self, camera_gear):
