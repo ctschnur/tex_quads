@@ -164,7 +164,9 @@ class EdgeRecorder(EdgeGraphics):
 
         # -- do graphics stuff
         tail_init_point = Vec3(0., 0., 0.)
-        self.p_c = Point3dCursor(tail_init_point)
+        self.p_c = Point3dCursor()
+        self.p_c.setPos(tail_init_point)
+        self.p_c.reparentTo(self)
 
         self.line = Line1dSolid()
         tip_init_point = tail_init_point + Vec3(2., 2., 2.)

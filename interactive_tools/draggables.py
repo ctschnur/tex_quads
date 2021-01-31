@@ -92,6 +92,7 @@ class DraggableEdgePlayer(EdgePlayerSM):
                       self.edge_graphics_draggable.dp1,
                       self.edge_graphics_draggable.dp2))
 
+
     def update_the_line_and_draggable_points(self, edge_graphics_draggable, dp1, dp2,
                                              ):
         """ """

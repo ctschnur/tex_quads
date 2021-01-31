@@ -64,15 +64,6 @@ class EdgeGraphics(TQGraphicsNodePath):
         - v1: p3d Vec3 """
         self.v1 = v1
 
-        if update_graphics == True:
-            # ---
-            self.line.setTipPoint(self.get_v1())
-            self.line.setTailPoint(self.get_v2())
-
-            # call update_while_moving_function manually
-            self.update_while_moving_function(
-                self.state.get_s_a(), *tuple(self.extraArgs))
-
     def get_v1(self):
         """ """
         return self.v1
@@ -146,13 +137,7 @@ class EdgeGraphics(TQGraphicsNodePath):
     def update_while_moving_function(self, a, *args, **kwargs):
         """ calculating everything that changes while
         playing """
-        # self.state.set_s_a(s_a)  # update s_a
-
-        # covered_time = s_a * (s_l/lps_rate)
-
         s_l = self.get_lps_rate_func() * self.get_duration_func()
-
-        # covered_length = s_l * a
 
         # set cursor point:
         self.set_cursor_position(a)
@@ -239,6 +224,7 @@ class EdgeGraphicsDraggable(EdgeGraphics):
 
     def set_cursor_position(self, a):
         """ """
+        print("set_cursor_position a: ", a)
         cursor_pos = math_utils.np_to_p3d_Vec3(
             math_utils.p3d_to_np(self.get_inset_v1()) +
             a * (math_utils.p3d_to_np(self.get_inset_v2()) - math_utils.p3d_to_np(self.get_inset_v1())))

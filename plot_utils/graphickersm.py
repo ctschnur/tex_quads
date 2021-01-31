@@ -69,7 +69,10 @@ class GraphickerSM(StateMachine):
 
         self.edge_graphics = None
         if edge_graphics is None:
-            self.edge_graphics = EdgeGraphics(get_lps_rate_func=lambda: GraphickerSM.lps_rate, get_duration_func=lambda: self.get_duration())
+            self.edge_graphics = EdgeGraphics(
+                get_lps_rate_func=lambda: GraphickerSM.lps_rate,
+                get_duration_func=lambda: self.get_duration())
+            self.edge_graphics.attach_to_render()
         else:
             self.edge_graphics = edge_graphics
 
@@ -136,8 +139,10 @@ class GraphickerSM(StateMachine):
         self.set_duration(self.duration, update_cursor_sequence=False)
 
         # -- do graphics stuff
-        self.edge_graphics.p_c = Point3dCursor(self.edge_graphics.get_v1(), self.camera_gear)
+        self.edge_graphics.p_c = Point3dCursor(self.camera_gear)
         self.edge_graphics.p_c.reparentTo(self.edge_graphics)
+        print(" --- > self.edge_graphics.get_v1():", self.edge_graphics.get_v1())
+        self.edge_graphics.p_c.setPos(self.edge_graphics.get_v1())
 
         self.edge_graphics.update_line()
 

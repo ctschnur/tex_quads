@@ -106,25 +106,23 @@ class MyApp(ShowBase):
         # oc2 = OrientedCircle(thickness=5., target_normal_vector=Vec3(0., 1., 0.), initial_scaling=0.5, num_of_verts=30)
         # oc2.reparentTo(engine.tq_graphics_basics.tq_render)
 
-        p_c = Point3dCursor(cg)
-        p_c.reparentTo(engine.tq_graphics_basics.tq_render)
+        # p_c = Point3dCursor(cg)
+        # p_c.reparentTo(engine.tq_graphics_basics.tq_render)
 
-        cg.add_camera_move_hook(p_c._adjust)
+        # self.forward_vec = Vector()
+        # self.forward_vec.attach_to_render()
 
-        self.forward_vec = Vector()
-        self.forward_vec.attach_to_render()
+        # def update_forward_vector():
+        #     self.forward_vec.setTailPoint(Vec3(0., 0., 0.))
+        #     v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
+        #         self.cg.camera, self.cg.camera.node().getLens().getViewVector()))
+        #     v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
 
-        def update_forward_vector():
-            self.forward_vec.setTailPoint(Vec3(0., 0., 0.))
-            v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
-                self.cg.camera, self.cg.camera.node().getLens().getViewVector()))
-            v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
+        #     self.forward_vec.setTipPoint(Vec3(*v_cam_forward))
 
-            self.forward_vec.setTipPoint(Vec3(*v_cam_forward))
+        # cg.add_camera_move_hook(update_forward_vector)
 
-        cg.add_camera_move_hook(update_forward_vector)
-
-        # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
+        dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
 
         from plot_utils.frame2d import Frame2d, Ticks
 

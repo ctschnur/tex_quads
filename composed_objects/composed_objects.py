@@ -126,12 +126,22 @@ class Point3dCursor(TQGraphicsNodePath):
             thickness=3.)
         self.circle_outer_second.reparentTo(self)
 
+        # the closest to root node of the cursor saves the translation (along the edgeplayer) (i.e. here the additional_trafo_nodepath)
+        # the edgeplayer node itself actually only has a rotation, which it sets to
+        # always reorient towards the camera. If I didn't separate the two (translation and rotation)
+        # into two separate nodes, I would need to declare additional functions for TQGraphicsNodePath to
+        # set and get Rotation, Position and Scaling components of the Model Matrix independently of each other
+        # (which I guess can be done, since a Model Matrix actually be decomposed)
+
+        self.additional_trafo_nodepath = TQGraphicsNodePath()
+        self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
+        super().reparentTo(self.additional_trafo_nodepath)
+
+        self.camera_gear.add_camera_move_hook(self._adjust)
+
         self._adjust()
 
     def _adjust(self):
-        # TODO: reorient towards the camera
-        # TODO: keep it the same size w.r.t. the camera (on zooming)
-
         self.point_center.setColor(self.color_point_center)
         self.circle_outer_first.setColor(self.color_circle_outer_first)
         self.circle_outer_second.setColor(self.color_circle_outer_second)
@@ -146,15 +156,8 @@ class Point3dCursor(TQGraphicsNodePath):
         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
 
         # now set the rotation to point into the direction of v_cam_forward
-
-        rot_mat_to_apply = math_utils.getMat4by4_to_rotate_xhat_to_vector(-v_cam_forward, a=self._initial_normal_vector)
-
-        print("adjusting, ", np.random.rand())
-        # TODO: check if order is correct
-        print("v_cam_forward ", v_cam_forward)
-        print("self.camera_gear.camera.getPos()", self.camera_gear.camera.getPos())
-        # print("getViewVector ", self.camera_gear.camera.node().getLens().getViewVector())
-        print(rot_mat_to_apply)
+        rot_mat_to_apply = math_utils.getMat4by4_to_rotate_xhat_to_vector(v_cam_forward,
+                                                                          a=self._initial_normal_vector)
         self.setMat(math_utils.to_forrowvecs(rot_mat_to_apply))
 
     def setColor(self, primary_color, color_point_center=False):
@@ -164,24 +167,13 @@ class Point3dCursor(TQGraphicsNodePath):
         self.color_circle_outer_second = primary_color
         self._adjust()
 
-    def setColor_point_center(self, color):
-        self.color_point_center = color
-        self._adjust()
+    def setPos(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.setPos(*args, **kwargs)
 
-    def hide(self):
-        self.point_center.hide()
-        self.circle_outer_first.hide()
-        self.circle_outer_second.hide()
-
-    def show(self):
-        self.point_center.show()
-        self.circle_outer_first.show()
-        self.circle_outer_second.show()
-
-    def remove(self):
-        self.point_center.removeNode()
-        self.circle_outer_first.removeNode()
-        self.circle_outer_second.removeNode()
+    def reparentTo(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
 
 
 class Vector(TQGraphicsNodePath):
