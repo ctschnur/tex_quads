@@ -130,9 +130,22 @@ class MyApp(ShowBase):
         # # x_ticks.reparentTo(self)
         # x_ticks.attach_to_render()
 
-        from simple_objects.simple_objects import BasicText
+        from simple_objects.simple_objects import BasicText, BasicOrientedText
+        # bt = BasicText()
+        # bt.reparentTo(engine.tq_graphics_basics.tq_render)
+        # bt.setPos(Vec3(0., 0., 0.))
 
-        bt = BasicText()
+        bot = BasicOrientedText(cg, text="Basic Oriented Text")
+        # bot.reparentTo(engine.tq_graphics_basics.tq_render)
+        bot.attach_to_render()
+        # bot.setPos(Vec3(1., 0., 0.))
+
+        bot2 = BasicOrientedText(cg, text="Basic Oriented Text")
+        # bot2.reparentTo(engine.tq_graphics_basics.tq_render)
+        bot2.attach_to_render()
+        # bot2.setPos(Vec3(1., 0., 0.))
+
+
 
         # f2l = Fixed2dLabel(text=str(1))
         # f2l.attach_to_aspect2d()
@@ -140,11 +153,13 @@ class MyApp(ShowBase):
         # f2l.setPos(Vec3(0., 0., 0.))
         # print(f2l.getPos())
 
-        # f2d = Frame2d()
+        f2d = Frame2d(cg)
         # f2d.attach_to_aspect2d()
-        # f2d.attach_to_render()
+        f2d.attach_to_render()
+        # f2d.reparentTo(engine.tq_graphics_basics.tq_render)
 
-        cg.set_view_to_xy_plane()
+        # cg.set_view_to_xy_plane()
+        cg.set_view_to_xz_plane()
 
 
     def render_edge_player(self, camera_gear):

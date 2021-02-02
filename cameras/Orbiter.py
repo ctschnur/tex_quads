@@ -138,7 +138,8 @@ class Orbiter:
     # but still, to prevent graphics glitches in the situation where
     # the lookat vector and view vector are perfectly aligned ("theta = 0"),
     # theta_epsilon provides a small but visually unnoticeable offset
-    theta_epsilon = 1.0e-10
+    # theta_epsilon = 1.0e-10
+    theta_epsilon = 1.0e-5
 
     def __init__(self, camera, radius=2., enable_visual_aids=True):
         base.disableMouse()
@@ -376,7 +377,7 @@ class Orbiter:
 
         if correct_for_camera_setting == True:
             if theta % np.pi < Orbiter.theta_epsilon:
-                theta += Orbiter.theta_epsilon
+                theta = theta + Orbiter.theta_epsilon
 
         if fixed_phi:
             phi = fixed_phi
@@ -442,6 +443,9 @@ class Orbiter:
     def set_camera_pos_spherical_coords(self, recalculate_film_size=False):
         x, y, z, up_vector, eye_vector = self.get_spherical_coords(
             get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
+
+        # if math_utils.equal_up_to_epsilon(x, 0., epsilon=) and math_utils.equal_up_to_epsilon(y, 0.):
+
         self.camera.setPos(x, y, z)
         # self.camera.node().getLens().setViewMat(Mat4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1))
 

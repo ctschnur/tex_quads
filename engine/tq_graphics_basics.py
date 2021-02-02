@@ -307,6 +307,10 @@ class TQGraphicsNodePath:
         """ """
         return self.p3d_nodepath.setHpr(*args, **kwargs)
 
+    def getTightBounds(self, *args, **kwargs):
+        """ """
+        return self.p3d_nodepath.getTightBounds(*args, **kwargs)
+
 
 class TQLoader:
     """ """

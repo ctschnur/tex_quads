@@ -868,17 +868,14 @@ class TextureOf2dImageData(TQGraphicsNodePath):
         self.setLightOff(True)
 
 
-class BasicText(# IndicatorPrimitive
-):
+class BasicText(IndicatorPrimitive):
     """ a text label attached to aspect2d,  """
 
     def __init__(self,
                  text="Basic text",
                  font=None):
 
-        # IndicatorPrimitive.__init__(self)
-
-        # self.height = 0.5               # in units of one panda unit
+        IndicatorPrimitive.__init__(self)
 
         self.pointsize = 11
 
@@ -900,7 +897,6 @@ class BasicText(# IndicatorPrimitive
         if font is not None:
             self.font = font
         else:
-            # self.font = "fonts/arial.egg"
             self.font = "fonts/arial.ttf"
 
         self.textNode = TextNode('foo')
@@ -927,9 +923,12 @@ class BasicText(# IndicatorPrimitive
         # self.textNode.setShadowColor(0, 0, 0, 1)
         # self.set_p3d_nodepath(NodePath(self.textNode.generate()))
 
-        self.text_p3d_nodepath = NodePath(self.textNode.generate())
-        self.text_p3d_nodepath.reparentTo(aspect2d)
-        self.text_p3d_nodepath.setPos(Vec3(0., 0., 0.))
+        self.set_node_p3d(self.textNode)
+        self.set_p3d_nodepath(NodePath(self.textNode.generate()))
+
+        self.setLightOff(1)
+        self.setTwoSided(True)
+        self.set_render_above_all(True)
 
         def get_scale_matrix_initial_to_font_size():
             """ """
@@ -943,15 +942,203 @@ class BasicText(# IndicatorPrimitive
             # print(scale_height_1_to_pixels * self.pixels_per_unit * 2.0)
 
             scale = scale_height_1_to_pixels * self.pixels_per_unit
-            self.text_p3d_nodepath.setScale(scale, 1., scale)
+            self.setScale(scale, 1., scale)
 
         get_scale_matrix_initial_to_font_size()
 
-    #     # self.do_trafo()
 
-    # # def do_trafo(self):
-    # #     """ """
-    # #     text_size_base_scale = 0.07
-    # #     self.setMat_normal(math_utils.getScalingMatrix4x4(text_size_base_scale, 1., text_size_base_scale).dot(
-    # #         math_utils.getTranslationMatrix4x4(self.pos_x, 0., self.pos_y)
-    # #     ))
+class Point3dCursor(TQGraphicsNodePath):
+    """ a white Point3d with a
+    black and a white circle aroud it for accentuation """
+
+    def __init__(self, camera_gear, scale=0.05):
+        """ """
+        self.camera_gear = camera_gear # needed for re-orientation towards the camera whenever it's updated or the camera moves
+
+        self.scale_total = scale
+        self.rel_scale_point_center = 0.4
+        self.rel_scale_circle_outer_first = 0.6
+        self.rel_scale_circle_outer_second = 0.9
+        # self.rel_scale_circle_outer_third = 1.2
+        self.num_of_verts = 20
+
+        self.color_point_center = Vec4(1., 1., 1., 1.)
+        self.color_circle_outer_first = Vec4(0., 0., 0., 1.)
+        self.color_circle_outer_second = Vec4(1., 1., 1., 1.)
+        # self.color_circle_outer_third = Vec4(0., 0., 0., 1.)
+
+        self._initial_normal_vector = Vec3(1., 0., 0.)
+
+        TQGraphicsNodePath.__init__(self)
+
+        self.point_center = Point3d(
+            scale=self.scale_total * self.rel_scale_point_center)
+        self.point_center.reparentTo(self)
+
+        self.circle_outer_first = OrientedCircle(
+            target_normal_vector=self._initial_normal_vector,
+            initial_scaling=self.scale_total * self.rel_scale_circle_outer_first,
+            num_of_verts=self.num_of_verts,
+            thickness=3.)
+        self.circle_outer_first.reparentTo(self)
+
+        self.circle_outer_second = OrientedCircle(
+            target_normal_vector=self._initial_normal_vector,
+            initial_scaling=self.scale_total * self.rel_scale_circle_outer_second,
+            num_of_verts=self.num_of_verts,
+            thickness=3.)
+        self.circle_outer_second.reparentTo(self)
+
+        # the closest to root node of the cursor saves the translation (along the edgeplayer) (i.e. here the additional_trafo_nodepath)
+        # the edgeplayer node itself actually only has a rotation, which it sets to
+        # always reorient towards the camera. If I didn't separate the two (translation and rotation)
+        # into two separate nodes, I would need to declare additional functions for TQGraphicsNodePath to
+        # set and get Rotation, Position and Scaling components of the Model Matrix independently of each other
+        # (which I guess can be done, since a Model Matrix actually be decomposed)
+
+        self.additional_trafo_nodepath = TQGraphicsNodePath()
+        self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
+        super().reparentTo(self.additional_trafo_nodepath)
+
+        self.camera_gear.add_camera_move_hook(self._adjust)
+
+        self._adjust()
+
+    def _adjust(self):
+        self.point_center.setColor(self.color_point_center)
+        self.circle_outer_first.setColor(self.color_circle_outer_first)
+        self.circle_outer_second.setColor(self.color_circle_outer_second)
+
+        self._adjust_rotation_to_camera()
+
+    def _adjust_rotation_to_camera(self):
+        """ """
+        # -- get the forward vector of the camera in the coordinate system of the cursor
+        v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
+            self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
+        v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
+
+        # now set the rotation to point into the direction of v_cam_forward
+        rot_mat_to_apply = math_utils.getMat4by4_to_rotate_xhat_to_vector(v_cam_forward,
+                                                                          a=self._initial_normal_vector)
+        self.setMat(math_utils.to_forrowvecs(rot_mat_to_apply))
+
+    def setPos(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.setPos(*args, **kwargs)
+
+    def reparentTo(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
+
+
+
+class BasicOrientedText(IndicatorPrimitive):
+    """ a text label attached to aspect2d,  """
+
+    def __init__(self,
+                 camera_gear,
+                 text="Basic text",
+                 font=None):
+
+        IndicatorPrimitive.__init__(self)
+
+        self.pointsize = 11
+
+        self.camera_gear = camera_gear # needed for re-orientation towards the camera whenever it's updated or the camera moves
+
+        self._initial_normal_vector = Vec3(0., 1., 0.)
+
+        def get_height_p3d_from_pointsize(pt):
+            """ let 1 p3d units be 100/pt_to_height_p3d_scale pt """
+            pt_to_height_p3d_scale = 0.6
+            return pt_to_height_p3d_scale * float(pt)/(100.)
+
+        def get_font_bmp_pixels_from_height(height):
+            """ 10 pixels from height of 0.1
+                the aspect2d viewport goes in the up direction from -1 to 1 -> range of 2
+            """
+            pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
+            return pixels_per_p3d_length_unit * height  # how many pixels
+
+        self.text = text
+
+        self.font = None
+        if font is not None:
+            self.font = font
+        else:
+            self.font = "fonts/arial.ttf"
+
+        self.textNode = TextNode('foo')
+        self.textNode.setText(self.text)
+        self._font_p3d = loader.loadFont(self.font)
+
+        self.pixels_per_unit = get_font_bmp_pixels_from_height(get_height_p3d_from_pointsize(self.pointsize))
+        self._font_p3d.setPixelsPerUnit(self.pixels_per_unit)
+        self._font_p3d.setPointSize(self.pointsize)
+        self.textNode.setFont(self._font_p3d)
+
+        self.textNode.setShadow(0.05, 0.05)
+        self.textNode.setShadowColor(0, 0, 0, 1)
+
+        self.set_node_p3d(self.textNode)
+        self.set_p3d_nodepath(NodePath(self.textNode.generate()))
+
+        # gets rid of internal assertion (TODO: might be better to load a font once
+        # rather than every time a label gets made)
+        self._font_p3d.clear()
+
+        self.setLightOff(1)
+        self.setTwoSided(True)
+        self.set_render_above_all(True)
+
+        def get_scale_matrix_initial_to_font_size():
+            """ """
+            initial_height = self.textNode.getHeight()
+            print("initial_height", initial_height)
+            scale_factor_to_height_1 = 1./initial_height
+
+            pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
+
+            scale_height_1_to_pixels = 1./pixels_per_p3d_length_unit
+            # print(scale_height_1_to_pixels * self.pixels_per_unit * 2.0)
+
+            scale = scale_height_1_to_pixels * self.pixels_per_unit
+            self.setScale(scale, 1., scale)
+
+        get_scale_matrix_initial_to_font_size()
+
+        self.additional_trafo_nodepath = TQGraphicsNodePath()
+        self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
+        super().reparentTo(self.additional_trafo_nodepath)
+
+        self.camera_gear.add_camera_move_hook(self._adjust)
+
+        self._adjust()
+
+    def _adjust(self):
+        """ """
+        x, y, z, up_vector, eye_vector = self.camera_gear.get_spherical_coords(
+            get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
+
+        heading, pitch, roll = self.camera_gear.camera.getHpr()
+        # roll += 90.
+        # pitch += 90.
+        if up_vector == Vec3(0, 0, -1) and eye_vector == Vec3(-1, 0, 0):
+            self.setHpr(heading, pitch, roll + 180.)
+        else:
+            self.setHpr(heading, pitch, roll)
+
+    def setPos(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.setPos(*args, **kwargs)
+
+    def reparentTo(self, *args, **kwargs):
+        """ """
+        return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
+
+    def removeNode(self):
+        """ """
+        self.camera_gear.remove_camera_move_hook(self._adjust)
+        super().removeNode()
+        return self.additional_trafo_nodepath.removeNode()

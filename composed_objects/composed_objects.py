@@ -150,15 +150,16 @@ class Point3dCursor(TQGraphicsNodePath):
 
     def _adjust_rotation_to_camera(self):
         """ """
-        # -- get the forward vector of the camera in the coordinate system of the cursor
-        v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
-            self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
-        v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
+        x, y, z, up_vector, eye_vector = self.camera_gear.get_spherical_coords(
+            get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
 
-        # now set the rotation to point into the direction of v_cam_forward
-        rot_mat_to_apply = math_utils.getMat4by4_to_rotate_xhat_to_vector(v_cam_forward,
-                                                                          a=self._initial_normal_vector)
-        self.setMat(math_utils.to_forrowvecs(rot_mat_to_apply))
+        heading, pitch, roll = self.camera_gear.camera.getHpr()
+        roll += 90.
+        pitch += 90.
+        if up_vector == Vec3(0, 0, -1) and eye_vector == Vec3(-1, 0, 0):
+            self.setHpr(heading, pitch, roll + 180.)
+        else:
+            self.setHpr(heading, pitch, roll)
 
     def setColor(self, primary_color, color_point_center=False):
         if color_point_center == True:

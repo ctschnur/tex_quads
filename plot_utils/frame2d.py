@@ -20,6 +20,8 @@ import scipy.special
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, Fixed2dLabel
 from local_utils import math_utils
 
+from simple_objects.simple_objects import BasicText, BasicOrientedText
+
 
 class Tick(TQGraphicsNodePath):
     """ Line and (optionally) Label """
@@ -42,11 +44,13 @@ class Tick(TQGraphicsNodePath):
 
 class Ticks(TQGraphicsNodePath):
     """ """
-    def __init__(self, arr=np.array([0., 0.25, 0.5, 0.75, 1.])):
+    def __init__(self, camera_gear, arr=np.array([0., 0.25, 0.5, 0.75, 1.])):
         """
         Args:
             arr: numbers at which to create the tick lines """
         TQGraphicsNodePath.__init__(self)
+
+        self.camera_gear = camera_gear
 
         self.arr = None
 
@@ -75,8 +79,20 @@ class Ticks(TQGraphicsNodePath):
             line.setTipPoint(Vec3(x, 0., self.tick_length/2.))
             line.setTailPoint(Vec3(x, 0., -self.tick_length/2.))
 
-            label = Fixed2dLabel(text=str(c_num)) # offset
-            label.reparentTo(self)
+            # label = Fixed2dLabel(text=str(c_num)) # offset
+            # label.reparentTo(self)
+
+            label = BasicOrientedText(self.camera_gear, text="{:.1f}".format(c_num))
+            label.reparentTo(engine.tq_graphics_basics.tq_render)
+            # label.setPos(Vec3(1., 0., 0.))
+
+            pt1, pt2 = label.getTightBounds()
+            width = pt2.getX()  - pt1.getX()
+            height = pt2.getY() - pt1.getY()
+            # label.setScale(label.getScale() * 0.75)
+
+            label.setPos(Vec3(x-width, 0., self.tick_length/2. * 1.75))
+
 
             t = Tick()
             t.set_line(line)
@@ -89,11 +105,13 @@ class Ticks(TQGraphicsNodePath):
 
 class Frame2d(TQGraphicsNodePath):
     """ a 2d frame within which 2d data can be displayed, i.e. numpy x and y arrays """
-    def __init__(self):
+    def __init__(self, camera_gear):
         """ """
         TQGraphicsNodePath.__init__(self)
 
         self.quad = None
+
+        self.camera_gear = camera_gear
 
         size = 0.5
         self.height = size
@@ -137,32 +155,34 @@ class Frame2d(TQGraphicsNodePath):
                 ])
         )
 
-        self.x_ticks = Ticks()
+        self.x_ticks = Ticks(camera_gear)
         self.x_ticks.reparentTo(self)
 
         self.ticks_max_density = 10. # per p3d length unit
         self.ticks_min_density = 3. # per p3d length unit
 
-
         self.update_ticks()
-        # self.adjust_ticks_transform()
-
-        # self.plp1.remove()
-        # point = Point3d(pos=(Vec3(1., 0., 1.)), TQGraphicsNodePath_creation_parent_node=engine.tq_graphics_basics.tq_aspect2d)
-
-    def get_quad_base_transform_mat(self):
-        """ transform to set it's position in the center and scale it's dimensions to [1,1]"""
-        return math_utils.getTranslationMatrix4x4(0., 0., self.height).dot(math_utils.getTranslationMatrix4x4(self.pos_x, 0., self.pos_y))
-
-    def update_ticks(self):
-        """ make sure the density of ticks is between ticks_max_density and ticks_min_density, then adjust the ticks """
-        arr = np.linspace(self.xmin, self.xmax, num=10, endpoint=True)
-        self.x_ticks.set_ticks_by_arr(arr)
-        self.adjust_ticks_transform()
 
     def adjust_ticks_transform(self):
         """ """
-        self.x_ticks.setMat_normal(math_utils.getScalingMatrix4x4(self.width/(self.xmax - self.xmin), 1., 1.))
+        self.x_ticks.setMat_normal(math_utils.getScalingMatrix4x4(
+            self.width/(self.xmax - self.xmin), 1., 1.))
+
+
+    def get_quad_base_transform_mat(self):
+        """ transform to set it's position in the center and scale it's dimensions to [1,1]"""
+        return math_utils.getTranslationMatrix4x4(0., 0., self.height).dot(
+            math_utils.getTranslationMatrix4x4(self.pos_x, 0., self.pos_y))
+
+    def update_ticks(self):
+        """ make sure the density of ticks is between ticks_max_density and ticks_min_density, then adjust the ticks """
+        arr = np.linspace(self.xmin, self.xmax, num=5, endpoint=True)
+        self.x_ticks.set_ticks_by_arr(arr)
+        self.adjust_ticks_transform()
+
+    # def adjust_ticks_transform(self):
+    #     """ """
+    #     self.x_ticks.setMat_normal(math_utils.getScalingMatrix4x4(self.width/(self.xmax - self.xmin), 1., 1.))
 
     def set_figsize(self, height, width):
         """ set the size of the figure, in p3d units """
