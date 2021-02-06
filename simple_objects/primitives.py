@@ -114,6 +114,9 @@ class ParametricLinePrimitive(TQGraphicsNodePath):
         self.color = color
         self.howmany_points = howmany_points
         self.func = func
+        self.param_interv = param_interv
+        self.func = func
+        self.thickness = thickness
         self.makeObject(func, param_interv, thickness, color, howmany_points)
 
     def makeObject(self, func, param_interv, thickness, color, howmany_points):

@@ -130,22 +130,20 @@ class MyApp(ShowBase):
         # # x_ticks.reparentTo(self)
         # x_ticks.attach_to_render()
 
-        from simple_objects.simple_objects import BasicText, BasicOrientedText
+        from simple_objects.simple_objects import BasicText, BasicOriente2dText
         # bt = BasicText()
         # bt.reparentTo(engine.tq_graphics_basics.tq_render)
         # bt.setPos(Vec3(0., 0., 0.))
 
-        bot = BasicOrientedText(cg, text="Basic Oriented Text")
-        # bot.reparentTo(engine.tq_graphics_basics.tq_render)
-        bot.attach_to_render()
-        # bot.setPos(Vec3(1., 0., 0.))
+        # bot = BasicOriente2dText(cg, text="Basic Oriented Text")
+        # # bot.reparentTo(engine.tq_graphics_basics.tq_render)
+        # bot.attach_to_render()
+        # # bot.setPos(Vec3(1., 0., 0.))
 
-        bot2 = BasicOrientedText(cg, text="Basic Oriented Text")
-        # bot2.reparentTo(engine.tq_graphics_basics.tq_render)
-        bot2.attach_to_render()
-        # bot2.setPos(Vec3(1., 0., 0.))
-
-
+        # bot2 = BasicOriente2dText(cg, text="Basic Oriented Text")
+        # # bot2.reparentTo(engine.tq_graphics_basics.tq_render)
+        # bot2.attach_to_render()
+        # bot2.setPos(Vec3(1., 1., 1.))
 
         # f2l = Fixed2dLabel(text=str(1))
         # f2l.attach_to_aspect2d()
@@ -157,6 +155,20 @@ class MyApp(ShowBase):
         # f2d.attach_to_aspect2d()
         f2d.attach_to_render()
         # f2d.reparentTo(engine.tq_graphics_basics.tq_render)
+
+        f2d.set_xlim(2., 5.)
+        f2d.set_ylim(-1, 1)
+
+        f2d.update_parametric_line(
+            lambda x: np.array([
+                    x,
+                    np.sin(x),
+                ])
+        )
+
+        f2d.update_alignment()
+
+        f2d.setPos(0.2, 0., 0.2)
 
         # cg.set_view_to_xy_plane()
         cg.set_view_to_xz_plane()

@@ -174,9 +174,13 @@ class TQGraphicsNodePath:
         return self.p3d_nodepath.setMat(math_utils.to_forrowvecs(mat4x4_normal_np))
 
 
-    def getMat(self):
+    def getMat(self, *args, **kwargs):
         """ """
-        return self.p3d_nodepath.getMat()
+        return self.p3d_nodepath.getMat(*args, **kwargs)
+
+    def getMat_normal(self, *args, **kwargs):
+        """ """
+        return math_utils.from_forrowvecs(self.p3d_nodepath.getMat(*args, **kwargs))
 
     def setTexture(self, *args, **kwargs):
         """ """

@@ -196,7 +196,7 @@ class Line1dPrimitive(LinePrimitive):
         if (self.tip_point is None or self.tail_point is None or self.tip_point == self.tail_point):
             # set vector status to hidden
             self.hide()
-            print("Warning: setTipPoint exception: transformation skipped")
+            # print("Warning: setTipPoint exception: transformation skipped")
             return
         else:
             self.show()
@@ -692,6 +692,7 @@ class OrientedDisk(IndicatorPrimitive):
         self.set_node_p3d(node_p3d)
 
         # nodepath order: original parent -> additional_trafo nodepath (setup transformations) -> actual OrientedDisk nodepath (it's own transformations)
+
         self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
         self.set_p3d_nodepath(
             self.additional_trafo_nodepath.attachNewNode_p3d(self.get_node_p3d()))
@@ -711,9 +712,7 @@ class OrientedDisk(IndicatorPrimitive):
 
         # make a new transformation node between it's current parent and itself and
         # give it a transform
-        self.additional_trafo_nodepath.setMat_normal(self.get_additional_trafo_mat()
-            # math_utils.getTranslationMatrix4x4(1.0, 0., 0.)
-        )
+        self.additional_trafo_nodepath.setMat_normal(self.get_additional_trafo_mat())
 
         # TODO : CHECK WHY THIS IS NOT EVEN APPLIED
         print("----SETTING additional trafo: \n", self.additional_trafo_nodepath.getMat())
@@ -1032,14 +1031,14 @@ class Point3dCursor(TQGraphicsNodePath):
         return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
 
 
-
-class BasicOrientedText(IndicatorPrimitive):
+class BasicOriente2dText(IndicatorPrimitive):
     """ a text label attached to aspect2d,  """
 
     def __init__(self,
                  camera_gear,
                  text="Basic text",
-                 font=None):
+                 font=None,
+                 centered=True):
 
         IndicatorPrimitive.__init__(self)
 
@@ -1081,6 +1080,9 @@ class BasicOrientedText(IndicatorPrimitive):
         self.textNode.setShadow(0.05, 0.05)
         self.textNode.setShadowColor(0, 0, 0, 1)
 
+        if centered == True:
+            self.textNode.setAlign(TextNode.ACenter)
+
         self.set_node_p3d(self.textNode)
         self.set_p3d_nodepath(NodePath(self.textNode.generate()))
 
@@ -1095,7 +1097,7 @@ class BasicOrientedText(IndicatorPrimitive):
         def get_scale_matrix_initial_to_font_size():
             """ """
             initial_height = self.textNode.getHeight()
-            print("initial_height", initial_height)
+            # print("initial_height", initial_height)
             scale_factor_to_height_1 = 1./initial_height
 
             pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
@@ -1125,9 +1127,10 @@ class BasicOrientedText(IndicatorPrimitive):
         # roll += 90.
         # pitch += 90.
         if up_vector == Vec3(0, 0, -1) and eye_vector == Vec3(-1, 0, 0):
-            self.setHpr(heading, pitch, roll + 180.)
+            self.setHpr(render, heading, pitch, roll + 180.)
         else:
-            self.setHpr(heading, pitch, roll)
+            self.setHpr(render, heading, pitch, roll)
+
 
     def setPos(self, *args, **kwargs):
         """ """
