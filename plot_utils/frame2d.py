@@ -105,7 +105,7 @@ class Ticks(TQGraphicsNodePath):
             height = pt2.getY() - pt1.getY()
 
             if axis_direction_index==0:
-                label.setPos(Vec3(pos, 0., -height))
+                label.setPos(Vec3(pos, 0., -4.*width))
             elif axis_direction_index==1:
                 label.setPos(Vec3(pos, 0., height))
 

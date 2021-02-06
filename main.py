@@ -161,18 +161,20 @@ class MyApp(ShowBase):
 
         # f2d.set_clipping_planes()
 
-        x = np.linspace(1., 5.25, num=50)
+        x = np.linspace(-5., 5, num=50)
         y = np.sin(x)
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         f2d.plot(x, y, color="black", thickness=5.)
+
+        f2d.plot(x, np.cos(x), color="red", thickness=5.)
         # f2d.setPos(0.2, 0., 0.2)
 
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         lims = f2d.get_lims_from_internal_data()
         print("f2d.get_lims_from_internal_data(): ", lims)
 
-        f2d.set_xlim(2., 5.)
-        f2d.set_ylim(-0.5, 0.7)
+        # f2d.set_xlim(2., 5.)
+        # f2d.set_ylim(-0.5, 0.7)
 
         # toggle clipping planes
         base.accept("c", lambda f2d=f2d: f2d.toggle_clipping_planes())
