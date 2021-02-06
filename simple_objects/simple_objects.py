@@ -148,7 +148,9 @@ class Point2d(Point):
 # ---- lines
 
 class LinePrimitive(IndicatorPrimitive):
-    def __init__(self, thickness=1., color=Vec4(1., 1., 1., 1.), **kwargs):
+    """ """
+    def __init__(self, thickness=1., **kwargs):
+        """ """
         IndicatorPrimitive.__init__(self, **kwargs)
 
         # these are graphical values
@@ -157,30 +159,24 @@ class LinePrimitive(IndicatorPrimitive):
         self.tip_point = None
         self.tail_point = None
 
-        self.color = color
-        # self.makeObject(thickness, color)
-
-    # def makeObject(self, thickness, color):
-    #     self.set_node_p3d(custom_geometry.createColoredUnitLineGeomNode(
-    #         thickness=thickness, color_vec4=self.color))
-    #     self.set_p3d_nodepath(engine.tq_graphics_basics.tq_render.attachNewNode_p3d(self.get_node_p3d())
-    #     self.setLightOff(1))
-
 
 class Line1dPrimitive(LinePrimitive):
+    """ """
     def __init__(self, thickness=1., **kwargs):
+        """ """
         LinePrimitive.__init__(self, **kwargs)
 
         self.thickness = thickness
-        self.makeObject(thickness, self.color)
+        self.makeObject(thickness, **kwargs)
 
         self.setTailPoint(self.tail_point)
         self.setTipPoint(self.tip_point)
 
-    def makeObject(self, thickness, color):
+    def makeObject(self, thickness, **kwargs):
         self.set_node_p3d(custom_geometry.createColoredUnitLineGeomNode(
             thickness=thickness,
-            color_vec4=self.color))
+            color_vec4=kwargs.get("color")
+        ))
 
         self.set_p3d_nodepath(
             self.getParent_p3d().attachNewNode(self.get_node_p3d()))
@@ -277,12 +273,12 @@ class Line1dPrimitive(LinePrimitive):
 class Line1dSolid(Line1dPrimitive):
     """ """
 
-    def __init__(self, thickness=2., color=Vec4(1., 1., 1., 1.), **kwargs):
+    def __init__(self, thickness=2., **kwargs):
         self._rotation_forrowvecs = Mat4()
 
         # this also sets the position
         Line1dPrimitive.__init__(
-            self, thickness=thickness, color=color, **kwargs)
+            self, thickness=thickness, **kwargs)
 
         self.doInitialSetupTransformation()
 

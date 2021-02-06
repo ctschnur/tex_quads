@@ -29,17 +29,18 @@ from local_utils import math_utils
 class IndicatorPrimitive(TQGraphicsNodePath):
     """ """
     def __init__(self, **kwargs):
+        """ """
         TQGraphicsNodePath.__init__(self, **kwargs)
 
-    # a makeobject is pointless to define here, since it will get overridden anyway
-    # for a specific object
+        # a makeobject is pointless to define here, since it will get overridden anyway
+        # for a specific object
 
-    def setColor(self, color):
-        """
-        Args:
-            color: rgba tuple """
-        self.color = color
-        super().setColor(*self.color)
+    # def setColor(self, color):
+    #     """
+    #     Args:
+    #         color: rgba tuple """
+    #     self.color = color
+    #     super().setColor(*self.color)
 
 
 class Box2dCentered(IndicatorPrimitive):

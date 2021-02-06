@@ -576,11 +576,14 @@ def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.), num_of_verts=10):
 from panda3d.core import LineSegs
 
 def createColoredUnitLineGeomNode(thickness=1.,
-                                  color_vec4=Vec4(1., 1., 1., 1.)):
+                                  color_vec4=Vec4(1., 1., 1., 1.)
+                                  ):
     ls = LineSegs()
     ls.setThickness(thickness)
 
-    ls.setColor(color_vec4)
+    if color_vec4 is not None:
+        ls.setColor(color_vec4)
+
     ls.moveTo(0.0, 0.0, 0.0)
     ls.drawTo(1.0, 0.0, 0.0)
 

@@ -76,6 +76,16 @@ class TQGraphicsNodePath:
 
         self.p3d_nodepath.reparentTo(self.p3d_parent_nodepath)
 
+        self.apply_kwargs(**kwargs)
+
+    def apply_kwargs(self, **kwargs):
+        """ """
+        if 'color' in kwargs:
+            TQGraphicsNodePath.setColor(self, kwargs.get('color'))
+        else:
+            TQGraphicsNodePath.setColor(self, Vec4(1., 1., 1., 1.))
+
+
     def make_groupnode(self):
         """ this makes this TQGraphicsNodePath a pure group node (includes transformations, ...) and applies them to it's children """
         self._set_p3d_nodepath_plain_post_init(NodePath("groupnode"))

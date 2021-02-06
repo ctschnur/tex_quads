@@ -16,7 +16,7 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - [X] make the cursor ui element lock it's orientation to the camera
 - [X] make a text label object that is attached to the render tree but always updates to face the camera
 - [ ] make a Frame2d for basic xy parametric curves plotting
-  - [ ] figure out how to clip curves in the 2d frame
+  - [ ] updating the plot, properly cleaning up the scene graph, resetting the labels
 
 ** Branched Podcast Interface
 - [X] Plot parametric curves

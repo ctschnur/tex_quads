@@ -44,6 +44,10 @@ class Quad(TQGraphicsNodePath):
         self.set_width(width)
         self.set_height(height)
 
+    # def setColor(self, *args, **kwargs):
+    #     """ """
+    #     return super().setColor(*args, **kwargs)
+
     def set_pos_vec3(self, pos_vec3):
         """ set position of upper left corner of the quad (in aspect2d) """
         self.pos_vec3 = pos_vec3

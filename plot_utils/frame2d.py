@@ -105,9 +105,11 @@ class Ticks(TQGraphicsNodePath):
             height = pt2.getY() - pt1.getY()
 
             if axis_direction_index==0:
-                label.setPos(Vec3(pos, 0., -4.*width))
+                label.setPos(Vec3(pos, 0., -4.*width
+                ))
             elif axis_direction_index==1:
-                label.setPos(Vec3(pos, 0., height))
+                label.setPos(Vec3(pos, 0., height
+                ))
 
             t = Tick()
             t.set_line(line)
@@ -167,19 +169,9 @@ class Frame2d(TQGraphicsNodePath):
 
         self.clipping_planes_p3d_nodepaths = []
 
-        # self.additional_trafo_nodepath = TQGraphicsNodePath()
-        # self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
-        # self.set_p3d_nodepath(
-        #     self.additional_trafo_nodepath.attachNewNode_p3d(self.get_node_p3d()))
-        # self.additional_trafo_nodepath.setMat_normal(# self.get_additional_trafo_mat()
-        #     math_utils.getTranslationMatrix4x4(self.width, 0., self.height)
-        # )
-
         self.quad = Quad(thickness=1.5)
         self.quad.reparentTo(self)
         self.quad.setPos(Vec3(0., 0., self.height))
-
-        # self.setMat_normal(self.get_quad_base_transform_mat())
 
         self.set_figsize(self.height, self.width, update_graphics=None)
 
@@ -231,6 +223,8 @@ class Frame2d(TQGraphicsNodePath):
         """ the lines may extend outside of the 'frame'
             setting clipping planes are one way to prevent them from being
             rendered outside """
+
+        self.remove_clipping_planes()
 
         for i, normal_vector in zip(Frame2d.axis_direction_indices, Frame2d.axis_direction_vectors):
             d = self.get_p3d_axis_length_from_axis_direction_index(i)
@@ -284,13 +278,17 @@ class Frame2d(TQGraphicsNodePath):
 
     def set_figsize(self, height, width, update_graphics=True):
         """ set the size of the figure, in p3d units """
+
+        self.height = height
+        self.width = width
+
         self.quad.set_height(self.height)
         self.quad.set_width(self.width)
 
-        # self.set_clipping_planes()
-
         if update_graphics==True:
-            self.update_graphics_alignment()
+            self.quad.setPos(Vec3(0., 0., self.height))
+            self.set_clipping_planes()
+            self.update_graphics_alignment(regenerate_ticks=True)
 
     def update_graphics_alignment(self, regenerate_ticks=False):
         """ """
@@ -312,6 +310,8 @@ class Frame2d(TQGraphicsNodePath):
         ymin = np.inf
         ymax = -np.inf
 
+        changed = False
+
         for line in self.linesin2dframe.lines:
             p3d_xyz_coords = line.getCoords_np()
             frame_x_coords = p3d_xyz_coords[:, 0]
@@ -320,23 +320,31 @@ class Frame2d(TQGraphicsNodePath):
             cur_xmin = min(frame_x_coords)
             if cur_xmin < xmin:
                 xmin = cur_xmin
+                changed = True
 
             cur_xmax = max(frame_x_coords)
             if cur_xmax > xmax:
                 xmax = cur_xmax
+                changed = True
 
             cur_ymin = min(frame_y_coords)
             if cur_ymin < ymin:
                 ymin = cur_ymin
+                changed = True
 
             cur_ymax = max(frame_y_coords)
             if cur_ymax > ymax:
                 ymax = cur_ymax
+                changed = True
 
         # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
-        assert xmin < xmax and ymin < ymax
-        return [(xmin, xmax), (ymin, ymax)]
+        assert changed==False or (xmin < xmax and ymin < ymax)
+
+        if changed==True:
+            return [(xmin, xmax), (ymin, ymax)]
+        else:
+            return []
 
 
     def regenerate_ticks_arr_numbers(self, possibly_update_lims_from_internal_data=False):
@@ -344,11 +352,12 @@ class Frame2d(TQGraphicsNodePath):
         if possibly_update_lims_from_internal_data == True:
             # set soft xlims if xlims are not hard
             auto_lims = self.get_lims_from_internal_data()
-            if not self.lims_hard_p()[0]: # x axis
-                self.set_xlim(*auto_lims[0], update_graphics=False, hard=False, regenerate=False)
+            if len(auto_lims) > 0:            # auto_lims can not be determined if there is no data
+                if not self.lims_hard_p()[0]: # x axis
+                    self.set_xlim(*auto_lims[0], update_graphics=False, hard=False, regenerate=False)
 
-            if not self.lims_hard_p()[1]: # y axis
-                self.set_ylim(*auto_lims[1], update_graphics=False, hard=False, regenerate=False)
+                if not self.lims_hard_p()[1]: # y axis
+                    self.set_ylim(*auto_lims[1], update_graphics=False, hard=False, regenerate=False)
 
         self.ticks_arr_numbers = [
             np.linspace(*self.get_preceding_xlims(), num=5, endpoint=True),
@@ -462,21 +471,11 @@ class Frame2d(TQGraphicsNodePath):
             print("axis_direction_index: ", axis_direction_index, " does not correspond to any axis")
             exit(1)
 
-
-
     def plot(self, x, y,
              color="white",
              thickness=2):
         """ x, y: discrete points (each one a 1d numpy array, same size)"""
-        # if self.plp1 is not None:
-        #     self.plp1.removeNode()
-        #     self.plp1 = None
-
         if x is not None and y is not None:
-
-            # self.plp1 = ParametricLinePrimitive(
-            #     lambda t: np.array([func_xy_of_t(t)[0], 0., func_xy_of_t(t)[1]]),
-            #     howmany_points=100, param_interv=np.array([0, 2.0 * np.pi]))
             assert np.shape(x) == np.shape(y)
 
             sl = primitives.SegmentedLinePrimitive(color=get_color(color), thickness=thickness)
@@ -484,20 +483,16 @@ class Frame2d(TQGraphicsNodePath):
             sl.reparentTo(self.linesin2dframe)
             self.linesin2dframe.lines.append(sl)
 
-            # math_utils.np_to_p3d_Vec3(pos_of_particle_np)
-
-            # self.plp1.reparentTo(self)
-            # self.plp1.setPos(self.quad.get_pos_vec3())
-
-            # get xlim and ylim
-            # map p3d coordinates (from top left corner of frame) -> figure coordinates
-        # else:
-            # if self.plp1 is not None:
-            #     self.plp1.remove()
-
         self.update_graphics_alignment(regenerate_ticks=True)
 
+    def clear_plot(self):
+        """ """
+        for line in self.linesin2dframe.lines:
+            line.removeNode()
 
+        self.linesin2dframe.lines = []
+
+        self.update_graphics_alignment(regenerate_ticks=True)
 
     def get_plot_x_range(self):
         return self.xmax_hard - self.xmin_hard
@@ -517,9 +512,3 @@ class Frame2d(TQGraphicsNodePath):
 
     def shift_curve_to_match_up_zeros():
         pos0 = self.get_frame_p3d_origin()
-
-        # ticks0 =
-
-    def remove():
-        """ """
-        self.quad.remove()

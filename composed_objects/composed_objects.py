@@ -183,7 +183,7 @@ class Vector(TQGraphicsNodePath):
 
     def __init__(self, tail_point_logical=None, tip_point_logical=None,
                  arrowhead_scale=1./15.,
-                 **kwargs):
+                  **kwargs):
         TQGraphicsNodePath.__init__(self, **kwargs)
 
         if 'linetype' in kwargs:
@@ -246,15 +246,6 @@ class Vector(TQGraphicsNodePath):
         self.setTailPoint(self.tail_point_logical)
 
         self.setColor(self.color)
-
-    def setColor(self, color):
-        """ set this color to all panda nodes """
-        # children = self.group_node.get_children_p3d()
-        # for child in children:
-        #     child.setColor(*color)
-
-        self.line1.setColor(color)
-        self.arrowhead.setColor(color)
 
     def getTipPoint(self):
         return self.tip_point_logical
