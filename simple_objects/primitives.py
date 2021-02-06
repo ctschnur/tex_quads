@@ -60,7 +60,7 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
         self.thickness = thickness
         self.color = color
 
-        self.set_p3d_nodepath(None)
+        # self.set_p3d_nodepath(None)
 
         self.updateObject()
 
@@ -68,7 +68,7 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
         from simple_objects.custom_geometry import createColoredSegmentedLineGeomNode
 
         # destroy old object
-        if self.nodepath is not None:
+        if self.get_p3d_nodepath() is not None:
             self.removeNode()
 
         # create new object
@@ -81,7 +81,7 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
             self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
         # lighting
-        if self.nodepath is not None:
+        if self.get_node_p3d() is not None:
             self.setLightOff(1)
 
     def setCoords(self, coords):

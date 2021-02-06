@@ -22,6 +22,8 @@ from local_utils import math_utils
 
 from simple_objects.simple_objects import BasicText, BasicOriente2dText
 
+from simple_objects import primitives
+
 
 class Tick(TQGraphicsNodePath):
     """ Line and (optionally) Label """
@@ -131,6 +133,19 @@ class Frame2d(TQGraphicsNodePath):
         self.height = size
         self.width = size * 1.618
 
+        self.lines = []  # lines
+
+        self.d = 2                  # dimension of frame
+
+        self.xmin = 0.
+        self.xmax = 1.
+
+        self.ymin = 0.
+        self.ymax = 1.
+
+        self.ticks_arr_numbers = None
+        self.regenerate_arrays()
+
         # self.additional_trafo_nodepath = TQGraphicsNodePath()
         # self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
         # self.set_p3d_nodepath(
@@ -145,23 +160,12 @@ class Frame2d(TQGraphicsNodePath):
 
         # self.setMat_normal(self.get_quad_base_transform_mat())
 
-        self.set_figsize(self.height, self.width)
-
-        self.d = 2                  # dimension of frame
-
-        self.xmin = 0.
-        self.xmax = 1.
-
-        self.ymin = 0.
-        self.ymax = 1.
+        self.set_figsize(self.height, self.width, update_graphics=None)
 
         self.set_xlim(self.xmin, self.xmax, update_graphics=False)
         self.set_ylim(self.ymin, self.ymax, update_graphics=False)
 
-        self.ticks_arr_numbers = None
-        self.regenerate_arrays()
-
-        self.plp1 = None
+        # self.plp1 = None
 
         self.ticks_arr = []
 
@@ -204,10 +208,14 @@ class Frame2d(TQGraphicsNodePath):
         for i, axis_p3d_length, axis_direction_index in zip(range(self.d), [self.width, self.height], Frame2d.axis_direction_indices):
             self.ticks_arr[i].set_ticks_by_arr(self.ticks_arr_numbers[i], axis_p3d_length, axis_direction_index=axis_direction_index)
 
-    def set_figsize(self, height, width):
+    def set_figsize(self, height, width, update_graphics=True):
         """ set the size of the figure, in p3d units """
         self.quad.set_height(self.height)
         self.quad.set_width(self.width)
+
+        if update_graphics==True:
+            self.update_ticks()
+            self.update_alignment()
 
     def regenerate_arrays(self):
         """ """
@@ -225,6 +233,7 @@ class Frame2d(TQGraphicsNodePath):
 
         if update_graphics == True:
             self.update_ticks()
+            self.update_alignment()
 
     def set_ylim(self, ymin, ymax, update_graphics=True):
         """ """
@@ -235,6 +244,7 @@ class Frame2d(TQGraphicsNodePath):
 
         if update_graphics == True:
             self.update_ticks()
+            self.update_alignment()
 
     def get_p3d_to_frame_unit_length_scaling_factor(self, axis_direction_index):
         """ """
@@ -247,40 +257,52 @@ class Frame2d(TQGraphicsNodePath):
 
     def update_alignment(self):
         """ """
-        p = Point3d(scale=0.25, color=Vec4(1., 0., 0., 1.))
-        p.reparentTo(self)
+        # p = Point3d(scale=0.25, color=Vec4(1., 0., 0., 1.))
+        # p.reparentTo(self)
 
         pos_for_x = math_utils.p3d_to_np(Frame2d.axis_direction_vectors[0]) * Ticks.get_tick_pos_along_axis(self.width, self.ticks_arr_numbers[0], 0.0)
         pos_for_y = math_utils.p3d_to_np(Frame2d.axis_direction_vectors[1]) * Ticks.get_tick_pos_along_axis(self.height, self.ticks_arr_numbers[1], 0.0)
 
         pos_tmp = math_utils.p3d_to_np(pos_for_y) + math_utils.p3d_to_np(pos_for_x)
-        p.setPos(math_utils.np_to_p3d_Vec3(pos_tmp))
+        # p.setPos(math_utils.np_to_p3d_Vec3(pos_tmp))
 
         # pos_tmp = math_utils.p3d_to_np(pos_for_y)
 
-        self.plp1.setScale(self.get_p3d_to_frame_unit_length_scaling_factor(0), 1., self.get_p3d_to_frame_unit_length_scaling_factor(1))
-        print("self.get_p3d_to_frame_unit_length_scaling_factor(1): ", self.get_p3d_to_frame_unit_length_scaling_factor(1))
-        self.plp1.setPos(math_utils.np_to_p3d_Vec3(pos_tmp))
+        for line in self.lines:
+            line.setScale(self.get_p3d_to_frame_unit_length_scaling_factor(0), 1., self.get_p3d_to_frame_unit_length_scaling_factor(1))
+            print("self.get_p3d_to_frame_unit_length_scaling_factor(1): ", self.get_p3d_to_frame_unit_length_scaling_factor(1))
+            line.setPos(math_utils.np_to_p3d_Vec3(pos_tmp))
 
-    def update_parametric_line(self, func_xy_of_t=None):
-        """ """
-        if self.plp1 is not None:
-            self.plp1.removeNode()
-            self.plp1 = None
+    def plot(self, x, y):
+        """ x, y: discrete points (each one a 1d numpy array, same size)"""
+        # if self.plp1 is not None:
+        #     self.plp1.removeNode()
+        #     self.plp1 = None
 
-        if func_xy_of_t is not None:
-            self.plp1 = ParametricLinePrimitive(
-                lambda t: np.array([func_xy_of_t(t)[0], 0., func_xy_of_t(t)[1]]),
-                howmany_points=100, param_interv=np.array([0, 2.0 * np.pi]))
+        if x is not None and y is not None:
+            # self.plp1 = ParametricLinePrimitive(
+            #     lambda t: np.array([func_xy_of_t(t)[0], 0., func_xy_of_t(t)[1]]),
+            #     howmany_points=100, param_interv=np.array([0, 2.0 * np.pi]))
+            assert np.shape(x) == np.shape(y)
 
-            self.plp1.reparentTo(self)
-            self.plp1.setPos(self.quad.get_pos_vec3())
+            sl = primitives.SegmentedLinePrimitive(color=Vec4(1., 1., 1., 1.))
+            sl.extendCoords([Vec3(x[i], 0., y[i]) for i in range(len(x))])
+
+            sl.reparentTo(self)
+            self.lines.append(sl)
+
+            # math_utils.np_to_p3d_Vec3(pos_of_particle_np)
+
+            # self.plp1.reparentTo(self)
+            # self.plp1.setPos(self.quad.get_pos_vec3())
 
             # get xlim and ylim
             # map p3d coordinates (from top left corner of frame) -> figure coordinates
-        else:
-            if self.plp1 is not None:
-                self.plp1.remove()
+        # else:
+            # if self.plp1 is not None:
+            #     self.plp1.remove()
+
+            self.update_alignment()
 
     def get_plot_x_range(self):
         return self.xmax - self.xmin

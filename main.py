@@ -1,6 +1,6 @@
 import engine
 from direct.showbase.ShowBase import ShowBase, DirectObject
-from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3, PlaneNode, Plane, LPlanef
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
@@ -50,7 +50,7 @@ class MyApp(ShowBase):
         base.setFrameRateMeter(True)
         engine.tq_graphics_basics.tq_render.setAntialias(AntialiasAttrib.MAuto)
 
-        shade_of_gray = 0.
+        shade_of_gray = 0.2
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
         # cg = cameras.plain_camera_gear.PlainCameraGear(base.cam)
@@ -122,7 +122,7 @@ class MyApp(ShowBase):
 
         # cg.add_camera_move_hook(update_forward_vector)
 
-        dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
+        # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
 
         from plot_utils.frame2d import Frame2d, Ticks
 
@@ -151,24 +151,65 @@ class MyApp(ShowBase):
         # f2l.setPos(Vec3(0., 0., 0.))
         # print(f2l.getPos())
 
-        f2d = Frame2d(cg)
-        # f2d.attach_to_aspect2d()
-        f2d.attach_to_render()
-        # f2d.reparentTo(engine.tq_graphics_basics.tq_render)
+        # f2d = Frame2d(cg)
+        # # f2d.attach_to_aspect2d()
+        # f2d.attach_to_render()
+        # # f2d.reparentTo(engine.tq_graphics_basics.tq_render)
 
-        f2d.set_xlim(2., 5.)
-        f2d.set_ylim(-1, 1)
+        # f2d.set_xlim(2., 5.)
+        # f2d.set_ylim(-1, 1)
 
-        f2d.update_parametric_line(
-            lambda x: np.array([
-                    x,
-                    np.sin(x),
-                ])
-        )
+        # f2d.update_parametric_line(
+        #     lambda x: np.array([
+        #             x,
+        #             np.sin(x),
+        #         ])
+        # )
 
-        f2d.update_alignment()
 
-        f2d.setPos(0.2, 0., 0.2)
+
+        model_nodepath = loader.loadModel("panda.egg")
+        print("type: ", model_nodepath)
+        model_nodepath.reparentTo(render)
+        # model_nodepath.setPos(Vec3(0., 2., 0.))
+        pscale = 0.05
+        model_nodepath.setScale(pscale)
+
+        model2_nodepath = loader.loadModel("panda.egg")
+        model2_nodepath.reparentTo(render)
+        model2_nodepath.setPos(Vec3(-0.1, 0., 0.))
+        pscale = 0.05
+        model2_nodepath.setScale(pscale)
+
+        # # cpnp = NodePath('someModel')
+        # clipping_plane_nodepath = model_nodepath.attachNewNode(PlaneNode('clip'))
+        # clipping_plane_nodepath.node().setPlane(Plane(0,0,1,0))
+        # clipping_plane_nodepath.node().setClipEffect(1)
+        # model_nodepath.setClipPlane(clipping_plane_nodepath)
+        # clipping_plane_nodepath.setPos(0., 0., 0.)
+
+
+        p = LPlanef((0,0,0), (0,1,0), (0,0,1))
+        n = PlaneNode('', p)
+        n.setClipEffect(1)
+        np = NodePath(n)
+        # model_nodepath.reparentTo(np)
+        # np.reparentTo(render)
+
+        np.reparentTo(model_nodepath)
+        model_nodepath.setClipPlane(np)
+        model_nodepath.setPos(0.1, 0., 0.)
+
+        # # cpnp = NodePath('someModel')
+        # pn = PlaneNode('clip')
+        # pn.setPlane(Plane(0,0,1,0))
+        # # clipping_plane_nodepath.setPos(0., 0., 0.)
+        # model_nodepath.setClipPlane(pn)
+
+        # x = np.linspace(0., 2. * np.pi, num=50)
+        # y = np.sin(x)
+        # f2d.plot(x, y)
+        # f2d.setPos(0.2, 0., 0.2)
 
         # cg.set_view_to_xy_plane()
         cg.set_view_to_xz_plane()
