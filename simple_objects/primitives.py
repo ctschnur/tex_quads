@@ -23,6 +23,8 @@ import numpy as np
 
 from simple_objects.custom_geometry import createColoredParametricDashedCurveGeomNode
 
+from local_utils import math_utils
+
 
 class IndicatorPrimitive(TQGraphicsNodePath):
     """ """
@@ -88,6 +90,10 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
         """ after the object has been created, this method can be used to update the path, i.e. destroy the nodepath and remake the object """
         self.coords = coords
         self.updateObject()
+
+    def getCoords_np(self):
+        """ """
+        return np.array([math_utils.p3d_to_np(coord) for coord in self.coords])
 
     def extendCoords(self, coords_to_add):
         """ adds coords to the previous coords which are already in memory.

@@ -6,7 +6,7 @@ import numpy as np
 import math
 
 from direct.showbase.ShowBase import ShowBase, DirectObject
-from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
+from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3, PlaneNode, Plane, LPlane, LPlanef
 from direct.interval.IntervalGlobal import Wait, Sequence, Func, Parallel
 from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInterval, LerpScaleInterval
 
@@ -23,6 +23,8 @@ from local_utils import math_utils
 from simple_objects.simple_objects import BasicText, BasicOriente2dText
 
 from simple_objects import primitives
+
+from plot_utils.colors.colors import get_color
 
 
 class Tick(TQGraphicsNodePath):
@@ -92,11 +94,11 @@ class Ticks(TQGraphicsNodePath):
         for c_num in num_arr:
             pos = Ticks.get_tick_pos(p3d_axis_length, num_arr, c_num)
 
-            line = Line1dSolid(thickness=1.0)
+            line = Line1dSolid(thickness=1.5)
             line.setTipPoint(Vec3(pos, 0., self.tick_length/2.))
             line.setTailPoint(Vec3(pos, 0., -self.tick_length/2.))
 
-            label = BasicOriente2dText(self.camera_gear, text="{:.1f}".format(c_num))
+            label = BasicOriente2dText(self.camera_gear, text="{:.2f}".format(c_num))
 
             pt1, pt2 = label.getTightBounds()
             width = pt2.getX()  - pt1.getX()
@@ -113,6 +115,13 @@ class Ticks(TQGraphicsNodePath):
             t.reparentTo(self)
             self.ticks.append(t)
 
+class LinesIn2dFrame(TQGraphicsNodePath):
+    """ used e.g. for clipping in a frame2d (and not affecting other things like borders) """
+    def __init__(self):
+        """ """
+        TQGraphicsNodePath.__init__(self)
+
+        self.lines = []
 
 class Frame2d(TQGraphicsNodePath):
     """ a 2d frame within which 2d data can be displayed, i.e. numpy x and y arrays """
@@ -133,18 +142,30 @@ class Frame2d(TQGraphicsNodePath):
         self.height = size
         self.width = size * 1.618
 
-        self.lines = []  # lines
+        # self.lines = []  # lines
+
+        # self.linesin2dframe = None
+        self.linesin2dframe = LinesIn2dFrame()
+        self.linesin2dframe.reparentTo(self)
 
         self.d = 2                  # dimension of frame
 
-        self.xmin = 0.
-        self.xmax = 1.
+        self.xmin_hard = None
+        self.xmax_hard = None
 
-        self.ymin = 0.
-        self.ymax = 1.
+        self.ymin_hard = None
+        self.ymax_hard = None
+
+        self._xmin_soft = 0.
+        self._xmax_soft = 1.
+
+        self._ymin_soft = 0.
+        self._ymax_soft = 1.
 
         self.ticks_arr_numbers = None
-        self.regenerate_arrays()
+        self.regenerate_ticks_arr_numbers()
+
+        self.clipping_planes_p3d_nodepaths = []
 
         # self.additional_trafo_nodepath = TQGraphicsNodePath()
         # self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
@@ -154,7 +175,7 @@ class Frame2d(TQGraphicsNodePath):
         #     math_utils.getTranslationMatrix4x4(self.width, 0., self.height)
         # )
 
-        self.quad = Quad(thickness=2.0)
+        self.quad = Quad(thickness=1.5)
         self.quad.reparentTo(self)
         self.quad.setPos(Vec3(0., 0., self.height))
 
@@ -162,8 +183,8 @@ class Frame2d(TQGraphicsNodePath):
 
         self.set_figsize(self.height, self.width, update_graphics=None)
 
-        self.set_xlim(self.xmin, self.xmax, update_graphics=False)
-        self.set_ylim(self.ymin, self.ymax, update_graphics=False)
+        self.set_xlim(self.xmin_hard, self.xmax_hard, update_graphics=False)
+        self.set_ylim(self.ymin_hard, self.ymax_hard, update_graphics=False)
 
         # self.plp1 = None
 
@@ -189,6 +210,56 @@ class Frame2d(TQGraphicsNodePath):
     #     """ """
     #     return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
 
+    def toggle_clipping_planes(self):
+        """ """
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        if len(self.clipping_planes_p3d_nodepaths) == 0: # no clipping planes enabled
+            self.set_clipping_planes()
+        else:
+            self.remove_clipping_planes()
+
+    def remove_clipping_planes(self):
+        """ """
+        for nodepath in self.clipping_planes_p3d_nodepaths:
+            nodepath.removeNode()
+
+        self.linesin2dframe.get_p3d_nodepath().setClipPlaneOff()
+
+        self.clipping_planes_p3d_nodepaths = []
+
+    def set_clipping_planes(self):
+        """ the lines may extend outside of the 'frame'
+            setting clipping planes are one way to prevent them from being
+            rendered outside """
+
+        for i, normal_vector in zip(Frame2d.axis_direction_indices, Frame2d.axis_direction_vectors):
+            d = self.get_p3d_axis_length_from_axis_direction_index(i)
+            a, b, c = math_utils.p3d_to_np(normal_vector)
+
+            plane1 = LPlanef(a, b, c, 0)
+            plane1_node = PlaneNode('', plane1)
+            plane1_node.setClipEffect(1)
+            plane1_nodepath = NodePath(plane1_node)
+
+            plane2 = LPlanef(-a, -b, -c, d)
+            plane2_node = PlaneNode('', plane2)
+            plane2_node.setClipEffect(1)
+            plane2_nodepath = NodePath(plane2_node)
+
+            clipped_thing_nodepath = self.linesin2dframe.get_p3d_nodepath()
+
+            plane1_nodepath.reparentTo(clipped_thing_nodepath)
+            clipped_thing_nodepath.setClipPlane(plane1_nodepath)
+            self.clipping_planes_p3d_nodepaths.append(plane1_nodepath)
+
+            plane2_nodepath.reparentTo(clipped_thing_nodepath)
+            clipped_thing_nodepath.setClipPlane(plane2_nodepath)
+            self.clipping_planes_p3d_nodepaths.append(plane2_nodepath)
+
+            # clipped_thing_nodepath.setPos(0., 0., 0.)
+
+        pass
+
 
     @staticmethod
     def get_axis_direction_index_from_char_index(char_index):
@@ -203,8 +274,11 @@ class Frame2d(TQGraphicsNodePath):
     #     return math_utils.getTranslationMatrix4x4(0., 0., self.height).dot(
     #         math_utils.getTranslationMatrix4x4(self.pos_x, 0., self.pos_y))
 
-    def update_ticks(self):
+    def update_ticks(self, regenerate_ticks=False):
         """ make sure the density of ticks is between ticks_max_density and ticks_min_density, then adjust the ticks """
+        if regenerate_ticks == True:
+            self.regenerate_ticks_arr_numbers(possibly_update_lims_from_internal_data=True)
+
         for i, axis_p3d_length, axis_direction_index in zip(range(self.d), [self.width, self.height], Frame2d.axis_direction_indices):
             self.ticks_arr[i].set_ticks_by_arr(self.ticks_arr_numbers[i], axis_p3d_length, axis_direction_index=axis_direction_index)
 
@@ -213,45 +287,148 @@ class Frame2d(TQGraphicsNodePath):
         self.quad.set_height(self.height)
         self.quad.set_width(self.width)
 
-        if update_graphics==True:
-            self.update_ticks()
-            self.update_alignment()
+        # self.set_clipping_planes()
 
-    def regenerate_arrays(self):
+        if update_graphics==True:
+            self.update_graphics_alignment()
+
+    def update_graphics_alignment(self, regenerate_ticks=False):
         """ """
+        self.update_ticks(regenerate_ticks=regenerate_ticks)
+        self.update_alignment()
+
+    def lims_hard_p(self):
+        """ """
+        return [self.xmin_hard is not None or self.xmax_hard is not None,
+                self.ymin_hard is not None or self.ymax_hard is not None]
+
+    def get_lims_from_internal_data(self):
+        """ TODO: update this if to take into account not just lines,
+            but also e.g. scatter data or color plot data """
+
+        xmin = np.inf
+        xmax = -np.inf
+
+        ymin = np.inf
+        ymax = -np.inf
+
+        for line in self.linesin2dframe.lines:
+            p3d_xyz_coords = line.getCoords_np()
+            frame_x_coords = p3d_xyz_coords[:, 0]
+            frame_y_coords = p3d_xyz_coords[:, 2]  # in p3d, z is up, but in my frame2d, y is up
+
+            cur_xmin = min(frame_x_coords)
+            if cur_xmin < xmin:
+                xmin = cur_xmin
+
+            cur_xmax = max(frame_x_coords)
+            if cur_xmax > xmax:
+                xmax = cur_xmax
+
+            cur_ymin = min(frame_y_coords)
+            if cur_ymin < ymin:
+                ymin = cur_ymin
+
+            cur_ymax = max(frame_y_coords)
+            if cur_ymax > ymax:
+                ymax = cur_ymax
+
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+
+        assert xmin < xmax and ymin < ymax
+        return [(xmin, xmax), (ymin, ymax)]
+
+
+    def regenerate_ticks_arr_numbers(self, possibly_update_lims_from_internal_data=False):
+        """ """
+        if possibly_update_lims_from_internal_data == True:
+            # set soft xlims if xlims are not hard
+            auto_lims = self.get_lims_from_internal_data()
+            if not self.lims_hard_p()[0]: # x axis
+                self.set_xlim(*auto_lims[0], update_graphics=False, hard=False, regenerate=False)
+
+            if not self.lims_hard_p()[1]: # y axis
+                self.set_ylim(*auto_lims[1], update_graphics=False, hard=False, regenerate=False)
+
         self.ticks_arr_numbers = [
-            np.linspace(self.xmin, self.xmax, num=5, endpoint=True),
-            np.linspace(self.ymin, self.ymax, num=7, endpoint=True)
+            np.linspace(*self.get_preceding_xlims(), num=5, endpoint=True),
+            np.linspace(*self.get_preceding_ylims(), num=5, endpoint=True)
         ]
 
-    def set_xlim(self, xmin, xmax, update_graphics=True):
-        """ """
-        self.xmin = xmin
-        self.xmax = xmax
+    def set_xlim(self, xmin, xmax, update_graphics=True, hard=True, regenerate=True):
+        """ if hard == False, figure out the preceding limits automatically
+            from the line data """
+        if hard == True:
+            self.xmin_hard = xmin
+            self.xmax_hard = xmax
+        elif hard == False:
+            self.unset_hard_xylims(reset_x_lim=True, reset_y_lim=False)
 
-        self.regenerate_arrays()
+            self._xmin_soft = xmin
+            self._xmax_soft = xmax
+        else:
+            print("hard should be boolean")
+            exit(1)
+
+        if regenerate == True:
+            self.regenerate_ticks_arr_numbers()
 
         if update_graphics == True:
-            self.update_ticks()
-            self.update_alignment()
+            self.update_graphics_alignment(regenerate_ticks=True)
 
-    def set_ylim(self, ymin, ymax, update_graphics=True):
+    def unset_hard_xylims(self, reset_x_lim=True, reset_y_lim=True):
         """ """
-        self.ymin = ymin
-        self.ymax = ymax
+        if reset_x_lim == True:
+            self.xmax_hard = None
+            self.xmin_hard = None
+            assert self._xmax_soft is not None
+            assert self._xmin_soft is not None
 
-        self.regenerate_arrays()
+        if reset_y_lim == True:
+            self.ymax_hard = None
+            self.ymin_hard = None
+            assert self._ymax_soft is not None
+            assert self._ymin_soft is not None
+
+    def get_preceding_xlims(self):
+        """ """
+        return ((self.xmin_hard if self.xmin_hard is not None else self._xmin_soft),
+                (self.xmax_hard if self.xmax_hard is not None else self._xmax_soft))
+
+    def get_preceding_ylims(self):
+        """ """
+        return ((self.ymin_hard if self.ymin_hard is not None else self._ymin_soft),
+                (self.ymax_hard if self.ymax_hard is not None else self._ymax_soft))
+
+
+    def set_ylim(self, ymin, ymax, update_graphics=True, hard=True, regenerate=True):
+        """ if hard == False, figure out the preceding limits automatically
+            from the line data """
+        if hard == True:
+            self.ymin_hard = ymin
+            self.ymax_hard = ymax
+        elif hard == False:
+            self.unset_hard_xylims(reset_x_lim=False, reset_y_lim=True)
+
+            self._ymin_soft = ymin
+            self._ymax_soft = ymax
+        else:
+            print("hard should be boolean")
+            exit(1)
+
+        self.regenerate_ticks_arr_numbers()
 
         if update_graphics == True:
-            self.update_ticks()
-            self.update_alignment()
+            self.update_graphics_alignment(regenerate_ticks=True)
 
     def get_p3d_to_frame_unit_length_scaling_factor(self, axis_direction_index):
         """ """
         ticks_arr_numbers_y_max = max(self.ticks_arr_numbers[axis_direction_index])
         ticks_arr_numbers_y_min = min(self.ticks_arr_numbers[axis_direction_index])
-        max_y_p3d_pos = Ticks.get_tick_pos_along_axis(self.height, self.ticks_arr_numbers[axis_direction_index], max(self.ticks_arr_numbers[axis_direction_index]))
-        min_y_p3d_pos = Ticks.get_tick_pos_along_axis(self.height, self.ticks_arr_numbers[axis_direction_index], min(self.ticks_arr_numbers[axis_direction_index]))
+        max_y_p3d_pos = Ticks.get_tick_pos_along_axis(self.get_p3d_axis_length_from_axis_direction_index(axis_direction_index),
+                                                      self.ticks_arr_numbers[axis_direction_index], max(self.ticks_arr_numbers[axis_direction_index]))
+        min_y_p3d_pos = Ticks.get_tick_pos_along_axis(self.get_p3d_axis_length_from_axis_direction_index(axis_direction_index),
+                                                      self.ticks_arr_numbers[axis_direction_index], min(self.ticks_arr_numbers[axis_direction_index]))
 
         return np.abs(max_y_p3d_pos - min_y_p3d_pos)/np.abs(ticks_arr_numbers_y_max - ticks_arr_numbers_y_min)
 
@@ -268,28 +445,44 @@ class Frame2d(TQGraphicsNodePath):
 
         # pos_tmp = math_utils.p3d_to_np(pos_for_y)
 
-        for line in self.lines:
+        for line in self.linesin2dframe.lines:
+            print("set scale: ", self.get_p3d_to_frame_unit_length_scaling_factor(0), 1., self.get_p3d_to_frame_unit_length_scaling_factor(1))
             line.setScale(self.get_p3d_to_frame_unit_length_scaling_factor(0), 1., self.get_p3d_to_frame_unit_length_scaling_factor(1))
             print("self.get_p3d_to_frame_unit_length_scaling_factor(1): ", self.get_p3d_to_frame_unit_length_scaling_factor(1))
             line.setPos(math_utils.np_to_p3d_Vec3(pos_tmp))
 
-    def plot(self, x, y):
+
+    def get_p3d_axis_length_from_axis_direction_index(self, axis_direction_index):
+        """ """
+        if axis_direction_index == 0:
+            return self.width
+        elif axis_direction_index == 1:
+            return self.height
+        else:
+            print("axis_direction_index: ", axis_direction_index, " does not correspond to any axis")
+            exit(1)
+
+
+
+    def plot(self, x, y,
+             color="white",
+             thickness=2):
         """ x, y: discrete points (each one a 1d numpy array, same size)"""
         # if self.plp1 is not None:
         #     self.plp1.removeNode()
         #     self.plp1 = None
 
         if x is not None and y is not None:
+
             # self.plp1 = ParametricLinePrimitive(
             #     lambda t: np.array([func_xy_of_t(t)[0], 0., func_xy_of_t(t)[1]]),
             #     howmany_points=100, param_interv=np.array([0, 2.0 * np.pi]))
             assert np.shape(x) == np.shape(y)
 
-            sl = primitives.SegmentedLinePrimitive(color=Vec4(1., 1., 1., 1.))
+            sl = primitives.SegmentedLinePrimitive(color=get_color(color), thickness=thickness)
             sl.extendCoords([Vec3(x[i], 0., y[i]) for i in range(len(x))])
-
-            sl.reparentTo(self)
-            self.lines.append(sl)
+            sl.reparentTo(self.linesin2dframe)
+            self.linesin2dframe.lines.append(sl)
 
             # math_utils.np_to_p3d_Vec3(pos_of_particle_np)
 
@@ -302,13 +495,15 @@ class Frame2d(TQGraphicsNodePath):
             # if self.plp1 is not None:
             #     self.plp1.remove()
 
-            self.update_alignment()
+        self.update_graphics_alignment(regenerate_ticks=True)
+
+
 
     def get_plot_x_range(self):
-        return self.xmax - self.xmin
+        return self.xmax_hard - self.xmin_hard
 
     def get_plot_y_range(self):
-        return self.ymax - self.ymin
+        return self.ymax_hard - self.ymin_hard
 
     def get_frame_p3d_origin(self):
         pos = self.quad.getPos()

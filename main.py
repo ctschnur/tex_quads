@@ -31,6 +31,7 @@ from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
 from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
 from sequence.sequence import Sequence, WavSequence
 from plot_utils.quad import Quad
+
 from plot_utils.symbols.waiting_symbol import WaitingSymbol
 from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadLoggerElement
 from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
@@ -145,19 +146,36 @@ class MyApp(ShowBase):
         # bot2.attach_to_render()
         # bot2.setPos(Vec3(1., 1., 1.))
 
-        # f2l = Fixed2dLabel(text=str(1))
-        # f2l.attach_to_aspect2d()
-        # # f2l.setPos2d(pos_x=1., pos_y=1.)
-        # f2l.setPos(Vec3(0., 0., 0.))
-        # print(f2l.getPos())
+        f2l = Fixed2dLabel(text=str(1))
+        f2l.attach_to_aspect2d()
+        # f2l.setPos2d(pos_x=1., pos_y=1.)
+        f2l.setPos(Vec3(0., 0., 0.))
+        print(f2l.getPos())
 
-        # f2d = Frame2d(cg)
-        # # f2d.attach_to_aspect2d()
-        # f2d.attach_to_render()
-        # # f2d.reparentTo(engine.tq_graphics_basics.tq_render)
+        f2d = Frame2d(cg)
+        # f2d.attach_to_aspect2d()
+        f2d.attach_to_render()
+        # f2d.reparentTo(engine.tq_graphics_basics.tq_render)
 
-        # f2d.set_xlim(2., 5.)
-        # f2d.set_ylim(-1, 1)
+
+
+        # f2d.set_clipping_planes()
+
+        x = np.linspace(1., 5.25, num=50)
+        y = np.sin(x)
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        f2d.plot(x, y, color="black", thickness=5.)
+        # f2d.setPos(0.2, 0., 0.2)
+
+        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        lims = f2d.get_lims_from_internal_data()
+        print("f2d.get_lims_from_internal_data(): ", lims)
+
+        f2d.set_xlim(2., 5.)
+        f2d.set_ylim(-0.5, 0.7)
+
+        # toggle clipping planes
+        base.accept("c", lambda f2d=f2d: f2d.toggle_clipping_planes())
 
         # f2d.update_parametric_line(
         #     lambda x: np.array([
@@ -168,18 +186,18 @@ class MyApp(ShowBase):
 
 
 
-        model_nodepath = loader.loadModel("panda.egg")
-        print("type: ", model_nodepath)
-        model_nodepath.reparentTo(render)
-        # model_nodepath.setPos(Vec3(0., 2., 0.))
-        pscale = 0.05
-        model_nodepath.setScale(pscale)
+        # model_nodepath = loader.loadModel("panda.egg")
+        # print("type: ", model_nodepath)
+        # model_nodepath.reparentTo(render)
+        # # model_nodepath.setPos(Vec3(0., 2., 0.))
+        # pscale = 0.05
+        # model_nodepath.setScale(pscale)
 
-        model2_nodepath = loader.loadModel("panda.egg")
-        model2_nodepath.reparentTo(render)
-        model2_nodepath.setPos(Vec3(-0.1, 0., 0.))
-        pscale = 0.05
-        model2_nodepath.setScale(pscale)
+        # model2_nodepath = loader.loadModel("panda.egg")
+        # model2_nodepath.reparentTo(render)
+        # model2_nodepath.setPos(Vec3(-0.1, 0., 0.))
+        # pscale = 0.05
+        # model2_nodepath.setScale(pscale)
 
         # # cpnp = NodePath('someModel')
         # clipping_plane_nodepath = model_nodepath.attachNewNode(PlaneNode('clip'))
@@ -189,16 +207,14 @@ class MyApp(ShowBase):
         # clipping_plane_nodepath.setPos(0., 0., 0.)
 
 
-        p = LPlanef((0,0,0), (0,1,0), (0,0,1))
-        n = PlaneNode('', p)
-        n.setClipEffect(1)
-        np = NodePath(n)
-        # model_nodepath.reparentTo(np)
-        # np.reparentTo(render)
+        # plane = LPlanef((0,0,0), (0,1,0), (0,0,1))
+        # plane_node = PlaneNode('', plane)
+        # plane_node.setClipEffect(1)
+        # plane_nodepath = NodePath(plane_node)
 
-        np.reparentTo(model_nodepath)
-        model_nodepath.setClipPlane(np)
-        model_nodepath.setPos(0.1, 0., 0.)
+        # plane_nodepath.reparentTo(model_nodepath)
+        # model_nodepath.setClipPlane(plane_nodepath)
+        # model_nodepath.setPos(0.1, 0., 0.)
 
         # # cpnp = NodePath('someModel')
         # pn = PlaneNode('clip')
@@ -206,10 +222,7 @@ class MyApp(ShowBase):
         # # clipping_plane_nodepath.setPos(0., 0., 0.)
         # model_nodepath.setClipPlane(pn)
 
-        # x = np.linspace(0., 2. * np.pi, num=50)
-        # y = np.sin(x)
-        # f2d.plot(x, y)
-        # f2d.setPos(0.2, 0., 0.2)
+
 
         # cg.set_view_to_xy_plane()
         cg.set_view_to_xz_plane()
