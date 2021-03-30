@@ -37,7 +37,7 @@ pycparser==2.20
 pydocstyle==5.1.1
 pyflakes==2.2.0
 PyGLM==1.99.1
-Pygments==2.6.1
+Pygments==2.7.4
 pylint==2.6.0
 pyls==0.1.6
 pyOpenSSL==19.1.0
