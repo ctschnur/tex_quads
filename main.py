@@ -84,27 +84,46 @@ class MyApp(ShowBase):
         f2d = Frame2d(cg)
         f2d.attach_to_render()
 
-        x = np.linspace(-5., 5, num=500)
+        x = np.linspace(0., 1, num=50)
         # y = np.sinc(x)
 
-        f2d.set_xlim(-3., 3.)
+        # f2d.set_xlim(-3., 3.)
 
         f2d.set_figsize(0.9, 0.75)
 
+        # f2d.plot(x, 0.0*x,
+        #              color="yellow", )
 
-        a = 7.
+        f2d.plot(x, 0.0*x,
+                     color="yellow", )
+
+
         # f2d.clear_plot()
-        f2d.plot(x, np.sin(x**3.), color="orange")
+        # f2d.plot(x, np.sin(x**3.), color="orange")
+
+
+        # f2d.clear_plot()
+        # f2d.plot(x, math_utils.random_polynomial(x), color="red")
+
         # f2d.clear_plot()
         # f2d.plot(x, np.cos(x**3.), color="red")
 
         # f2d.clear_plot()
         # f2d.plot(x, np.cos(x**3.), color="red")
 
+        colors = ["red", "blue", "green"]
+
+
+        # math_utils.random_polynomial_normalized(x)
         def update_random_polynomial():
             """ """
             f2d.clear_plot()
-            f2d.plot(x, np.cos(x**3.), color="red")
+            f2d.plot(x, math_utils.random_polynomial_normalized(x),
+                     color=colors[int(np.abs(np.random.rand()*3-0.001))])
+            # f2d.plot(x, np.cos(x),
+            #          color=colors[int(np.abs(np.random.rand()*3-0.001))])
+            # f2d.plot(x, 0.01*x,
+            #          color=colors[int(np.abs(np.random.rand()*3-0.001))])
 
         base.accept("r", update_random_polynomial)
 
@@ -156,8 +175,14 @@ class MyApp(ShowBase):
         cg.set_view_to_xz_plane()
 
 
+        # self.accept("r", self.OnRec)
 
+
+    def OnRec(self):
+        """ """
+        self.movie(namePrefix = 'movie', duration = 1.0, fps = 30, format = 'png', sd = 4, source = None)
 
 
 app = MyApp()
 app.run()
+base.movie(namePrefix='frame', duration=407, fps=24, format='png')

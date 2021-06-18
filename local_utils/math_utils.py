@@ -392,6 +392,18 @@ def random_polynomial(x):
     print(len(coeffs), len(shifts))
     return generate_polynomial(x, coeffs, shifts)
 
+def random_polynomial_normalized(x):
+    """ """
+    y = random_polynomial(x)
+    divisor = np.abs(max(y) - min(y))
+    if equal_up_to_epsilon(divisor, 0., epsilon=1e-8):
+        divisor += 2.*1e-8
+
+    y = y/(divisor) * np.random.rand()
+
+    # print(min(y), max(y))
+    return y
+
 def decompose_affine_trafo_4x4(mat4x4_np):
     """
     Args:

@@ -1027,7 +1027,7 @@ class Point3dCursor(TQGraphicsNodePath):
         return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
 
 
-class BasicOriente2dText(IndicatorPrimitive):
+class BasicOrientedText(IndicatorPrimitive):
     """ a text label attached to aspect2d,  """
 
     def __init__(self,

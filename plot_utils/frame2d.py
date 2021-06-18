@@ -20,7 +20,7 @@ import scipy.special
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, Fixed2dLabel
 from local_utils import math_utils
 
-from simple_objects.simple_objects import BasicText, BasicOriente2dText
+from simple_objects.simple_objects import BasicText, BasicOrientedText
 
 from simple_objects import primitives
 
@@ -64,7 +64,7 @@ class Ticks(TQGraphicsNodePath):
     def remove_all_ticks(self):
         """ """
         for tick in self.ticks:
-            tick.remove()
+            tick.removeNode()
 
     def x_p3d_to_axes(x_ticks_numbers_arr):
         """ """
@@ -74,7 +74,8 @@ class Ticks(TQGraphicsNodePath):
     @staticmethod
     def get_tick_pos_along_axis(p3d_axis_length, num_arr, c_num):
         """ """
-        return (p3d_axis_length/Ticks.get_arr_span(num_arr)) * (c_num - min(num_arr))
+        arr_span = Ticks.get_arr_span(num_arr)
+        return (p3d_axis_length/arr_span) * (c_num - min(num_arr))
 
     @staticmethod
     def get_arr_span(num_arr):
@@ -94,21 +95,34 @@ class Ticks(TQGraphicsNodePath):
         for c_num in num_arr:
             pos = Ticks.get_tick_pos(p3d_axis_length, num_arr, c_num)
 
+            if (np.abs(pos) == np.inf):
+                print("warning: (np.abs(math_utils.p3d_to_np(pos)) == np.inf).any() == True: TODO: improve this mechanism!") # TODO: before updating the ticks check if the range of the ticks is near zero. then set the minimum range and center it around the middle
+                return
+
             line = Line1dSolid(thickness=1.5)
-            line.setTipPoint(Vec3(pos, 0., self.tick_length/2.))
-            line.setTailPoint(Vec3(pos, 0., -self.tick_length/2.))
+            a = Vec3(pos, 0., self.tick_length/2.)
+            b = Vec3(pos, 0., -self.tick_length/2.)
 
-            label = BasicOriente2dText(self.camera_gear, text="{:.2f}".format(c_num))
+            print("a: ", a)
+            print("b: ", b)
+            line.setTipPoint(a)
+            line.setTailPoint(b)
 
-            pt1, pt2 = label.getTightBounds()
-            width = pt2.getX()  - pt1.getX()
-            height = pt2.getY() - pt1.getY()
+            label = BasicOrientedText(self.camera_gear, text="{:.2f}".format(c_num))
+
+            print("after")
+
+            # pt1, pt2 = label.getTightBounds()
+            # width = pt2.getX()  - pt1.getX()
+            # height = pt2.getY() - pt1.getY()
 
             if axis_direction_index==0:
-                label.setPos(Vec3(pos, 0., -4.*width
+                label.setPos(Vec3(pos, 0., # -4.*width
+                0.
                 ))
             elif axis_direction_index==1:
-                label.setPos(Vec3(pos, 0., height
+                label.setPos(Vec3(pos, 0., # height
+                0.
                 ))
 
             t = Tick()
@@ -175,11 +189,6 @@ class Frame2d(TQGraphicsNodePath):
 
         self.set_figsize(self.height, self.width, update_graphics=None)
 
-        self.set_xlim(self.xmin_hard, self.xmax_hard, update_graphics=False)
-        self.set_ylim(self.ymin_hard, self.ymax_hard, update_graphics=False)
-
-        # self.plp1 = None
-
         self.ticks_arr = []
 
         for i, n_vec in zip(range(self.d), Frame2d.axis_direction_vectors):
@@ -190,21 +199,10 @@ class Frame2d(TQGraphicsNodePath):
             # h, p, r = ticks.getHpr()
             # ticks.setHpr(h, p , r - i * 90.)
 
-        # self.ticks_max_density = 10. # per p3d length unit
-        # self.ticks_min_density = 3. # per p3d length unit
-
         self.update_ticks()
-
-        # transform the y=0 of the curve in p3d coordinates to frame coordinates
-        # self.getPos()[2] + Ticks.get_tick_pos_along_axis(self.height, self.ticks_arr_numbers[1], 0)
-
-    # def reparentTo(self, *args, **kwargs):
-    #     """ """
-    #     return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
 
     def toggle_clipping_planes(self):
         """ """
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
         if len(self.clipping_planes_p3d_nodepaths) == 0: # no clipping planes enabled
             self.set_clipping_planes()
         else:
@@ -250,8 +248,6 @@ class Frame2d(TQGraphicsNodePath):
             clipped_thing_nodepath.setClipPlane(plane2_nodepath)
             self.clipping_planes_p3d_nodepaths.append(plane2_nodepath)
 
-            # clipped_thing_nodepath.setPos(0., 0., 0.)
-
         pass
 
 
@@ -268,10 +264,11 @@ class Frame2d(TQGraphicsNodePath):
     #     return math_utils.getTranslationMatrix4x4(0., 0., self.height).dot(
     #         math_utils.getTranslationMatrix4x4(self.pos_x, 0., self.pos_y))
 
-    def update_ticks(self, regenerate_ticks=False):
+    def update_ticks(self, # regenerate_ticks=False
+    ):
         """ make sure the density of ticks is between ticks_max_density and ticks_min_density, then adjust the ticks """
-        if regenerate_ticks == True:
-            self.regenerate_ticks_arr_numbers(possibly_update_lims_from_internal_data=True)
+        # if regenerate_ticks == True:
+        self.regenerate_ticks_arr_numbers(possibly_update_lims_from_internal_data=True)
 
         for i, axis_p3d_length, axis_direction_index in zip(range(self.d), [self.width, self.height], Frame2d.axis_direction_indices):
             self.ticks_arr[i].set_ticks_by_arr(self.ticks_arr_numbers[i], axis_p3d_length, axis_direction_index=axis_direction_index)
@@ -288,11 +285,11 @@ class Frame2d(TQGraphicsNodePath):
         if update_graphics==True:
             self.quad.setPos(Vec3(0., 0., self.height))
             self.set_clipping_planes()
-            self.update_graphics_alignment(regenerate_ticks=True)
+            self.update_graphics_alignment()
 
-    def update_graphics_alignment(self, regenerate_ticks=False):
+    def update_graphics_alignment(self):
         """ """
-        self.update_ticks(regenerate_ticks=regenerate_ticks)
+        self.update_ticks()
         self.update_alignment()
 
     def lims_hard_p(self):
@@ -337,15 +334,12 @@ class Frame2d(TQGraphicsNodePath):
                 ymax = cur_ymax
                 changed = True
 
-        # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+        _vars = [xmin, xmax, ymin, ymax]
 
-        assert changed==False or (xmin < xmax and ymin < ymax)
-
-        if changed==True:
-            return [(xmin, xmax), (ymin, ymax)]
-        else:
+        if np.inf in _vars or -np.inf in _vars:
             return []
-
+        else:
+            return [(xmin, xmax), (ymin, ymax)]
 
     def regenerate_ticks_arr_numbers(self, possibly_update_lims_from_internal_data=False):
         """ """
@@ -367,6 +361,14 @@ class Frame2d(TQGraphicsNodePath):
     def set_xlim(self, xmin, xmax, update_graphics=True, hard=True, regenerate=True):
         """ if hard == False, figure out the preceding limits automatically
             from the line data """
+
+        if math_utils.equal_up_to_epsilon(xmin, xmax):
+            span_abs = np.abs(xmax-xmin)
+            center = xmin + span_abs / 2.
+            padding0 = 0.1
+            xmin = center - padding0
+            xmax = center + padding0
+
         if hard == True:
             self.xmin_hard = xmin
             self.xmax_hard = xmax
@@ -383,7 +385,7 @@ class Frame2d(TQGraphicsNodePath):
             self.regenerate_ticks_arr_numbers()
 
         if update_graphics == True:
-            self.update_graphics_alignment(regenerate_ticks=True)
+            self.update_graphics_alignment()
 
     def unset_hard_xylims(self, reset_x_lim=True, reset_y_lim=True):
         """ """
@@ -413,6 +415,14 @@ class Frame2d(TQGraphicsNodePath):
     def set_ylim(self, ymin, ymax, update_graphics=True, hard=True, regenerate=True):
         """ if hard == False, figure out the preceding limits automatically
             from the line data """
+
+        if math_utils.equal_up_to_epsilon(ymin, ymax):
+            span_abs = np.abs(ymax-ymin)
+            center = ymin + span_abs / 2.
+            padding0 = 0.1
+            ymin = center - padding0
+            ymax = center + padding0
+
         if hard == True:
             self.ymin_hard = ymin
             self.ymax_hard = ymax
@@ -428,7 +438,7 @@ class Frame2d(TQGraphicsNodePath):
         self.regenerate_ticks_arr_numbers()
 
         if update_graphics == True:
-            self.update_graphics_alignment(regenerate_ticks=True)
+            self.update_graphics_alignment()
 
     def get_p3d_to_frame_unit_length_scaling_factor(self, axis_direction_index):
         """ """
@@ -443,22 +453,23 @@ class Frame2d(TQGraphicsNodePath):
 
     def update_alignment(self):
         """ """
-        # p = Point3d(scale=0.25, color=Vec4(1., 0., 0., 1.))
-        # p.reparentTo(self)
-
         pos_for_x = math_utils.p3d_to_np(Frame2d.axis_direction_vectors[0]) * Ticks.get_tick_pos_along_axis(self.width, self.ticks_arr_numbers[0], 0.0)
         pos_for_y = math_utils.p3d_to_np(Frame2d.axis_direction_vectors[1]) * Ticks.get_tick_pos_along_axis(self.height, self.ticks_arr_numbers[1], 0.0)
 
         pos_tmp = math_utils.p3d_to_np(pos_for_y) + math_utils.p3d_to_np(pos_for_x)
-        # p.setPos(math_utils.np_to_p3d_Vec3(pos_tmp))
-
-        # pos_tmp = math_utils.p3d_to_np(pos_for_y)
 
         for line in self.linesin2dframe.lines:
-            print("set scale: ", self.get_p3d_to_frame_unit_length_scaling_factor(0), 1., self.get_p3d_to_frame_unit_length_scaling_factor(1))
-            line.setScale(self.get_p3d_to_frame_unit_length_scaling_factor(0), 1., self.get_p3d_to_frame_unit_length_scaling_factor(1))
-            print("self.get_p3d_to_frame_unit_length_scaling_factor(1): ", self.get_p3d_to_frame_unit_length_scaling_factor(1))
-            line.setPos(math_utils.np_to_p3d_Vec3(pos_tmp))
+            x_scale = self.get_p3d_to_frame_unit_length_scaling_factor(0)
+            y_scale = self.get_p3d_to_frame_unit_length_scaling_factor(1)
+
+            print("x_scale, y_scale: ", x_scale, y_scale)
+            cond = np.abs(x_scale) > 1e-8 and np.abs(y_scale) > 1e-8
+            if cond:
+                line.setScale(x_scale, 1., y_scale)
+                line.setPos(math_utils.np_to_p3d_Vec3(pos_tmp))
+            else:
+                print("scaling by too low is not supported by p3d, do it differently!")
+                self.clear_plot()
 
 
     def get_p3d_axis_length_from_axis_direction_index(self, axis_direction_index):
@@ -475,6 +486,8 @@ class Frame2d(TQGraphicsNodePath):
              color="white",
              thickness=2):
         """ x, y: discrete points (each one a 1d numpy array, same size)"""
+        # TODO: check if it is a line along only x or only y and then set soft xlims with a flag
+
         if x is not None and y is not None:
             assert np.shape(x) == np.shape(y)
 
@@ -483,7 +496,7 @@ class Frame2d(TQGraphicsNodePath):
             sl.reparentTo(self.linesin2dframe)
             self.linesin2dframe.lines.append(sl)
 
-        self.update_graphics_alignment(regenerate_ticks=True)
+        self.update_graphics_alignment()
 
     def clear_plot(self):
         """ """
@@ -492,7 +505,7 @@ class Frame2d(TQGraphicsNodePath):
 
         self.linesin2dframe.lines = []
 
-        self.update_graphics_alignment(regenerate_ticks=True)
+        self.update_graphics_alignment()
 
     def get_plot_x_range(self):
         return self.xmax_hard - self.xmin_hard
