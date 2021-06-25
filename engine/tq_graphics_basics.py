@@ -58,6 +58,17 @@ def get_window_aspect_ratio():
     """ """
     return get_window_size_x()/get_window_size_y()
 
+def get_pts_to_p3d_units(num_of_pt):
+    """ define 1 p3d unit be 100/pt_to_height_p3d_scale num_of_pt """
+    pt_to_height_p3d_scale = 0.6
+    return pt_to_height_p3d_scale * float(num_of_pt)/(100.)
+
+def get_font_bmp_pixels_from_height(height):
+    """ 10 pixels from height of 0.1
+        the aspect2d viewport goes in the up direction from -1 to 1 -> range of 2 """
+    pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
+    return pixels_per_p3d_length_unit * height  # how many pixels
+
 class TQGraphicsNodePath:
     """ Anything that fundamentally is a only a graphics object in this engine should have these properties.
 
@@ -324,6 +335,10 @@ class TQGraphicsNodePath:
     def getTightBounds(self, *args, **kwargs):
         """ """
         return self.p3d_nodepath.getTightBounds(*args, **kwargs)
+
+    def showTightBounds(self, *args, **kwargs):
+        """ """
+        return self.p3d_nodepath.showTightBounds(*args, **kwargs)
 
 
 class TQLoader:

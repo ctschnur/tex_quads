@@ -874,18 +874,6 @@ class BasicText(IndicatorPrimitive):
 
         self.pointsize = 11
 
-        def get_height_p3d_from_pointsize(pt):
-            """ let 1 p3d units be 100/pt_to_height_p3d_scale pt """
-            pt_to_height_p3d_scale = 0.6
-            return pt_to_height_p3d_scale * float(pt)/(100.)
-
-        def get_font_bmp_pixels_from_height(height):
-            """ 10 pixels from height of 0.1
-                the aspect2d viewport goes in the up direction from -1 to 1 -> range of 2
-            """
-            pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
-            return pixels_per_p3d_length_unit * height  # how many pixels
-
         self.text = text
 
         self.font = None
@@ -898,7 +886,9 @@ class BasicText(IndicatorPrimitive):
         self.textNode.setText(self.text)
         self._font_p3d = loader.loadFont(self.font)
 
-        self.pixels_per_unit = get_font_bmp_pixels_from_height(get_height_p3d_from_pointsize(self.pointsize))
+        self.pixels_per_unit = engine.tq_graphics_basics.get_font_bmp_pixels_from_height(
+            engine.tq_graphics_basics.get_pts_to_p3d_units(self.pointsize))
+
         self._font_p3d.setPixelsPerUnit(self.pixels_per_unit)
 
         # self._font_p3d.setPointSize(64)
@@ -925,21 +915,21 @@ class BasicText(IndicatorPrimitive):
         self.setTwoSided(True)
         self.set_render_above_all(True)
 
-        def get_scale_matrix_initial_to_font_size():
-            """ """
-            initial_height = self.textNode.getHeight()
-            print("initial_height", initial_height)
-            scale_factor_to_height_1 = 1./initial_height
+        # def get_scale_matrix_initial_to_font_size():
+        #     """ """
+        #     initial_height = self.textNode.getHeight()
+        #     print("initial_height", initial_height)
+        #     scale_factor_to_height_1 = 1./initial_height
 
-            pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
+        #     pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
 
-            scale_height_1_to_pixels = 1./pixels_per_p3d_length_unit
-            # print(scale_height_1_to_pixels * self.pixels_per_unit * 2.0)
+        #     scale_height_1_to_pixels = 1./pixels_per_p3d_length_unit
+        #     # print(scale_height_1_to_pixels * self.pixels_per_unit * 2.0)
 
-            scale = scale_height_1_to_pixels * self.pixels_per_unit
-            self.setScale(scale, 1., scale)
+        #     scale = scale_height_1_to_pixels * self.pixels_per_unit
+        #     self.setScale(scale, 1., scale)
 
-        get_scale_matrix_initial_to_font_size()
+        # get_scale_matrix_initial_to_font_size()
 
 
 class Point3dCursor(TQGraphicsNodePath):
@@ -1034,27 +1024,15 @@ class BasicOrientedText(IndicatorPrimitive):
                  camera_gear,
                  text="Basic text",
                  font=None,
-                 centered=True):
+                 centered="left"):
 
         IndicatorPrimitive.__init__(self)
 
-        self.pointsize = 11
+        self.pointsize = 10
 
         self.camera_gear = camera_gear # needed for re-orientation towards the camera whenever it's updated or the camera moves
 
         self._initial_normal_vector = Vec3(0., 1., 0.)
-
-        def get_height_p3d_from_pointsize(pt):
-            """ let 1 p3d units be 100/pt_to_height_p3d_scale pt """
-            pt_to_height_p3d_scale = 0.6
-            return pt_to_height_p3d_scale * float(pt)/(100.)
-
-        def get_font_bmp_pixels_from_height(height):
-            """ 10 pixels from height of 0.1
-                the aspect2d viewport goes in the up direction from -1 to 1 -> range of 2
-            """
-            pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
-            return pixels_per_p3d_length_unit * height  # how many pixels
 
         self.text = text
 
@@ -1068,7 +1046,9 @@ class BasicOrientedText(IndicatorPrimitive):
         self.textNode.setText(self.text)
         self._font_p3d = loader.loadFont(self.font)
 
-        self.pixels_per_unit = get_font_bmp_pixels_from_height(get_height_p3d_from_pointsize(self.pointsize))
+        self.pixels_per_unit = engine.tq_graphics_basics.get_font_bmp_pixels_from_height(
+            engine.tq_graphics_basics.get_pts_to_p3d_units(self.pointsize))
+
         self._font_p3d.setPixelsPerUnit(self.pixels_per_unit)
         self._font_p3d.setPointSize(self.pointsize)
         self.textNode.setFont(self._font_p3d)
@@ -1076,7 +1056,11 @@ class BasicOrientedText(IndicatorPrimitive):
         self.textNode.setShadow(0.05, 0.05)
         self.textNode.setShadowColor(0, 0, 0, 1)
 
-        if centered == True:
+        if centered == "right":
+            self.textNode.setAlign(TextNode.ARight)
+        elif centered == "left":
+            self.textNode.setAlign(TextNode.ALeft)
+        elif centered == "center":
             self.textNode.setAlign(TextNode.ACenter)
 
         self.set_node_p3d(self.textNode)

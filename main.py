@@ -20,7 +20,6 @@ import local_tests.svgpathtodat.main
 import os
 import sys
 import pytest
-# import gltf
 
 import cameras.Orbiter
 import cameras.plain_camera_gear
@@ -76,58 +75,41 @@ class MyApp(ShowBase):
 
         f2l = Fixed2dLabel(text=str(1))
         f2l.attach_to_aspect2d()
-        # f2l.setPos2d(pos_x=1., pos_y=1.)
         f2l.setPos(Vec3(0., 0., 0.))
-        print(f2l.getPos())
 
+        # print(f2l.getPos())
+
+
+        # ----------- BEGIN FRAME2d experiments --------
 
         f2d = Frame2d(cg)
         f2d.attach_to_render()
 
-        x = np.linspace(0., 1, num=50)
-        # y = np.sinc(x)
+        # f2d.set_figsize(1., 0.)
 
-        # f2d.set_xlim(-3., 3.)
+        f2d.set_figsize(1., 0.8)
 
-        f2d.set_figsize(0.9, 0.75)
-
-        # f2d.plot(x, 0.0*x,
-        #              color="yellow", )
-
-        f2d.plot(x, 0.0*x,
-                     color="yellow", )
+        x = np.linspace(-1, 1, num=50)
+        # f2d.plot(x, x**2. + 2*x**3, color="red")
+        # f2d.plot(x, 1. + x**2. + 2*x**3, color="blue")
+        f2d.plot(x, np.sin(10*x), color="orange")
+        # f2d.plot(x, - (x**2. + 2*x**3), color="green", thickness=10)
 
 
-        # f2d.clear_plot()
-        # f2d.plot(x, np.sin(x**3.), color="orange")
+        f2d.plot(x, 2.*np.sin(5*x), color="blue")
 
+        f2d.plot(x, np.array([2.5]*len(x)), color="white")
 
-        # f2d.clear_plot()
-        # f2d.plot(x, math_utils.random_polynomial(x), color="red")
-
-        # f2d.clear_plot()
-        # f2d.plot(x, np.cos(x**3.), color="red")
-
-        # f2d.clear_plot()
-        # f2d.plot(x, np.cos(x**3.), color="red")
+        # ----------- END FRAME2d experiments --------
 
         colors = ["red", "blue", "green"]
 
-
-        # math_utils.random_polynomial_normalized(x)
         def update_random_polynomial():
             """ """
-            f2d.clear_plot()
-            f2d.plot(x, math_utils.random_polynomial_normalized(x),
+            f2d.plot(x, 5*math_utils.random_polynomial_normalized(x),
                      color=colors[int(np.abs(np.random.rand()*3-0.001))])
-            # f2d.plot(x, np.cos(x),
-            #          color=colors[int(np.abs(np.random.rand()*3-0.001))])
-            # f2d.plot(x, 0.01*x,
-            #          color=colors[int(np.abs(np.random.rand()*3-0.001))])
 
         base.accept("r", update_random_polynomial)
-
-
 
         # f2d.set_figsize(0.9, 0.9)
 
@@ -138,7 +120,7 @@ class MyApp(ShowBase):
         # f2d.quad.set_width(0.2)
 
         # toggle clipping planes
-        base.accept("c", lambda f2d=f2d: f2d.toggle_clipping_planes())
+        # base.accept("c", lambda f2d=f2d: f2d.toggle_clipping_planes())
 
         # l = Line1dSolid(thickness=2.0, color=Vec4(0., 1., 0., 1.))
         # l.setColor(Vec4(0., 1., 1., 1.), 1)
@@ -152,7 +134,6 @@ class MyApp(ShowBase):
         #     f2d.clear_plot()
         #     f2d.plot(x + a, np.sin(x + a))
 
-
         # s = Sequence(
         #     duration=5.,
         #     extraArgs=[f2d, f2d.width, f2d.height],
@@ -161,19 +142,24 @@ class MyApp(ShowBase):
         # )
         # s.start()
 
-        a = Vector()
-        a.setTipPoint(Vec3(1., 1., 1.))
-        a.setTailPoint(Vec3(0.3, 0.3, 0.3))
-        a.reparentTo_p3d(render)
-        a.setColor(Vec4(0., 1., 1., 1.), 1)
+        # a = Vector()
+        # a.setTipPoint(Vec3(1., 1., 1.))
+        # a.setTailPoint(Vec3(0.3, 0.3, 0.3))
+        # a.reparentTo_p3d(render)
+        # a.setColor(Vec4(0., 1., 1., 1.), 1)
 
+        # # height:  0.0335018546320498 , width:  0.2910444438457489
+        # height:  0.0670037092640996 , width:  0.17515186220407486
 
-        # q = Quad(width=1.25, height=0.95)
-        # q.set_width(0.5)
-        # q.reparentTo_p3d(render)
+        q = Quad(width=0.17515186220407486, height=0.0670037092640996, color=(1,0,1,1))
+        q.setPos(0, 0, -0.25)
+        q.reparentTo_p3d(render)
+
+        # q2 = Quad(width=0.149, height=0.034, color=(1,0,1,1))
+        # q2.setPos(0, 0, -0.5)
+        # q2.reparentTo_p3d(render)
 
         cg.set_view_to_xz_plane()
-
 
         # self.accept("r", self.OnRec)
 
