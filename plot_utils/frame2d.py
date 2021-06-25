@@ -46,6 +46,7 @@ class Tick(TQGraphicsNodePath):
         self.label = label
         self.label.reparentTo(self)
 
+
 class Ticks(TQGraphicsNodePath):
     """ """
     def __init__(self, camera_gear):
@@ -97,8 +98,8 @@ class Ticks(TQGraphicsNodePath):
             a = Vec3(pos, 0., self.tick_length/2.)
             b = Vec3(pos, 0., -self.tick_length/2.)
 
-            print("a: ", a)
-            print("b: ", b)
+            # print("a: ", a)
+            # print("b: ", b)
             line.setTipPoint(a)
             line.setTailPoint(b)
 
@@ -116,7 +117,7 @@ class Ticks(TQGraphicsNodePath):
 
             if axis_direction_index==0:
                 label.setPos(Vec3(pos, 0., -height*1.5))
-                print("height: ", height, ", width: ", width)
+                # print("height: ", height, ", width: ", width)
             elif axis_direction_index==1:
                 label.setPos(Vec3(pos - (height/4.), 0., width))
 
@@ -130,6 +131,7 @@ class Ticks(TQGraphicsNodePath):
             # the relative orientation to render has changed by the reparenting
             label.face_camera()
 
+
 class LinesIn2dFrame(TQGraphicsNodePath):
     """ used e.g. for clipping in a frame2d (and not affecting other things like borders) """
     def __init__(self):
@@ -137,6 +139,7 @@ class LinesIn2dFrame(TQGraphicsNodePath):
         TQGraphicsNodePath.__init__(self)
 
         self.lines = []
+
 
 class Frame2d(TQGraphicsNodePath):
     """ a 2d frame within which 2d data can be displayed, i.e. numpy x and y arrays """
@@ -331,7 +334,7 @@ class Frame2d(TQGraphicsNodePath):
         _vars = [xmin, xmax, ymin, ymax]
 
         if np.inf in _vars or -np.inf in _vars:
-            print("ERR: infinity is not a valid axes limit!")
+            # print("ERR: infinity is not a valid axes limit!")
             return []
         else:
             # set an offset to the data
@@ -471,7 +474,7 @@ class Frame2d(TQGraphicsNodePath):
             x_scale = self.get_p3d_to_frame_unit_length_scaling_factor(0)
             y_scale = self.get_p3d_to_frame_unit_length_scaling_factor(1)
 
-            print("x_scale, y_scale: ", x_scale, y_scale)
+            # print("x_scale, y_scale: ", x_scale, y_scale)
             cond = np.abs(x_scale) > 1e-8 and np.abs(y_scale) > 1e-8
             if cond:
                 line.setScale(x_scale, 1., y_scale)

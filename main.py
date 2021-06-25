@@ -65,6 +65,58 @@ class F2dUpdater:
 
         print("self.ctr:", self.ctr)
 
+# --------
+
+class FramesUpdater:
+    """ """
+    def __init__(self, f2d, tf_in_s, fps):
+        """ accepts a Frame2d """
+
+        self.idx_frame_old = 0
+
+        self.f2d = f2d
+
+        self.frame_xs = np.linspace(0, 1., num=100)
+        self.frames = []
+
+        self.tf_in_s = tf_in_s  # e.g. 3
+        self.fps = fps  # e.g. 25
+
+        self.ti = 0
+        self.tf = self.tf_in_s * self.fps
+        for t in range(self.ti, self.tf):
+            self.frames.append([
+                self.frame_xs, (0.5 * (1+t/self.tf)) *
+                (np.sin(self.frame_xs*t) +
+                 np.cos(np.sqrt(self.frame_xs*t/self.tf)*self.tf))])
+
+        self.frame_ctr = 0
+
+    def get_next_frame(self):
+        """ """
+        self.frame_ctr = self.frame_ctr % self.tf
+        _frame = self.frames[self.frame_ctr]
+        print("self.frame_ctr:", self.frame_ctr)
+        self.frame_ctr += 1
+        return _frame
+
+    def render_frame(self, a):
+        """ 0 < a < 1 """
+        idx_frame = int(a*self.tf)
+        x, y = self.frames[idx_frame]
+        # x, y = self.get_next_frame()
+
+        if self.idx_frame_old != idx_frame:
+            self.f2d.clear_plot()
+            self.f2d.plot(x, y)
+
+        self.idx_frame_old = idx_frame
+
+    def say_finished(self):
+        print("finished!")
+
+# --------
+
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -132,6 +184,37 @@ class MyApp(ShowBase):
         )
 
         base.accept("r", f2dUpdater.add_plot)
+
+
+        # ----------
+
+        time_in_s = 100
+        fps = 25
+
+        fu = FramesUpdater(f2d, time_in_s, 5)
+
+        sf_seq = Sequence()
+        sf_seq.set_sequence_params(
+            duration=time_in_s,  # in seconds ?
+            extraArgs=[],
+            update_function=fu.render_frame,
+            on_finish_function=fu.say_finished)
+
+        sf_seq.start()
+
+        # self.anim_seq = Sequence()
+
+    #     self.anim_seq.set_sequence_params(
+    #         duration=self.duration,
+    #         extraArgs=[],
+    #         update_function=self.update,
+    #         on_finish_function=self.restart_animation)
+
+    #     self.anim_seq.start()
+
+    # def restart_animation(self):
+    #     self.anim_seq.set_t(0.)
+    #     self.anim_seq.resume()
 
         # f2d.set_figsize(0.9, 0.9)
         # f2d.setScale(1., 0., 0.9)
