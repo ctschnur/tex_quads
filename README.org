@@ -15,9 +15,11 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 ** Integration
 - [X] make the cursor ui element lock it's orientation to the camera
 - [X] make a text label object that is attached to the render tree but always updates to face the camera
-- [ ] make a Frame2d for basic xy parametric curves plotting
-  - [ ] offset the labels properly from the axes
-  - [ ] updating the plot, properly cleaning up the scene graph, resetting the labels
+- [X] make a Frame2d for basic xy parametric curves plotting
+  - [X] offset the labels properly from the axes
+  - [X] resetting the labels to their correct orientation upon dynamic update of graph
+- make an animated plot in the 2d frame with a queue of frames of of xy data
+  - make a set of xy data frames and cycle through these frames, updating the plot
   
 
 ** Branched Podcast Interface

@@ -66,11 +66,6 @@ class Ticks(TQGraphicsNodePath):
         for tick in self.ticks:
             tick.removeNode()
 
-    def x_p3d_to_axes(x_ticks_numbers_arr):
-        """ """
-        arr_span = np.abs(np.max(x_ticks_numbers_arr) - np.min(x_ticks_numbers_arr))
-        arr_num_min = np.min(self.arr)
-
     @staticmethod
     def get_tick_pos_along_axis(p3d_axis_length, num_arr, c_num):
         """ """
@@ -82,22 +77,20 @@ class Ticks(TQGraphicsNodePath):
         """ """
         return np.abs(np.max(num_arr) - np.min(num_arr))
 
-    @staticmethod
-    def get_tick_pos(p3d_axis_length, num_arr, c_num):
-        """ """
-        return Ticks.get_tick_pos_along_axis(p3d_axis_length, num_arr, c_num)
-
-    def set_ticks_by_arr(self, num_arr, p3d_axis_length, axis_direction_index):
+    def regenerate_ticks_by_arr(self, num_arr, p3d_axis_length, axis_direction_index):
         """ pass an array, generate a bunch of vertical lines """
         self.remove_all_ticks()
         self.num_arrs[axis_direction_index] = num_arr
 
         for c_num in num_arr:
-            pos = Ticks.get_tick_pos(p3d_axis_length, num_arr, c_num)
+            pos = Ticks.get_tick_pos_along_axis(p3d_axis_length, num_arr, c_num)
 
             if (np.abs(pos) == np.inf):
-                print("warning: (np.abs(math_utils.p3d_to_np(pos)) == np.inf).any() == True: TODO: improve this mechanism!")
-                # TODO: before updating the ticks check if the range of the ticks is near zero. then set the minimum range and center it around the middle
+                print("warning: (np.abs(math_utils.p3d_to_np(pos)) == np.inf).any() == True: ",
+                      "TODO: improve this mechanism!")
+                # TODO: before updating the ticks check if the range
+                # of the ticks is near zero. then set the minimum range
+                # and center it around the middle
                 return
 
             line = Line1dSolid(thickness=1.5)
@@ -110,14 +103,14 @@ class Ticks(TQGraphicsNodePath):
             line.setTailPoint(b)
 
             label = None
-            if axis_direction_index==0:
+            if axis_direction_index == 0:
                 alignment = "center"
-            if axis_direction_index==1:
+            if axis_direction_index == 1:
                 alignment = "center"
 
             label = BasicOrientedText(self.camera_gear, text="{:.1e}".format(c_num), centered=alignment)
 
-            label.showTightBounds()
+            # label.showTightBounds()
             height = engine.tq_graphics_basics.get_pts_to_p3d_units(label.pointsize)
             width = (label.textNode.getWidth()/label.textNode.getHeight()) * height
 
@@ -132,6 +125,10 @@ class Ticks(TQGraphicsNodePath):
             t.set_label(label)
             t.reparentTo(self)
             self.ticks.append(t)
+
+            # re-face the camera again after being reparented to a tick, since
+            # the relative orientation to render has changed by the reparenting
+            label.face_camera()
 
 class LinesIn2dFrame(TQGraphicsNodePath):
     """ used e.g. for clipping in a frame2d (and not affecting other things like borders) """
@@ -201,7 +198,7 @@ class Frame2d(TQGraphicsNodePath):
             # h, p, r = ticks.getHpr()
             # ticks.setHpr(h, p , r - i * 90.)
 
-        self.update_ticks()
+        self.regenerate_ticks()
 
     def toggle_clipping_planes(self):
         """ """
@@ -251,9 +248,6 @@ class Frame2d(TQGraphicsNodePath):
             clipped_thing_nodepath.setClipPlane(plane2_nodepath)
             self.clipping_planes_p3d_nodepaths.append(plane2_nodepath)
 
-        pass
-
-
     @staticmethod
     def get_axis_direction_index_from_char_index(char_index):
         if x_or_y_str == "x":
@@ -262,15 +256,16 @@ class Frame2d(TQGraphicsNodePath):
             return 1
         assert False
 
+    def regenerate_ticks(self):
+        """ make sure the density of ticks is between ticks_max_density and ticks_min_density,
+        then adjust the ticks """
 
-    def update_ticks(self):
-        """ make sure the density of ticks is between ticks_max_density and ticks_min_density, then adjust the ticks """
-
-        # if regenerate_ticks == True:
         self.regenerate_ticks_arr_numbers(possibly_update_lims_from_internal_data=True)
 
-        for i, axis_p3d_length, axis_direction_index in zip(range(self.d), [self.width, self.height], Frame2d.axis_direction_indices):
-            self.ticks_arr[i].set_ticks_by_arr(self.ticks_arr_numbers[i], axis_p3d_length, axis_direction_index=axis_direction_index)
+        for i, axis_p3d_length, axis_direction_index in zip(
+                range(self.d), [self.width, self.height], Frame2d.axis_direction_indices):
+            self.ticks_arr[i].regenerate_ticks_by_arr(
+                self.ticks_arr_numbers[i], axis_p3d_length, axis_direction_index=axis_direction_index)
 
     def set_figsize(self, width, height, update_graphics=True):
         """ set the size of the figure, in p3d units """
@@ -288,7 +283,7 @@ class Frame2d(TQGraphicsNodePath):
 
     def update_graphics_alignment(self):
         """ """
-        self.update_ticks()
+        self.regenerate_ticks()
         self.update_alignment()
 
     def lims_hard_p(self):
@@ -340,7 +335,8 @@ class Frame2d(TQGraphicsNodePath):
             return []
         else:
             # set an offset to the data
-            margin_factor = 0.05  # offset the margin of the plot by 0.1 times the span of the displayed data
+            # offset the margin of the plot by 0.1 times the span of the displayed data
+            margin_factor = 0.05
 
             xspan = np.abs(xmax - xmin)
             offset = xspan * margin_factor

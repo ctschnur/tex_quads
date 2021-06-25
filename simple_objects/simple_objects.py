@@ -1094,11 +1094,11 @@ class BasicOrientedText(IndicatorPrimitive):
         self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
         super().reparentTo(self.additional_trafo_nodepath)
 
-        self.camera_gear.add_camera_move_hook(self._adjust)
+        self.camera_gear.add_camera_move_hook(self.face_camera)
 
-        self._adjust()
+        self.face_camera()
 
-    def _adjust(self):
+    def face_camera(self):
         """ """
         x, y, z, up_vector, eye_vector = self.camera_gear.get_spherical_coords(
             get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
@@ -1114,14 +1114,18 @@ class BasicOrientedText(IndicatorPrimitive):
 
     def setPos(self, *args, **kwargs):
         """ """
-        return self.additional_trafo_nodepath.setPos(*args, **kwargs)
+        res = self.additional_trafo_nodepath.setPos(*args, **kwargs)
+        # self.face_camera()
+        return res
 
     def reparentTo(self, *args, **kwargs):
         """ """
-        return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
+        res = self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
+        # self.face_camera()
+        return res
 
     def removeNode(self):
         """ """
-        self.camera_gear.remove_camera_move_hook(self._adjust)
+        self.camera_gear.remove_camera_move_hook(self.adjust_rotation_to_camera)
         super().removeNode()
         return self.additional_trafo_nodepath.removeNode()

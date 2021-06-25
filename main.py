@@ -35,12 +35,36 @@ from plot_utils.symbols.waiting_symbol import WaitingSymbol
 from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadLoggerElement
 from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 import plot_utils.ui_thread_logger
+
 from statemachine.edgeplayer import EdgePlayerSM
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
 
 from engine.tq_graphics_basics import TQGraphicsNodePath
 import engine.tq_graphics_basics
 from simple_objects.mpl_integration import RotatingMatplotlibFigure
+
+import plot_utils.colors.colors as pucc
+
+
+class F2dUpdater:
+    """ """
+    def __init__(self, next_color_func, xy_datas, f2d):
+        """ """
+        self.ctr = 0
+        self.next_color_func = next_color_func
+        self.xy_datas = xy_datas
+        self.f2d = f2d
+
+    def add_plot(self):
+        """ """
+        self.f2d.plot(self.xy_datas[self.ctr][0],
+                      self.xy_datas[self.ctr][1],
+                      color=self.next_color_func())
+        self.ctr += 1
+        self.ctr = self.ctr % len(self.xy_datas)
+
+        print("self.ctr:", self.ctr)
+
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -68,7 +92,6 @@ class MyApp(ShowBase):
         # csp2.setPos(Vec3(0., 0., 0.))
 
         base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
-
         # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
 
         from plot_utils.frame2d import Frame2d, Ticks
@@ -79,44 +102,40 @@ class MyApp(ShowBase):
 
         # print(f2l.getPos())
 
-
         # ----------- BEGIN FRAME2d experiments --------
 
         f2d = Frame2d(cg)
         f2d.attach_to_render()
 
-        # f2d.set_figsize(1., 0.)
-
         f2d.set_figsize(1., 0.8)
 
-        x = np.linspace(-1, 1, num=50)
-        # f2d.plot(x, x**2. + 2*x**3, color="red")
-        # f2d.plot(x, 1. + x**2. + 2*x**3, color="blue")
+        x = np.linspace(-5, 5, num=100)
         f2d.plot(x, np.sin(10*x), color="orange")
-        # f2d.plot(x, - (x**2. + 2*x**3), color="green", thickness=10)
-
-
         f2d.plot(x, 2.*np.sin(5*x), color="blue")
-
         f2d.plot(x, np.array([2.5]*len(x)), color="white")
 
         # ----------- END FRAME2d experiments --------
 
         colors = ["red", "blue", "green"]
 
-        def update_random_polynomial():
-            """ """
-            f2d.plot(x, 5*math_utils.random_polynomial_normalized(x),
-                     color=colors[int(np.abs(np.random.rand()*3-0.001))])
+        xy_datas = [[x, 2*x],
+                    [x, 3*x],
+                    [x, -1*x**2],
+                    [x, (x+1)**3 + 2],
+                    [x, -(x+1)**3 + 2],
+                    [x, np.exp(x)]]
 
-        base.accept("r", update_random_polynomial)
+        f2dUpdater = F2dUpdater(
+            pucc.get_next_mpl_color,
+            xy_datas,
+            f2d
+        )
+
+        base.accept("r", f2dUpdater.add_plot)
 
         # f2d.set_figsize(0.9, 0.9)
-
         # f2d.setScale(1., 0., 0.9)
-
         # f2d.set_figsize(0.9, 0.1)
-
         # f2d.quad.set_width(0.2)
 
         # toggle clipping planes
@@ -151,9 +170,9 @@ class MyApp(ShowBase):
         # # height:  0.0335018546320498 , width:  0.2910444438457489
         # height:  0.0670037092640996 , width:  0.17515186220407486
 
-        q = Quad(width=0.17515186220407486, height=0.0670037092640996, color=(1,0,1,1))
-        q.setPos(0, 0, -0.25)
-        q.reparentTo_p3d(render)
+        # q = Quad(width=0.17515186220407486, height=0.0670037092640996, color=(1,0,1,1))
+        # q.setPos(0, 0, -0.25)
+        # q.reparentTo_p3d(render)
 
         # q2 = Quad(width=0.149, height=0.034, color=(1,0,1,1))
         # q2.setPos(0, 0, -0.5)
