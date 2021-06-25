@@ -65,6 +65,8 @@ class F2dUpdater:
 
         print("self.ctr:", self.ctr)
 
+        # self.f2d.axes_ticks[0].ticks[0].label.face_camera()
+
 # --------
 
 class FramesUpdater:
@@ -94,7 +96,7 @@ class FramesUpdater:
 
     def get_next_frame(self):
         """ """
-        self.frame_ctr = self.frame_ctr % self.tf
+        # self.frame_ctr = self.frame_ctr % self.tf
         _frame = self.frames[self.frame_ctr]
         print("self.frame_ctr:", self.frame_ctr)
         self.frame_ctr += 1
@@ -105,12 +107,10 @@ class FramesUpdater:
         idx_frame = int(a*self.tf)
         x, y = self.frames[idx_frame]
         # x, y = self.get_next_frame()
-
-        if self.idx_frame_old != idx_frame:
-            self.f2d.clear_plot()
-            self.f2d.plot(x, y)
-
-        self.idx_frame_old = idx_frame
+        # if :
+        self.f2d.clear_plot()
+        self.f2d.plot(x, y)
+        # self.last_frame_plotted = idx_frame
 
     def say_finished(self):
         print("finished!")
@@ -156,42 +156,51 @@ class MyApp(ShowBase):
 
         # ----------- BEGIN FRAME2d experiments --------
 
-        f2d = Frame2d(cg)
+        f2d = Frame2d(cg, update_labels_orientation=False, with_ticks=True)
         f2d.attach_to_render()
 
-        f2d.set_figsize(1., 0.8)
+        f2d.set_figsize(*np.array([1., 0.5])*1)
 
-        x = np.linspace(-5, 5, num=100)
+        f2d.set_xlim(0., 1.)
+        f2d.set_ylim(-1., 1.)
+
+        x = np.linspace(0, 1, num=100)
         f2d.plot(x, np.sin(10*x), color="orange")
         f2d.plot(x, 2.*np.sin(5*x), color="blue")
         f2d.plot(x, np.array([2.5]*len(x)), color="white")
 
-        # ----------- END FRAME2d experiments --------
-
-        colors = ["red", "blue", "green"]
-
-        xy_datas = [[x, 2*x],
-                    [x, 3*x],
-                    [x, -1*x**2],
-                    [x, (x+1)**3 + 2],
-                    [x, -(x+1)**3 + 2],
-                    [x, np.exp(x)]]
-
-        f2dUpdater = F2dUpdater(
-            pucc.get_next_mpl_color,
-            xy_datas,
-            f2d
-        )
-
-        base.accept("r", f2dUpdater.add_plot)
+        f2d.update_alignment()
 
 
-        # ----------
 
-        time_in_s = 100
-        fps = 25
 
-        fu = FramesUpdater(f2d, time_in_s, 5)
+        # # ----------- END FRAME2d experiments --------
+
+        # colors = ["red", "blue", "green"]
+
+        # xy_datas = [[x, 2*x],
+        #             [x, 3*x],
+        #             [x, x**2],
+        #             [x, (x+1)**3 + 2],
+        #             [x, -(x+1)**3 + 2],
+        #             [x, np.exp(x)]]
+
+        # # ---------------------------
+
+        # f2dUpdater = F2dUpdater(
+        #     pucc.get_next_mpl_color,
+        #     xy_datas,
+        #     f2d
+        # )
+
+        # base.accept("r", f2dUpdater.add_plot)
+
+        # # ----------
+
+        time_in_s = 1000
+        fps = 60
+
+        fu = FramesUpdater(f2d, time_in_s, fps)
 
         sf_seq = Sequence()
         sf_seq.set_sequence_params(
@@ -201,6 +210,8 @@ class MyApp(ShowBase):
             on_finish_function=fu.say_finished)
 
         sf_seq.start()
+
+        # ---------------------------
 
         # self.anim_seq = Sequence()
 

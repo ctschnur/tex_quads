@@ -1024,7 +1024,8 @@ class BasicOrientedText(IndicatorPrimitive):
                  camera_gear,
                  text="Basic text",
                  font=None,
-                 centered="left"):
+                 centered="left",
+                 update_orientation_on_camera_rotate=True):
 
         IndicatorPrimitive.__init__(self)
 
@@ -1074,29 +1075,23 @@ class BasicOrientedText(IndicatorPrimitive):
         self.setTwoSided(True)
         self.set_render_above_all(True)
 
-        def get_scale_matrix_initial_to_font_size():
-            """ """
-            initial_height = self.textNode.getHeight()
-            # print("initial_height", initial_height)
-            scale_factor_to_height_1 = 1./initial_height
-
-            pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
-
-            scale_height_1_to_pixels = 1./pixels_per_p3d_length_unit
-            # print(scale_height_1_to_pixels * self.pixels_per_unit * 2.0)
-
-            scale = scale_height_1_to_pixels * self.pixels_per_unit
-            self.setScale(scale, 1., scale)
-
-        get_scale_matrix_initial_to_font_size()
+        # --- get_scale_matrix_initial_to_font_size
+        initial_height = self.textNode.getHeight()
+        scale_factor_to_height_1 = 1./initial_height
+        pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
+        scale_height_1_to_pixels = 1./pixels_per_p3d_length_unit
+        scale = scale_height_1_to_pixels * self.pixels_per_unit
+        self.setScale(scale, 1., scale)
+        # ---
 
         self.additional_trafo_nodepath = TQGraphicsNodePath()
         self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
         super().reparentTo(self.additional_trafo_nodepath)
 
-        self.camera_gear.add_camera_move_hook(self.face_camera)
+        if update_orientation_on_camera_rotate == True:
+            self.camera_gear.add_camera_move_hook(self.face_camera)
 
-        self.face_camera()
+        # self.face_camera()
 
     def face_camera(self):
         """ """
@@ -1115,13 +1110,11 @@ class BasicOrientedText(IndicatorPrimitive):
     def setPos(self, *args, **kwargs):
         """ """
         res = self.additional_trafo_nodepath.setPos(*args, **kwargs)
-        # self.face_camera()
         return res
 
     def reparentTo(self, *args, **kwargs):
         """ """
         res = self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
-        # self.face_camera()
         return res
 
     def removeNode(self):
