@@ -1,4 +1,7 @@
 * Samples
+** Live audio plotting
+[[file:Peek-FT-from-audio.gif]]
+Live line plots from line-in audio data
 ** N-body motion
 [[file:Peek-n-body-movement.gif]]
 - numerical solution of Newton's equations of motion for n bodies with different masses and different charges (using ~scipy.integrate.odeint~)
