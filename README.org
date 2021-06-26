@@ -18,10 +18,10 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - [X] make a Frame2d for basic xy parametric curves plotting
   - [X] offset the labels properly from the axes
   - [X] resetting the labels to their correct orientation upon dynamic update of graph
-- make an animated plot in the 2d frame with a queue of frames of of xy data
-  - make a set of xy data frames and cycle through these frames, updating the plot
+- [X] make an animated plot in the 2d frame with a queue of frames of of xy data
+  - [X] make a set of xy data frames and cycle through these frames, updating the plot
+- [X] stream a FFT of the microphone audio
   
-
 ** Branched Podcast Interface
 - [X] Plot parametric curves
 - [X] Make blender-like side, top, front view (map to number keys)

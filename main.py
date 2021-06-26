@@ -45,6 +45,12 @@ from simple_objects.mpl_integration import RotatingMatplotlibFigure
 
 import plot_utils.colors.colors as pucc
 
+from recording.recorder import Recorder
+from recording.recorder_for_live_updating import Recorder_for_live_updating
+
+import scipy
+from scipy import fftpack
+
 
 class F2dUpdater:
     """ """
@@ -115,8 +121,89 @@ class FramesUpdater:
     def say_finished(self):
         print("finished!")
 
-# --------
+class StreamFramesFromRecorder:
+    """ stream the frames from the recorder to a Frame2d """
+    def __init__(self, f2d):
+        self.f2d = f2d
+        print("1 hey")
+        self.recorder = Recorder_for_live_updating()
+        print("2 hey")
+        self.recorder.do_record(
+            # self.state.is_recording,
+            # self.state.is_paused,
+            # self.state.is_recording_finished
+            lambda: True,
+            lambda: False,
+            lambda: False)
+        print("3 hey")
 
+        # self.f2d.set_xlims()
+
+        self.factor = 1.0e-1 * 0.2
+
+        self.f2d.set_ylim(-0.25, 2.)
+        self.f2d.set_xlim(0., 22028. * self.factor)
+
+        taskMgr.add(self.update_task, 'foo')
+
+
+
+    def update_task(self, task):
+        # print("update")
+        # return task.cont
+        print("update 0")
+        print("self.recorder.is_recorder_thread_done():", self.recorder.is_recorder_thread_done()
+              )
+        if self.recorder.is_recorder_thread_done() == True:
+            print("update 2")
+            return task.done
+        elif (self.recorder.is_recorder_thread_done() == False):
+            print("update 1")
+            self.render_last_frame()
+            return task.cont
+        elif (self.recorder.is_recorder_thread_done() is None):
+            print("update 3")
+            return task.cont
+
+        # print("awefawef")
+
+    def render_last_frame(self):
+        """ 0 < a < 1 """
+        y = self.recorder.grab_last_frames(num=5)
+
+        if y is not None:
+            y = np.fromstring(np.ravel(y), dtype=np.int32)
+
+            # -------
+            # y = np.fft.fft(y)
+            # y = y[:int(len(y)/4)]
+            # -------
+            # -------
+            y = np.abs(scipy.fft(y))
+            freqs = fftpack.fftfreq(len(y), (1./Recorder_for_live_updating.RATE))
+            print(min(freqs), max(freqs))
+            # -------
+
+            # print("y: ", np.shape(y))
+
+            # normalize y:
+
+            x = freqs
+
+            y = y[:int(len(y) * self.factor)]
+            x = x[:int(len(x) * self.factor)]
+
+            y /= (1e11 * 0.5)
+
+            # x = np.linspace(0., 1., num=len(y))
+
+            self.f2d.clear_plot()
+            self.f2d.plot(x, y)
+
+    def say_finished(self):
+        print("finished!")
+
+# --------
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -171,9 +258,6 @@ class MyApp(ShowBase):
 
         f2d.update_alignment()
 
-
-
-
         # # ----------- END FRAME2d experiments --------
 
         # colors = ["red", "blue", "green"]
@@ -197,21 +281,28 @@ class MyApp(ShowBase):
 
         # # ----------
 
-        time_in_s = 1000
-        fps = 60
+        # time_in_s = 1000
+        # fps = 60
 
-        fu = FramesUpdater(f2d, time_in_s, fps)
+        # fu = FramesUpdater(f2d, time_in_s, fps)
 
-        sf_seq = Sequence()
-        sf_seq.set_sequence_params(
-            duration=time_in_s,  # in seconds ?
-            extraArgs=[],
-            update_function=fu.render_frame,
-            on_finish_function=fu.say_finished)
+        # sf_seq = Sequence()
+        # sf_seq.set_sequence_params(
+        #     duration=time_in_s,  # in seconds ?
+        #     extraArgs=[],
+        #     update_function=fu.render_frame,
+        #     on_finish_function=fu.say_finished)
 
-        sf_seq.start()
+        # sf_seq.start()
 
         # ---------------------------
+
+        # --------------
+        sffr = StreamFramesFromRecorder(f2d)
+
+        # sffr.render_last_frame,
+
+        # --------------
 
         # self.anim_seq = Sequence()
 

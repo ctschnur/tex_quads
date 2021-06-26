@@ -102,7 +102,8 @@ class EdgeRecorderState:
     def set_recording_finished(self):
         """ this the (for now inescapable) end state of the lifecycle of a recording.
             If it's finished, you can just kill it
-            The recorder technically doesn't even have to enter this state before the recorder is killed """
+            The recorder technically doesn't even have to enter this state before the recorder is
+            killed """
 
         # things don't need to be defined any more
         self.s_a = None

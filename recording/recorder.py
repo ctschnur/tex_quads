@@ -70,6 +70,7 @@ class Recorder:
 
         self.output_filename = Recorder.get_current_output_filename()
 
+        print("do_record, self.output_filename: ", self.output_filename)
         self.recorder_thread = threading.Thread(
             target=self.record_blocking_mode)
 
@@ -96,6 +97,14 @@ class Recorder:
         assert self.recorder_thread.is_alive()
         print("end_record. thread ended?")
         # return self.output_filename
+
+    def grab_last_frame(self):
+        """ """
+        if len(self.frames) > 0:
+            return self.frames[-1]
+
+        return None
+
 
     def record_blocking_mode(self):
         """ boilerplate recording code for blocking mode """
