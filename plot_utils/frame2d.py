@@ -193,9 +193,15 @@ class Frame2d(TQGraphicsNodePath):
 
         self.attached_p = False
 
-        if attach_to_space == "aspect2d" and update_labels_orientation==True:
-            print("WARNING: do not set attach_to_space to aspect2d and update_labels_orientation=True simultaneously!")
-            update_labels_orientation = False
+        if attach_to_space == "aspect2d":
+            if update_labels_orientation==True:
+                print("WARNING: do not set attach_to_space to aspect2d and update_labels_orientation=True simultaneously!")
+                update_labels_orientation = False
+
+        if attach_to_space == "render":
+            if camera_gear is None:
+                print("ERR: if attach_to_space == render, supply a camera_gear as well that is not None!")
+                exit(1)
 
         self.attach_to_space = attach_to_space  # "render" or "aspect2d"
 
@@ -246,10 +252,6 @@ class Frame2d(TQGraphicsNodePath):
 
         self.quad = Quad(thickness=1.5)
         self.quad.reparentTo(self)
-        self.quad.setPos(Vec3(0., 0., self.height))
-
-        self.set_figsize(self.height, self.width, update_graphics=None)
-
 
         # --- Ticks -----
         print("with_ticks: ", self.with_ticks)
@@ -264,7 +266,6 @@ class Frame2d(TQGraphicsNodePath):
                 # h, p, r = ticks.getHpr()
                 # ticks.setHpr(h, p , r - i * 90.)
 
-
             self.regenerate_ticks()
 
         self.update_alignment()
@@ -277,6 +278,7 @@ class Frame2d(TQGraphicsNodePath):
                 self.attach_to_render()
             else:
                 exit(1)
+
 
     def toggle_clipping_planes(self):
         """ """
@@ -631,6 +633,7 @@ class Frame2d(TQGraphicsNodePath):
         if self.attach_to_space == "aspect2d":
             super().attach_to_aspect2d()
             self.attached_p = True
+            self.set_figsize(self.width, self.height, update_graphics=True)
         else:
             print("ERR: Do not call attach_to_aspect2d() to a frame for",
                   "which self.attach_to_space is not set to aspect2d")
@@ -640,6 +643,7 @@ class Frame2d(TQGraphicsNodePath):
         if self.attach_to_space == "render":
             super().attach_to_render()
             self.attached_p = True
+            self.set_figsize(self.width, self.height, update_graphics=True)
         else:
             print("ERR: Do not call attach_to_render() to a frame for",
                   "which self.attach_to_space is not set to render")
