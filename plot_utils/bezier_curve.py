@@ -88,7 +88,7 @@ class DraggableBezierCurve(BezierCurve):
         # can be regenerated from the new point positions at every drag event
 
         # -- add picking utilities
-        self.pickableObjectManager = PickableObjectManager()
+        self.pom = PickableObjectManager()
         self.dragAndDropObjectsManager = DragAndDropObjectsManager()
         self.collisionPicker = CollisionPicker(self.camera_gear, engine.tq_graphics_basics.tq_render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
 
@@ -101,7 +101,7 @@ class DraggableBezierCurve(BezierCurve):
 
         # ---- go through the coordinates and assign PickablePoints
         for p in self.bez_points:
-            pt = PickablePoint(self.pickableObjectManager,
+            pt = PickablePoint(self.pom,
                                pos=Vec3(*p))
 
             pt_dragger = PickablePointDragger(pt, self.camera_gear)

@@ -215,7 +215,7 @@ class Orbiter:
         self.alight = AmbientLight('alight')
         self.alnp = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(
             self.alight)
-        self.alight.setColor((0.25, 0.25, 0.25, 1))
+        self.alight.setColor(Vec4(0.25, 0.25, 0.25, 1))
         engine.tq_graphics_basics.tq_render.setLight(self.alnp)
 
         self.visual_aids = OrbiterVisualAids(self)
@@ -572,23 +572,23 @@ class Orbiter:
 
     def set_film_size_from_window_dimensions(self, called_from_orbiter_init=False):
         """ """
-        print("aspect ratio changed")
+        # print("aspect ratio changed")
 
         aspect_ratio = None
         if self.before_aspect_ratio_changed_at_init == True or called_from_orbiter_init == True:
-            print("self.before_aspect_ratio_changed_at_init : ",
-                  self.before_aspect_ratio_changed_at_init)
+            # print("self.before_aspect_ratio_changed_at_init : ",
+            #       self.before_aspect_ratio_changed_at_init)
             aspect_ratio = conventions.winsizex_0/conventions.winsizey_0
 
             if called_from_orbiter_init == False:
                 self.before_aspect_ratio_changed_at_init = False
         else:
-            print("self.before_aspect_ratio_changed_at_init : ",
-                  self.before_aspect_ratio_changed_at_init)
+            # print("self.before_aspect_ratio_changed_at_init : ",
+            #       self.before_aspect_ratio_changed_at_init)
             aspect_ratio = engine.tq_graphics_basics.get_window_aspect_ratio()
-            print("aspect ratio : ", aspect_ratio)
-            print(engine.tq_graphics_basics.get_window_size_x(),
-                  engine.tq_graphics_basics.get_window_size_y())
+            # print("aspect ratio : ", aspect_ratio)
+            # print(engine.tq_graphics_basics.get_window_size_x(),
+            #       engine.tq_graphics_basics.get_window_size_y())
             # self.lens.setOrthoLensRange(None, 2. * aspect_ratio)
 
             # scale_factor = 1./320. # engine.tq_graphics_basics.get_window_size_y()
@@ -612,9 +612,9 @@ class Orbiter:
             e.g. fonts attached to it stay the same size w.r.t the screen """
 
         # engine.tq_graphics_basics.tq_aspect2d.
-        print("getMat p3d native format: \n", aspect2d.getMat())
-        print("getMat from_forrowvecs: \n",
-              math_utils.from_forrowvecs(aspect2d.getMat()))
+        # print("getMat p3d native format: \n", aspect2d.getMat())
+        # print("getMat from_forrowvecs: \n",
+        #       math_utils.from_forrowvecs(aspect2d.getMat()))
 
         T, R, S = math_utils.decompose_affine_trafo_4x4(
             math_utils.from_forrowvecs(aspect2d.getMat()))
@@ -643,8 +643,8 @@ class Orbiter:
                         0.,
                         1 - conventions.winsizey_0/engine.tq_graphics_basics.get_window_size_y())
 
-        print("window sizes: ", engine.tq_graphics_basics.get_window_size_x(),
-              engine.tq_graphics_basics.get_window_size_y())
+        # print("window sizes: ", engine.tq_graphics_basics.get_window_size_x(),
+        #       engine.tq_graphics_basics.get_window_size_y())
 
         # aspect2d.setScale(1., 1., 1.)
         # aspect2d.setScale(1./400, 1, 1./300)

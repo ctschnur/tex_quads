@@ -1,4 +1,4 @@
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
 
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
 from sequence.sequence import Sequence
@@ -18,7 +18,7 @@ from plot_utils.quad import Quad
 
 from plot_utils.symbols.waiting_symbol import WaitingSymbol
 
-from simple_objects.simple_objects import Fixed2dLabel
+from simple_objects.text import Fixed2dLabel
 
 import engine
 import engine.tq_graphics_basics

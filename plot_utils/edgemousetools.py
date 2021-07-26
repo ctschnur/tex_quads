@@ -2,7 +2,7 @@ from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, Fixed2dLabel
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle
 from simple_objects import primitives
 from local_utils import math_utils
 
@@ -29,7 +29,7 @@ from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, Selectabl
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 
 
-from simple_objects.simple_objects import Pinned2dLabel
+from simple_objects.text import Pinned2dLabel
 
 from interactive_tools import cameraray
 
@@ -131,16 +131,16 @@ class EdgeHoverer:
 
                 darkening_factor = 0.5
                 new_rgb_v3 = np.array([
-                    primary_color[0][0],
-                    primary_color[0][1],
-                    primary_color[0][2]]) * darkening_factor
-                new_color = ((new_rgb_v3[0], new_rgb_v3[1], new_rgb_v3[2], 1.), 1)
+                    primary_color[0],
+                    primary_color[1],
+                    primary_color[2]]) * darkening_factor
+                new_color = Vec4(new_rgb_v3[0], new_rgb_v3[1], new_rgb_v3[2], 1.)
 
                 # when hovered-over
                 self.edge_graphics.set_primary_color(new_color,
                                                    change_logical_primary_color=False)
             else:
-                self.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))  # when not hovered-over
+                self.shortest_distance_line.setColor(Vec4(1., 1., 1., 1.), 1)  # when not hovered-over
 
                 self.edge_graphics.set_primary_color(self.edge_graphics.get_primary_color())
 
@@ -248,7 +248,7 @@ class EdgeMouseClicker:
 
             self.previous_a_when_locked_on = None
 
-            self.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
+            self.edge_hoverer.shortest_distance_line.setColor(Vec4(1., 1., 1., 1.), 1)
 
         self.mouse_pressed_and_locked_on_p = False
 
@@ -281,7 +281,7 @@ class EdgeMouseClicker:
                 self.previous_a_when_locked_on = a
 
         else:
-            self.edge_hoverer.shortest_distance_line.setColor(((1., 1., 1., 1.), 1))
+            self.edge_hoverer.shortest_distance_line.setColor(Vec4(1., 1., 1., 1.), 1)
         return task.cont
 
     def remove(self):

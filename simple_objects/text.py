@@ -204,85 +204,35 @@ class Fixed2dLabel(IndicatorPrimitive):
         ))
 
 
-class BasicText(IndicatorPrimitive):
-    """ a text label attached to aspect2d,  """
-
-    def __init__(self,
-                 text="Basic text",
-                 font=None):
-
+class Text(IndicatorPrimitive):
+    def __init__(self, **kwargs):
         IndicatorPrimitive.__init__(self)
 
-        self.pointsize = 11
+        self.pointsize = None
+        if "pointsize" in kwargs:
+            self.pointsize = kwargs.get("pointsize")
+        elif self.pointsize is None:
+            self.pointsize = 10
 
-        self.text = text
-
-        self.font = None
-        if font is not None:
-            self.font = font
-        else:
-            self.font = "fonts/arial.ttf"
-
-        self.textNode = TextNode('foo')
-        self.textNode.setText(self.text)
-        self._font_p3d = loader.loadFont(self.font)
-
-        self.pixels_per_unit = engine.tq_graphics_basics.get_font_bmp_pixels_from_height(
-            engine.tq_graphics_basics.get_pts_to_p3d_units(self.pointsize))
-
-        self._font_p3d.setPixelsPerUnit(self.pixels_per_unit)
-
-        # self._font_p3d.setPointSize(64)
-        # self._font_p3d.setSpaceAdvance(2)
-        # self._font_p3d.setRenderMode(TextFont.RMPolygon)  # render font as polygons instead of bitmap
-
-        self._font_p3d.setPointSize(self.pointsize)
-        # self._font_p3d.setPixelsPerUnit(15)
-        # self._font_p3d.setScaleFactor(1)
-        # self._font_p3d.setTextureMargin(2)
-        # self._font_p3d.setMinfilter(Texture.FTNearest)
-        # self._font_p3d.setMagfilter(Texture.FTNearest)
-
-        self.textNode.setFont(self._font_p3d)
-
-        # self.textNode.setShadow(0.05, 0.05)
-        # self.textNode.setShadowColor(0, 0, 0, 1)
-        # self.set_p3d_nodepath(NodePath(self.textNode.generate()))
-
-        self.set_node_p3d(self.textNode)
-        self.set_p3d_nodepath(NodePath(self.textNode.generate()))
-
-        self.setLightOff(1)
-        self.setTwoSided(True)
-        self.set_render_above_all(True)
-
-
-class BasicOrientedText(IndicatorPrimitive):
-    """ a text label attached to aspect2d,  """
-
-    def __init__(self,
-                 camera_gear,
-                 update_orientation_on_camera_rotate=True,
-                 text="Basic text",
-                 font=None,
-                 centered="left"):
-
-        IndicatorPrimitive.__init__(self)
-
-        self.pointsize = 10
-
-        self.camera_gear = camera_gear # needed for re-orientation towards the camera whenever it's updated or the camera moves
-
-        self._initial_normal_vector = Vec3(0., 1., 0.)
-
-        self.text = text
+        self.text = None
+        if "text" in kwargs:
+            self.text = kwargs.get("text")
+        elif self.text is None:
+            self.text = "Basic text"
 
         self.font = None
-        if font is not None:
-            self.font = font
-        else:
+        if "font" in kwargs:
+            self.font = kwargs.get("font")
+        elif self.font is None:
             self.font = "fonts/arial.ttf"
 
+        self.alignment = None
+        if "alignment" in kwargs:
+            self.alignment = kwargs.get("alignment")
+        elif self.alignment is None:
+            self.alignment = "left"
+
+    def _set_text_static_graphics_1(self):
         self.textNode = TextNode('foo')
         self.textNode.setText(self.text)
         self._font_p3d = loader.loadFont(self.font)
@@ -297,40 +247,108 @@ class BasicOrientedText(IndicatorPrimitive):
         self.textNode.setShadow(0.05, 0.05)
         self.textNode.setShadowColor(0, 0, 0, 1)
 
-        if centered == "right":
-            self.textNode.setAlign(TextNode.ARight)
-        elif centered == "left":
-            self.textNode.setAlign(TextNode.ALeft)
-        elif centered == "center":
-            self.textNode.setAlign(TextNode.ACenter)
-
+    def _set_text_static_graphics_2(self):
         self.set_node_p3d(self.textNode)
         self.set_p3d_nodepath(NodePath(self.textNode.generate()))
 
-        # gets rid of internal assertion (TODO: might be better to load a font once
-        # rather than every time a label gets made)
         self._font_p3d.clear()
 
         self.setLightOff(1)
         self.setTwoSided(True)
         self.set_render_above_all(True)
 
+        scale = self._get_scale()
+        self.setScale(scale, 1., scale)
+
+    def _get_scale(self):
         # --- get_scale_matrix_initial_to_font_size
         initial_height = self.textNode.getHeight()
         scale_factor_to_height_1 = 1./initial_height
         pixels_per_p3d_length_unit = engine.tq_graphics_basics.get_window_size_y()/2.0
         scale_height_1_to_pixels = 1./pixels_per_p3d_length_unit
-        scale = scale_height_1_to_pixels * self.pixels_per_unit
-        self.setScale(scale, 1., scale)
-        # ---
+        return scale_height_1_to_pixels * self.pixels_per_unit
 
+    def _reparentTo_additional_trafo_nodepath(self):
         self.additional_trafo_nodepath = TQGraphicsNodePath()
         self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
         super().reparentTo(self.additional_trafo_nodepath)
 
+
+    def _update_textnode_alignment(self):
+        if self.alignment == "right":
+            self.textNode.setAlign(TextNode.ARight)
+        elif self.alignment == "left":
+            self.textNode.setAlign(TextNode.ALeft)
+        elif self.alignment == "center":
+            self.textNode.setAlign(TextNode.ACenter)
+
+
+
+class BasicText(Text):
+    """ a text label attached to aspect2d,  """
+
+    def __init__(self, **kwargs):
+        Text.__init__(self, **kwargs)
+
+        self._set_text_static_graphics_1()
+        self._update_textnode_alignment()
+        self._set_text_static_graphics_2()
+        self._reparentTo_additional_trafo_nodepath()
+
+
+class Basic2dText(BasicText):
+    """ Upright text means not rotated, i.e. BasicText retransformed to be upright """
+    def __init__(self, # camera_gear,
+                 rotate_angle_2d=0,
+                 **kwargs):
+        BasicText.__init__(self, **kwargs)
+
+        self.rotate_angle_2d = rotate_angle_2d
+
+        # self.camera_gear = camera_gear
+
+        # heading, pitch, roll = self.camera_gear.camera.getHpr()
+
+        # print("render, heading, pitch, roll: ", render, heading, pitch, roll)
+
+        # self.setHpr(render, heading, pitch + 90, roll)
+
+
+    def attach_to_aspect2d(self):
+        super().attach_to_aspect2d()
+        # rotate it here, after attaching it
+
+        # h, p, r = self.getHpr()
+        # self.setHpr(h, p, r-90)
+
+        # h, p, r = self.additional_trafo_nodepath.getHpr()
+        # self.additional_trafo_nodepath.setHpr(h, p, r-90)
+
+        # h, p, r = aspect2d.getHpr()
+        # self.setHpr(h, p, r+self.rotate_angle_2d)
+        pass
+
+
+class BasicOrientedText(Text):
+    """ a text label attached to aspect2d,  """
+
+    def __init__(self,
+                 camera_gear,
+                 update_orientation_on_camera_rotate=True,
+                 **kwargs):
+
+        self.camera_gear = camera_gear # needed for re-orientation towards the camera whenever it's updated or the camera moves
+        self._initial_normal_vector = Vec3(0., 1., 0.)
+
+        Text.__init__(self, **kwargs)
+
+        self._set_text_static_graphics_1()
+        self._update_textnode_alignment()
+        self._set_text_static_graphics_2()
+        self._reparentTo_additional_trafo_nodepath()
+
         if update_orientation_on_camera_rotate == True:
             self.camera_gear.add_camera_move_hook(self.face_camera)
-
         # self.face_camera()
 
     def face_camera(self):
@@ -345,7 +363,6 @@ class BasicOrientedText(IndicatorPrimitive):
             self.setHpr(render, heading, pitch, roll + 180.)
         else:
             self.setHpr(render, heading, pitch, roll)
-
 
     def setPos(self, *args, **kwargs):
         """ """

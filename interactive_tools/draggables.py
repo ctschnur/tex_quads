@@ -29,6 +29,8 @@ class DraggablePoint(PickablePoint):
 
         PickablePoint.__init__(self, self.pom)
 
+        # self.pom.tag(self.get_p3d_nodepath())
+
         self.pt_dragger = PickablePointDragger(self, self.camera_gear.camera)
         # self.pt_dragger.add_on_state_change_function(sayhi)
 
@@ -36,7 +38,8 @@ class DraggablePoint(PickablePoint):
         self.dadom.add_dragger(self.pt_dragger)
 
         self.collisionPicker = CollisionPicker(
-            camera_gear, engine.tq_graphics_basics.tq_render, base.mouseWatcherNode, self.dadom)
+            camera_gear, engine.tq_graphics_basics.tq_render,
+            base.mouseWatcherNode, self.dadom)
 
         # -- add a mouse task to check for picking
         self.p3d_direct_object = DirectObject.DirectObject()
@@ -46,6 +49,8 @@ class DraggablePoint(PickablePoint):
         # base.accept('mouse1', self.collisionPicker.onMouseTask)
 
         # self.add_on_state_change_function(self.sayhi)
+
+        self.setPos(Vec3(0, 0, 0))
 
     def add_on_state_change_function(self, func, args=()):
         """ """

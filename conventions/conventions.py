@@ -132,7 +132,7 @@ def setupOrthographicProjectionAndViewingAccordingToMyConvention(
     from panda3d.core import AmbientLight
     alight = AmbientLight('alight')
     alnp = engine.tq_graphics_basics.tq_render.attachNewNode_p3d(alight)
-    alight.setColor((0.35, 0.35, 0.35, 1))
+    alight.setColor(Vec4(0.35, 0.35, 0.35, 1))
     engine.tq_graphics_basics.tq_render.setLight(alnp)
 
 

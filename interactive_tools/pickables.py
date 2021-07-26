@@ -111,11 +111,9 @@ class PickablePointDragger(DragDropEventManager):
         DragDropEventManager.end_dragging(self)
 
 class PickablePoint(Point3d):
-    """ a flat point (2d box) parented by render """
-
-    def __init__(self, pickableObjectManager, **kwargs):
+    def __init__(self, pickable_object_manager, **kwargs):
         """ """
         Point3d.__init__(self, **kwargs)
 
         self.setColor(Vec4(1., 0., 0., 1.))
-        pickableObjectManager.tag(self.get_p3d_nodepath())
+        pickable_object_manager.tag(self.get_p3d_nodepath())

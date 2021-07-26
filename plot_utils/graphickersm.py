@@ -37,25 +37,25 @@ import threading
 
 class GraphickerSM(StateMachine):
     """ """
-    stopped_at_beginning_primary_color = ((1., 0., 0., 1.), 1)
-    stopped_at_beginning_cursor_color = ((1., 0., 0., 1.), 1)
+    stopped_at_beginning_primary_color = Vec4(1., 0., 0., 1.)
+    stopped_at_beginning_cursor_color = Vec4(1., 0., 0., 1.)
     # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
-    stopped_at_beginning_line_color = ((1., 0., 0., 1.), 1)
+    stopped_at_beginning_line_color = Vec4(1., 0., 0., 1.)
 
-    stopped_at_end_primary_color = ((1., .5, 0., 1.), 1)
-    stopped_at_end_cursor_color = ((1., .5, 0., 1.), 1)
+    stopped_at_end_primary_color = Vec4(1., .5, 0., 1.)
+    stopped_at_end_cursor_color = Vec4(1., .5, 0., 1.)
     # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
-    stopped_at_end_line_color = ((1., .5, 0., 1.), 1)
+    stopped_at_end_line_color = Vec4(1., .5, 0., 1.)
 
-    playing_primary_color = ((.5, .5, 0., 1.), 1)
-    playing_cursor_color = ((.5, .5, 0., 1.), 1)
+    playing_primary_color = Vec4(.5, .5, 0., 1.)
+    playing_cursor_color = Vec4(.5, .5, 0., 1.)
     # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
-    playing_line_color = ((.5, .5, 0., 1.), 1)
+    playing_line_color = Vec4(.5, .5, 0., 1.)
 
-    paused_primary_color = ((0., .5, .5, 1.), 1)
-    paused_cursor_color = ((0., .5, .5, 1.), 1)
+    paused_primary_color = Vec4(0., .5, .5, 1.)
+    paused_cursor_color = Vec4(0., .5, .5, 1.)
     # this is only set, if the line (edge) is 'engaged' (at a node, multiple edges diverge)
-    paused_line_color = ((0., .5, .5, 1.), 1)
+    paused_line_color = Vec4(0., .5, .5, 1.)
 
     lps_rate = 0.25/1.  # length per second
 

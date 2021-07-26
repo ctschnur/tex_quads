@@ -8,7 +8,7 @@ from composed_objects.composed_objects import Point3dCursor
 
 from local_utils import math_utils
 
-from simple_objects.simple_objects import Line1dSolid, PointPrimitive, Fixed2dLabel
+from simple_objects.simple_objects import Line1dSolid, PointPrimitive
 from composed_objects.composed_objects import Vector
 
 from simple_objects.custom_geometry import create_Triangle_Mesh_From_Vertices_and_Indices, createCircle, createColoredUnitQuadGeomNode
@@ -27,7 +27,7 @@ from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, 
 
 import networkx as nx
 
-from simple_objects.simple_objects import Pinned2dLabel
+from simple_objects.text import Pinned2dLabel
 
 from interactive_tools import cameraray
 
@@ -145,9 +145,9 @@ class GraphPoint:
 
 
 class GraphPickablePoint(GraphPoint, PickablePoint):
-    def __init__(self, nx_graph, nx_graph_node, pickableObjectManager, pos):
+    def __init__(self, nx_graph, nx_graph_node, pickable_object_manager, pos):
         GraphPoint.__init__(self, nx_graph, nx_graph_node)
-        PickablePoint.__init__(self, pickableObjectManager, pos=pos)
+        PickablePoint.__init__(self, pickable_object_manager, pos=pos)
 
 
 class GraphEdge(Vector):
@@ -175,7 +175,7 @@ class DraggableGraph(Graph):
         # can be regenerated from the new point positions at every drag event
 
         # -- add picking utilities
-        self.pickableObjectManager = PickableObjectManager()
+        self.pom = PickableObjectManager()
         self.dragAndDropObjectsManager = DragAndDropObjectsManager()
         self.collisionPicker = CollisionPicker(
             self.camera_gear, engine.tq_graphics_basics.tq_render, base.mouseWatcherNode, self.dragAndDropObjectsManager)
@@ -204,7 +204,7 @@ class DraggableGraph(Graph):
 
             pt = GraphPickablePoint(self.logical_graph,
                                     nx_node,
-                                    self.pickableObjectManager,
+                                    self.pom,
                                     pos=Vec3(auto_coord[0], auto_coord[1], 0.))
 
             pt.setScale(*(0.9*np.array([0.02, 0.02, 0.02])))
@@ -382,16 +382,16 @@ class GraphHoverer:
             if closestedge is not None:
                 for edge in self.draggablegraph.graph_edges:
                     # color all
-                    edge.setColor(((1., 1., 1., 1.), 1))
+                    edge.setColor(Vec4(1., 1., 1., 1.), 1)
                     if edge is closestedge:
-                        edge.setColor(((1., 0., 0., 1.), 1))
+                        edge.setColor(Vec4(1., 0., 0., 1.), 1)
             else:
                 # hide the connection line
                 self.shortest_distance_line.hide()
 
                 # make all the same color
                 for edge in self.draggablegraph.graph_edges:
-                    edge.setColor(((1., 1., 1., 1.), 1))
+                    edge.setColor(Vec4(1., 1., 1., 1.), 1)
 
             self.hoverindicatorpoint.setPos(math_utils.np_to_p3d_Vec3(
                 ray_aufpunkt + ray_direction * 1.))
@@ -416,12 +416,12 @@ class GraphHoverer:
 
             # ---- color in point
             for point in self.draggablegraph.graph_points:
-                point.setColor((1., 0., 1., 1.), 1)
+                point.setColor(Vec4(1., 0., 1., 1.), 1)
 
                 if point is closestpoint:
-                    point.setColor((1., 0., 0., 1.), 1)
+                    point.setColor(Vec4(1., 0., 0., 1.), 1)
                 else:
-                    point.setColor((1., 1., 1., 1.), 1)
+                    point.setColor(Vec4(1., 1., 1., 1.), 1)
 
     def init_time_label(self):
         """ show a text label at the position of the cursor:

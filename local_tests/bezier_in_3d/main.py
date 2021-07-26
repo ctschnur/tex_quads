@@ -98,7 +98,7 @@ class MyApp(ShowBase):
 
         # show text on-screen
 
-        from simple_objects.simple_objects import Pinned2dLabel
+        from simple_objects.text import Pinned2dLabel
 
 
 app = MyApp()

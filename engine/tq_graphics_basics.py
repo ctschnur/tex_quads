@@ -7,7 +7,8 @@ from panda3d.core import (
     AntialiasAttrib,
     NodePath,
     Mat4,
-    Mat3)
+    Mat3,
+    LVecBase4f)
 
 from direct.interval.IntervalGlobal import Wait, Sequence
 from direct.interval.LerpInterval import LerpFunc

@@ -17,10 +17,10 @@ from simple_objects.primitives import ParametricLinePrimitive
 import numpy as np
 import scipy.special
 
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, Fixed2dLabel
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk
 from local_utils import math_utils
 
-from simple_objects.simple_objects import BasicText, BasicOrientedText
+from simple_objects.text import BasicText, BasicOrientedText, Basic2dText
 
 from simple_objects import primitives
 
@@ -49,12 +49,14 @@ class Tick(TQGraphicsNodePath):
 
 class Ticks(TQGraphicsNodePath):
     """ """
-    def __init__(self, camera_gear, update_labels_orientation=False):
+    def __init__(self, camera_gear, update_labels_orientation=False, attach_to_space="render"):
         """
         Args:
             arr: numbers at which to create the tick lines """
         TQGraphicsNodePath.__init__(self)
         self.camera_gear = camera_gear
+
+        self.attach_to_space = attach_to_space
 
         self.update_labels_orientation = update_labels_orientation
 
@@ -111,22 +113,47 @@ class Ticks(TQGraphicsNodePath):
             if axis_direction_index == 1:
                 alignment = "center"
 
-            label = BasicOrientedText(
-                self.camera_gear,
+            text_kwargs = dict(
                 text="{:.1e}".format(c_num),
-                centered=alignment,
-                update_orientation_on_camera_rotate=True)
+                alignment=alignment
+            )
 
-            # label = BasicText()
-            # label.showTightBounds()
+            if self.update_labels_orientation == True:
+                label = BasicOrientedText(
+                    self.camera_gear,
+                    update_orientation_on_camera_rotate=self.update_labels_orientation,
+                    **text_kwargs
+                    )
+            else:
+                # label = BasicText(**text_kwargs)
+                # Basic2dText
+                label = Basic2dText(rotate_angle_2d=0, **text_kwargs)
+
+            label.showTightBounds()
             height = engine.tq_graphics_basics.get_pts_to_p3d_units(label.pointsize)
             width = (label.textNode.getWidth()/label.textNode.getHeight()) * height
 
+            # if self.update_labels_orientation == True:
             if axis_direction_index==0:
                 label.setPos(Vec3(pos, 0., -height*1.5))
                 # print("height: ", height, ", width: ", width)
-            elif axis_direction_index==1:
+            elif axis_direction_index==1:  # y axis in 2d
                 label.setPos(Vec3(pos - (height/4.), 0., width))
+
+                if self.attach_to_space == "render":
+                    None  # do not rotate the label
+                elif self.attach_to_space == "aspect2d":
+                    h, p, r = aspect2d.getHpr()
+                    label.setHpr(h, p, r+90)
+                else:
+                    print("ERR: self.attach_to_space must be aspect2d or render")
+                    exit(1)
+            # else:
+            #     if axis_direction_index==0:
+            #         label.setPos(Vec3(pos, 0., -height*1.5))
+            #         # print("height: ", height, ", width: ", width)
+            #     elif axis_direction_index==1:
+            #         label.setPos(Vec3(pos - (height/4.), 0., width))
 
             t = Tick()
             t.set_line(line)
@@ -136,8 +163,11 @@ class Ticks(TQGraphicsNodePath):
 
             # re-face the camera again after being reparented to a tick, since
             # the relative orientation to render has changed by the reparenting
-            print("face camera")
-            t.label.face_camera()
+            # print("face camera")
+
+            if self.update_labels_orientation == True:
+                t.label.face_camera()
+
 
 class LinesIn2dFrame(TQGraphicsNodePath):
     """ used e.g. for clipping in a frame2d (and not affecting other things like borders) """
@@ -154,11 +184,30 @@ class Frame2d(TQGraphicsNodePath):
     axis_direction_indices_chars = ["x", "y"]
     axis_direction_vectors = [Vec3(1., 0., 0.), Vec3(0., 0., 1.)]
 
-    def __init__(self, camera_gear, update_labels_orientation=False, with_ticks=True):
+    def __init__(self, camera_gear=None, update_labels_orientation=False, with_ticks=True,
+                 attach_to_space="aspect2d",  # or "render",
+                 attach_directly=True
+                 ):
         """ """
         TQGraphicsNodePath.__init__(self)
 
+        self.attached_p = False
+
+        if attach_to_space == "aspect2d" and update_labels_orientation==True:
+            print("WARNING: do not set attach_to_space to aspect2d and update_labels_orientation=True simultaneously!")
+            update_labels_orientation = False
+
+        self.attach_to_space = attach_to_space  # "render" or "aspect2d"
+
         self.quad = None
+
+        # if camera_gear == None:
+        #     self.update_labels_orientation == False
+
+        # if update_labels_orientation == True and camera_gear == None:
+        #     print("WARNING: if update_labels_orientation == True, camera_gear cannot be None")
+        #      exit(1)
+
 
         self.camera_gear = camera_gear
 
@@ -208,7 +257,7 @@ class Frame2d(TQGraphicsNodePath):
             self.axes_ticks = []
 
             for i, n_vec in zip(range(self.d), Frame2d.axis_direction_vectors):
-                ticks = Ticks(camera_gear, update_labels_orientation=self.update_labels_orientation)
+                ticks = Ticks(camera_gear, update_labels_orientation=self.update_labels_orientation, attach_to_space="aspect2d")
                 self.axes_ticks.append(ticks)
                 ticks.reparentTo(self)
                 ticks.setMat_normal(math_utils.getMat4by4_to_rotate_xhat_to_vector(n_vec))
@@ -219,6 +268,15 @@ class Frame2d(TQGraphicsNodePath):
             self.regenerate_ticks()
 
         self.update_alignment()
+
+        if attach_directly == True and self.attached_p == False:
+            # print("Attaching directly")
+            if attach_to_space == "aspect2d":
+                self.attach_to_aspect2d()
+            elif attach_to_space == "render":
+                self.attach_to_render()
+            else:
+                exit(1)
 
     def toggle_clipping_planes(self):
         """ """
@@ -568,3 +626,21 @@ class Frame2d(TQGraphicsNodePath):
 
     def shift_curve_to_match_up_zeros():
         pos0 = self.get_frame_p3d_origin()
+
+    def attach_to_aspect2d(self):
+        if self.attach_to_space == "aspect2d":
+            super().attach_to_aspect2d()
+            self.attached_p = True
+        else:
+            print("ERR: Do not call attach_to_aspect2d() to a frame for",
+                  "which self.attach_to_space is not set to aspect2d")
+            exit(1)
+
+    def attach_to_render(self):
+        if self.attach_to_space == "render":
+            super().attach_to_render()
+            self.attached_p = True
+        else:
+            print("ERR: Do not call attach_to_render() to a frame for",
+                  "which self.attach_to_space is not set to render")
+            exit(1)

@@ -61,7 +61,7 @@ class MyApp(ShowBase):
         y = np.linspace(0., 1., num=20, endpoint=True)
 
 
-        from simple_objects.simple_objects import Pinned2dLabel
+        from simple_objects.text import Pinned2dLabel
 
         pos_rel_to_world_x = Point3(1., 0., 0.)
         myPinnedLabelx = Pinned2dLabel(refpoint3d=pos_rel_to_world_x, text="x", xshift=0.02, yshift=0.02)

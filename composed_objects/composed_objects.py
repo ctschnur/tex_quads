@@ -552,7 +552,7 @@ class CoordinateSystem(TQGraphicsNodePath):
 
     def attach_axes_labels(self):
         """ """
-        from simple_objects.simple_objects import Pinned2dLabel
+        from simple_objects.text import Pinned2dLabel
         import cameras
 
         if isinstance(self.camera, cameras.Orbiter.Orbiter):
