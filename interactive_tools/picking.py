@@ -119,4 +119,4 @@ class CollisionPicker:
                 else:
                     # set drag state of this object to True, save original position and add in the mousemoveevent a function updating it's position based on the mouse position
                     picked_dragger.init_dragging()
-                    print("init dragging ----------------")
+                    # print("init dragging ----------------")

@@ -7,6 +7,7 @@ from engine.tq_graphics_basics import TQGraphicsNodePath
 from simple_objects.simple_objects import Line2dObject, ArrowHead, Point, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedCircle
 
 from simple_objects.simple_objects import Point3d
+from simple_objects.text import BasicOrientedText
 
 from p3d_tools import p3d_tools
 
@@ -242,10 +243,16 @@ class Vector(TQGraphicsNodePath):
         self.tip_point_logical = tip_point_logical
         self.tail_point_logical = tail_point_logical
 
+        if self.tip_point_logical is None or self.tail_point_logical is None:
+            self.tip_point_logical = Vec3(0., 0., 0.)
+            self.tail_point_logical = Vec3(0., 0., 0.)
+
         self.setTipPoint(self.tip_point_logical)
         self.setTailPoint(self.tail_point_logical)
 
         self.setColor(self.color)
+
+        self.label = None  # usually it is not labelled
 
     def getTipPoint(self):
         return self.tip_point_logical
@@ -265,7 +272,7 @@ class Vector(TQGraphicsNodePath):
 
         self.tip_point_logical = point
 
-        if (self.tip_point_logical is None or self.tail_point_logical is None):
+        if (self.tip_point_logical is None or self.tail_point_logical is None or self.tip_point_logical == self.tail_point_logical):
             adjust = False
             self.hide()
 
@@ -278,10 +285,10 @@ class Vector(TQGraphicsNodePath):
             self.line1.setTailPoint(self.tail_point_logical)
 
         if adjust is True:
-
             # join ArrowHead and Line
             self._adjustArrowHead()
             self._adjustLine()
+            self._adjustLabel()
 
     def setTailPoint(self, point, param=False, adjust=True):
         """ This sets the position of the local coordinate system that is the vector.
@@ -289,7 +296,7 @@ class Vector(TQGraphicsNodePath):
 
         self.tail_point_logical = point
 
-        if (self.tip_point_logical is None or self.tail_point_logical is None):
+        if (self.tip_point_logical is None or self.tail_point_logical is None or self.tip_point_logical == self.tail_point_logical):
             adjust = False
             self.hide()
 
@@ -304,6 +311,23 @@ class Vector(TQGraphicsNodePath):
             # join ArrowHead and Line
             self._adjustArrowHead()
             self._adjustLine()
+            self._adjustLabel()
+
+    def _adjustLabel(self):
+        # print("adjust Label")
+        if self.label is not None:
+            height, width = self.label.get_size()
+
+            offset = Vec3(width*3/4, 0., -height)
+            if self.label_set_to == "tail":
+                pos = offset
+            elif self.label_set_to == "tip":
+                pos = offset + self.getTipPoint() - self.getTailPoint()
+            else:
+                print("ERR: no self.label_set_to definied")
+
+            self.label.setPos(pos)
+
 
     def _adjustArrowHead(self):
         # 0. scale arrowhead (may just be identity)
@@ -400,6 +424,13 @@ class Vector(TQGraphicsNodePath):
         """ show yourself """
         self.line1.show()
         self.arrowhead.show()
+
+    def set_label(self, label, set_to="tip"):
+        """ """
+        self.label = label
+        self.label_set_to = set_to
+        self._adjustLabel()
+
 
 class Axis(TQGraphicsNodePath):
     """ An axis is a vector with ticks

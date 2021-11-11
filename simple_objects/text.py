@@ -282,6 +282,11 @@ class Text(IndicatorPrimitive):
         elif self.alignment == "center":
             self.textNode.setAlign(TextNode.ACenter)
 
+    def get_size(self):
+        height = engine.tq_graphics_basics.get_pts_to_p3d_units(self.pointsize)
+        width = (self.textNode.getWidth()/self.textNode.getHeight()) * height
+        return height, width
+
 
 
 class BasicText(Text):

@@ -3,6 +3,8 @@ from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d,
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
 from sequence.sequence import Sequence
 
+from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive, Box2d
+
 import numpy as np
 
 from engine.tq_graphics_basics import TQGraphicsNodePath
@@ -10,6 +12,9 @@ from engine.tq_graphics_basics import TQGraphicsNodePath
 class Quad(TQGraphicsNodePath):
     """ Just a quad in which things are displayed. Originally invented for display with
     aspect2d, but display with render is also possible. """
+
+    bg_color = Vec4(1., 1., 1., 0.3)
+    border_color = Vec4(0., 0., 0., 1.)
 
     def __init__(self, pos_vec3=Vec3(0., 0., 0.), width=1.0, height=1.0, **kwargs):
         """
@@ -24,6 +29,9 @@ class Quad(TQGraphicsNodePath):
         self.pos_vec3 = None
         self.width = None
         self.height = None
+
+        self.dwidth = None
+        self.dheight = None
 
         TQGraphicsNodePath.__init__(self)
 
@@ -41,12 +49,27 @@ class Quad(TQGraphicsNodePath):
         self.right = Line1dSolid(**kwargs)
         self.right.reparentTo(self)
 
+        self.b2d = Box2d()  # background box
+        self.b2d.reparentTo(self)
+        self.b2d.setColor(Quad.bg_color, 1)
+
+        self.set_border_color(Quad.border_color, 1)
+
         self.set_width(width)
         self.set_height(height)
 
-    # def setColor(self, *args, **kwargs):
-    #     """ """
-    #     return super().setColor(*args, **kwargs)
+    def setColor(self, *args, **kwargs):
+        """ """
+        self.set_border_color(*args, **kwargs)
+        self.b2d.setColor(*args, **kwargs)
+
+        # return TQGraphicsNodePath.setColor(self, *args, **kwargs)
+
+    def set_border_color(self, *args, **kwargs):
+        self.top.setColor(*args, **kwargs)
+        self.bottom.setColor(*args, **kwargs)
+        self.left.setColor(*args, **kwargs)
+        self.right.setColor(*args, **kwargs)
 
     def set_pos_vec3(self, pos_vec3):
         """ set position of upper left corner of the quad (in aspect2d) """
@@ -84,6 +107,28 @@ class Quad(TQGraphicsNodePath):
     def are_all_graphics_data_specified(self):
         return self.pos_vec3 and self.width and self.height
 
+    def _set_corners_logical_from_width_height(self):
+        self._p0 = Vec3(0., 0., 0.)
+        self._p1 = Vec3(1., 0., 0.) * self.width
+        self._p2 = (self.pos_vec3
+                                   + Vec3(1., 0., 0.) * self.width
+                                   - Vec3(0., 0., 1.) * self.height)
+        self._p3 = (self.pos_vec3 -
+                                  Vec3(0., 0., 1.) * self.height)
+
+    def set_corners_graphical(self):
+        self.top.setTailPoint(self._p0)
+        self.top.setTipPoint(self._p1)
+
+        self.bottom.setTailPoint(self._p3)
+        self.bottom.setTipPoint(self._p2)
+
+        self.left.setTailPoint(self._p0)
+        self.left.setTipPoint(self._p3)
+
+        self.right.setTailPoint(self._p1)
+        self.right.setTipPoint(self._p2)
+
     def update(self):
         """ if are_all_graphics_data_specified returns True,
         calculate the corners and set the line points """
@@ -94,25 +139,16 @@ class Quad(TQGraphicsNodePath):
 
         # calculate line positions, assuming x is to the right, y is up, z is 0
 
-        self.upper_left_corner = self.pos_vec3
-        self.upper_right_corner = self.pos_vec3 + Vec3(1., 0., 0.) * self.width
-        self.lower_left_corner = (self.pos_vec3 -
-                                  Vec3(0., 0., 1.) * self.height)
-        self.lower_right_corner = (self.pos_vec3
-                                   + Vec3(1., 0., 0.) * self.width
-                                   - Vec3(0., 0., 1.) * self.height)
+        self._set_corners_logical_from_width_height()
+        self.set_corners_graphical()
+        self._update_b2d()
 
-        self.top.setTailPoint(self.upper_left_corner)
-        self.top.setTipPoint(self.upper_right_corner)
-
-        self.bottom.setTailPoint(self.lower_left_corner)
-        self.bottom.setTipPoint(self.lower_right_corner)
-
-        self.left.setTailPoint(self.upper_left_corner)
-        self.left.setTipPoint(self.lower_left_corner)
-
-        self.right.setTailPoint(self.upper_right_corner)
-        self.right.setTipPoint(self.lower_right_corner)
+    def _update_b2d(self):
+        # update
+        self.b2d.setScale(self.width, 1., self.height)
+        p0 = self.getPos()
+        self.b2d.setPos(Vec3(p0[0], p0[1], p0[2] - self.height))
+        pass
 
     def remove(self):
         self.top.remove()

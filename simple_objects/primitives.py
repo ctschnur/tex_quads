@@ -53,6 +53,23 @@ class Box2dCentered(IndicatorPrimitive):
         self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
 
 
+class Box2d(IndicatorPrimitive):
+    def __init__(self, center_it=False, **kwargs):
+        IndicatorPrimitive.__init__(self, **kwargs)
+        self._center_it = center_it
+        self.makeObject()
+
+    def makeObject(self):
+        self.set_node_p3d(custom_geometry.createColoredUnitQuadGeomNode(
+            color_vec4=Vec4(0., 0., 1., 1.), center_it=self._center_it))
+        self.set_p3d_nodepath(self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+
+        # np = render.attachNewNode(gn)
+        self.setTwoSided(True)
+        self.setLightOff(1)
+        self.setTransparency(True)
+
+
 class SegmentedLinePrimitive(TQGraphicsNodePath):
     """ a segmented line, for example to trace out the path of sth., or plot a curve """
 

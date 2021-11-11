@@ -1,5 +1,5 @@
 * tex_quads
-Animation engine to put my own spin on mathematical visualization and to experiment with novel ui ideas. 
+Animation engine to play around with mathematical visualization and novel ui ideas. 
 
 Afer early attempts at building [[https://github.com/ctschnur/first-graphics-engine][my own rendering engine]] in ~C++~, I am for now basing this on the much more complete [[https://github.com/panda3d/panda3d][panda3d]] game engine (initially developed by Disney, written in ~C++~, having DirectX and OpenGL backends and python bindings).
 
@@ -7,7 +7,7 @@ Afer early attempts at building [[https://github.com/ctschnur/first-graphics-eng
 Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs of renderings. 
 
 * Long-Term goals
-- an interactive branched podcast user interface and an associated file format
+- an interactive branched podcast user interface and associated file format
 - enable computer-assisted manipulation of mathematical expressions and parallel visualization
 - 3d interactive scratchpad (copy-pasting of images, text, on-screen freehand drawing, collapsable notes, all in 3d)
  
@@ -23,10 +23,12 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - [X] stream a FFT of the microphone audio
 - [ ] make a draw on screen (2d plane) functionality
   - [X] draw a draggable point and plane
-  - [ ] make plane resizable and open-/closeable
+  - [ ] make a draggable, snappable window
+    - -> [ ] calculate the window's width and height and make them read-only variables
+    - [ ] make plane resizable and open-/closeable
   - [ ] implement sketching on this plane
 - [X] display a frame2d with the time-domain data of the audio file
-- [ ] make an interactive frame2d with a vertical line to interactively select an x-value
+- +[ ] make an interactive frame2d with a vertical line to interactively select an x-value+
 
 ** Branched Podcast Interface
 - [X] Plot parametric curves

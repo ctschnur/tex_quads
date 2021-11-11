@@ -29,7 +29,7 @@ from direct.task import Task
 from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, SelectableBezierCurve
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
-from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive
+from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive, Box2d
 from sequence.sequence import Sequence, WavSequence
 from plot_utils.quad import Quad
 
@@ -37,6 +37,8 @@ from plot_utils.symbols.waiting_symbol import WaitingSymbol
 from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadLoggerElement
 from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 import plot_utils.ui_thread_logger
+
+from plot_utils.DraggableFrame import DraggableFrame, DRFrame
 
 from statemachine.edgeplayer import EdgePlayerSM
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
@@ -72,9 +74,11 @@ from simple_objects.text import BasicText, Basic2dText
 from plot_utils.StreamFrames import StreamFramesFromRecorder
 
 
-def plot_audio_file_profile():
+def plot_audio_file_profile(camera_gear):
     """ """
     f2d3 = Frame2d(attach_to_space="aspect2d")
+    # f2d3 = Frame2d(attach_to_space="render", camera_gear=camera_gear, update_labels_orientation=True
+    # )
 
     wave_file_path = "/home/chris/Desktop/playbacktest2.wav"
     wf = wave.open(wave_file_path, 'rb')
@@ -140,7 +144,7 @@ class MyApp(ShowBase):
         # # f2d3.set_figsize(0.8, 0.5)
         # sffr = StreamFramesFromRecorder(f2d3)
 
-        plot_audio_file_profile()
+        # plot_audio_file_profile(cg)
 
         # a = Vector()
         # a.setTipPoint(Vec3(1., 1., 1.))
@@ -153,6 +157,54 @@ class MyApp(ShowBase):
         # df = DraggableFrame(cg)
         # df.setPos(Vec3(0., 0., 0.6))
         # df.attach_to_render()
+
+        # df = DraggableFrame(cg)
+        # df.setPos(Vec3(0., 0., 0.6))
+        # df.attach_to_render()
+
+        # df = DraggableFrame(cg, height=0.2, width=0.7)
+        # df.setPos(Vec3(-0.8, 0., 0.7))
+        # df.setColor(Vec4(0., 1., 0., 1.), 1)
+        # df.attach_to_render()
+
+        # quad = Quad(height=0.5, width=0.7, thickness=5.)
+        # quad.setColor(Vec4(0., 1., 0., 1.), 1)
+        # quad.reparentTo_p3d(render)
+
+        # line = Line1dSolid(thickness=5.)
+        # line.setColor(1.0, 1.0, 0., 1.)
+        # line.setTailPoint(Vec3(0.25, 0., 0.))
+        # line.setTipPoint(Vec3(0.75, 0., 0.))
+        # line.reparentTo_p3d(render)
+        # line.setColor(Vec4(0., 1., 1., 1.), 1)
+        # line.setPos(Vec3(-0.8, 0., 0.7))
+
+        df = DRFrame(cg, height=0.2, width=0.7)
+        df.attach_to_render()
+        # df.setPos(Vec3(0.1, 0., 0.))
+
+        # df.setColor(Vec4(0., 1., 1., 1.), 1)
+
+        # self.vecp0 = Vector()
+        # # self.vecp0.setTipPoint(Vec3(-1., 0., 1.))
+        # self.vecp0.setTipPoint(Vec3(0., 0., 0.))
+        # self.vecp0.setTailPoint(Vec3(0., 0., 0.))
+        # self.vecp0.reparentTo(engine.tq_graphics_basics.tq_render)
+        # self.vecp0.setColor(Vec4(0., 0., 0., 1.), 1)
+
+
+        # -----------
+
+        # b2d1 = Box2d()
+        # b2d1.attach_to_render()
+        # b2d1.setColor(Vec4(1., 1., 1., 0.1), 1)
+
+        # b2d2 = Box2d()
+        # b2d2.attach_to_render()
+        # b2d2.setPos(b2d2.getPos() - Vec3(0., 1., 0.))
+        # b2d2.setColor(Vec4(1., 0., 1., 0.1), 1)
+
+        # b2d2.setScale(0.2, 1.0, 1.)
 
 app = MyApp()
 app.run()

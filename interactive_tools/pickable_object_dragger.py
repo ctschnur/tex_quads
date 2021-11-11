@@ -93,6 +93,7 @@ class PickableObjectDragger(DragDropEventManager):
         # print("drag_vec", drag_vec)
 
         # set the position while dragging
+
         self.this_frame_drag_pos = self.position_before_dragging + Vec3(*drag_vec)
         self.pickable_object.setPos(self.this_frame_drag_pos)
 
@@ -110,5 +111,7 @@ class PickableObjectDragger(DragDropEventManager):
     def end_dragging(self):
         """ """
         self.position_before_dragging = None
+
+        DragDropEventManager.remove_on_state_change_function(self, self.update)
 
         DragDropEventManager.end_dragging(self)

@@ -232,7 +232,7 @@ class Line1dPrimitive(LinePrimitive):
 
         self.tail_point = point
 
-        if (self.tip_point is None or self.tail_point is None):
+        if (self.tip_point is None or self.tail_point is None or self.tip_point == self.tail_point):
             self.hide()
             return
         else:
