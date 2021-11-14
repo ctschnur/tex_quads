@@ -34,8 +34,10 @@ class DraggableFrame(TQGraphicsNodePath):
 
         self.camera_gear = camera_gear
         self.drag_point = Point3d()
+        self.drag_point.reparentTo(engine.tq_graphics_basics.tq_render)
+        self.drag_point.setColor(Vec4(1.0, 0., 0., 1.), 1)
 
-        self.quad = Quad(thickness=1.5)
+        self.bg_quad = Quad(thickness=1.5)
 
         if height is None:
             height = height_0
@@ -43,18 +45,13 @@ class DraggableFrame(TQGraphicsNodePath):
         if width is None:
             width = width_0
 
-        self.quad.set_height(height)
-        self.quad.set_width(width)
-        self.quad.reparentTo(self)
-        self.quad.setPos(Vec3(0., 0., 0.))
-
-        self.drag_point.reparentTo(engine.tq_graphics_basics.tq_render)
-        # self.drag_point.reparentTo(self)
-        # self.drag_point.setPos(self.getPos() # + self.quad.left.getTailPoint()
-        # )
+        self.bg_quad.set_height(height)
+        self.bg_quad.set_width(width)
+        self.bg_quad.reparentTo(self)
+        self.bg_quad.setPos(Vec3(0., 0., 0.))
+        self.bg_quad.setColor(Vec4(1., 1., 1., 0.5), 1)
 
         # -------------------------------------
-
         self.pom = PickableObjectManager()
         self.pom.tag(self.drag_point.get_p3d_nodepath())
 
@@ -70,28 +67,22 @@ class DraggableFrame(TQGraphicsNodePath):
             base.mouseWatcherNode, self.dadom)
 
         # -- add a mouse task to check for picking
-        self.p3d_direct_object = DirectObject.DirectObject()
-        self.p3d_direct_object.accept(
+        self.p3d_draw_direct_object = DirectObject.DirectObject()
+        self.p3d_draw_direct_object.accept(
             'mouse1', self.collisionPicker.onMouseTask)
 
-        self.drag_point.setColor(1.0, 0., 0)
-        self.quad.setColor(Vec4(1., 1., 1., 0.5), 1)
-
-    # def set_width(self, width):
-    #     self.quad.set_width(width)
-
-    # def set_height(self, height):
-    #     self.quad.set_height(height)
 
 class DRFrame(DraggableFrame):
-    """ """
+    """ draggable and resizeable frame """
     resize_box_handle_scale = 0.05
     normal_vec_0 = Vec3(0., 1., 0.)  # text is written with the normal vector pointing out of the board; this is the standard normal vector
     up_vec_0 = Vec3(0., 0., 1.)
     height_0 = 0.9
     width_0 = 1.6
+    height_min = 0.2
+    width_min = height_min * 1.6
 
-    def __init__(self, camera_gear, **kwargs):
+    def __init__(self, camera_gear, helper_graphics_active=False, **kwargs):
         """ """
         DraggableFrame.__init__(self, camera_gear, **kwargs)
 
@@ -117,6 +108,8 @@ class DRFrame(DraggableFrame):
         self.resize_box_handle_2.setScale(DRFrame.resize_box_handle_scale)
         self.resize_box_handle_2.setColor(Vec4(0., 0.5, 0.5, 0.5), 1)
 
+        self.helper_graphics_active = helper_graphics_active
+
         # set resizing action
         self.pom.tag(self.resize_box_handle.get_p3d_nodepath())
 
@@ -125,7 +118,8 @@ class DRFrame(DraggableFrame):
 
         self.dadom.add_dragger(self.resize_b2d_dragger)
 
-        self.init_helper_graphics()
+        if self.helper_graphics_active == True:
+            self.init_helper_graphics()
 
         self.resize()
         self.update_window_graphics()
@@ -171,7 +165,6 @@ class DRFrame(DraggableFrame):
         DRFrame.label_vector2(self.v0_g, "v0", self.camera_gear)
         DRFrame.label_vector2(self.v1_g, "v1", self.camera_gear)
         DRFrame.label_vector2(self.vc_g, "vc", self.camera_gear)
-
 
     def move_frame_when_dragged(self):
         new_handle_pos = self.drag_point.getPos()
@@ -220,18 +213,26 @@ class DRFrame(DraggableFrame):
         return DRFrame.resize_box_handle_scale/2 * down_vec/np.linalg.norm(down_vec) - DRFrame.resize_box_handle_scale/2 * right_vec/np.linalg.norm(right_vec)
 
     def update_window_graphics(self):
-        # # plane: one vector pointing 'right' (up_vec x normal_vec) and one down (-up_vec)
-        # # point: 'upper left'
-        # right_vec = self.get_right_vec()
-        # down_vec = self.get_down_vec()
+        self.bg_quad.set_height(self.height)
+        self.bg_quad.set_width(self.width)
 
-        # # self.height and self.width are in actual coordinates
-        # v0 = self.get_v0()
-        # v1 = self.get_v1(down_vec, right_vec)
-        # box_dim_offset = self.get_box_dim_offset()
+        right_vec = self.get_right_vec()
+        down_vec = self.get_down_vec()
 
-        self.update_helper_graphics()
-        pass
+        v0 = self.get_v0()
+        v1 = self.get_v1(down_vec, right_vec)
+        vc = v1 - v0
+
+        DraggableFrame.setPos(self, Vec3(*v0))
+        self.drag_point.setPos(Vec3(*v0))
+
+        # print(self.width, self.height)
+
+        self.resize_box_handle.setPos(*(v0 + vc))
+        self.resize_box_handle_2.setPos(*(v0 + vc))
+
+        if self.helper_graphics_active == True:
+            self.update_helper_graphics()
 
     def update_helper_graphics(self):
         right_vec = self.get_right_vec()
@@ -243,13 +244,9 @@ class DRFrame(DraggableFrame):
 
         vc = v1 - v0
 
-        print("v0: ", v0, ", v1: ", v1, ", vc: ", vc)
-
-        print("self.width: ", self.width, ", self.height: ", self.height)
-        print("right_vec: ", right_vec, ", down_vec: ", down_vec)
-
-        DraggableFrame.setPos(self, Vec3(*v0))
-        self.drag_point.setPos(Vec3(*v0))
+        # print("v0: ", v0, ", v1: ", v1, ", vc: ", vc)
+        # print("self.width: ", self.width, ", self.height: ", self.height)
+        # print("right_vec: ", right_vec, ", down_vec: ", down_vec)
 
         self.v0_g.setTailPoint(Vec3(0., 0., 0.))
         self.v0_g.setTipPoint(Vec3(*v0))
@@ -270,33 +267,6 @@ class DRFrame(DraggableFrame):
         self.resize_handle_vec_g.setTipPoint(Vec3(*(v0 + self.resize_handle_vec)))
         self.resize_handle_vec_g.setColor(self.resize_handle_vec_color, 1)
 
-        self.resize_box_handle.setPos(*(v0 + self.resize_handle_vec))
-        self.resize_box_handle_2.setPos(*(v0 + self.resize_handle_vec))
-
-        self.quad.set_height(self.height)
-        self.quad.set_width(self.width)
-        self.quad._update_b2d()
-
-        # # set box corners from upper left clockwise
-        # # TODO: generalize to arbitrary normal vector
-        # p0 = [0, 0, 0.] # v0
-
-        # p1 = [
-        #     v2p[0], # x coord
-        #     0.,
-        #     0.
-        #     ]
-
-        # p2 = v2p
-
-        # p3 = [
-        #     0.,
-        #     0.,
-        #     v2p[2], # y coord
-        # ]
-
-        # self.set_quad_box_corners(p0, p1, p2, p3)
-
     def resize(self, handle_dragged=False):
         resize_box_handle_pos = math_utils.p3d_to_np(self.resize_box_handle.getPos())
 
@@ -313,47 +283,41 @@ class DRFrame(DraggableFrame):
         resize_to_pos = None
         if handle_dragged == True:
             resize_to_pos = math_utils.LinePlaneCollision(normal_vec, # plane normal
-                                                               v0, # plane point
-                                                               normal_vec, # ray direction
-                                                               resize_box_handle_pos, # the position of the resize_box_handle
-                                                               epsilon=1e-6)
+                                                          v0, # plane point
+                                                          normal_vec, # ray direction
+                                                          resize_box_handle_pos, # the position of the resize_box_handle
+                                                          epsilon=1e-6)
         else:
             resize_to_pos = v1
 
-        self.resize_box_handle_2.setPos(Vec3(*resize_to_pos))
-        self.resize_box_handle.setPos(Vec3(*resize_to_pos))
-
-        print("resize_box_handle_pos: ", resize_box_handle_pos)
-        print("resize_to_pos: ", resize_to_pos)
-
-        self.resize_handle_vec = resize_to_pos - v0
+        tmp_resize_handle_vec = resize_to_pos - v0
 
         down_vec_normalized = down_vec / np.linalg.norm(down_vec)
         right_vec_normalized = right_vec / np.linalg.norm(right_vec)
 
-        new_vc_ver_comp = np.dot(down_vec_normalized, self.resize_handle_vec)
-        new_vc_hor_comp = np.dot(right_vec_normalized, self.resize_handle_vec)
+        new_height = np.dot(down_vec_normalized, tmp_resize_handle_vec)
+        new_width = np.dot(right_vec_normalized, tmp_resize_handle_vec)
 
-        print("new_vc_ver_comp: ", new_vc_ver_comp, ", new_vc_hor_comp: ", new_vc_hor_comp)
+        self.width, self.height = DRFrame.clamp_width_height(new_width, new_height)
 
-        height_min = 0.2
-        width_min = height_min * 1.6
-
-        new_height = new_vc_ver_comp
-        new_width = new_vc_hor_comp
-
-        if new_vc_ver_comp > height_min:
-            self.height = new_height
-
-        if new_vc_hor_comp > width_min:
-            self.width = new_width
-
-        print("new_height", new_height, ", new_width", new_width)
+        # print("new_height", new_height, ", new_width", new_width)
         self.update_window_graphics()
 
+    @staticmethod
+    def clamp_width_height(width, height):
+        right_width = DRFrame.width_min
+        right_height = DRFrame.height_min
+
+        if height >= DRFrame.height_min:
+            right_height = height
+
+        if width >= DRFrame.width_min:
+            right_width = width
+
+        return right_width, right_height
 
     def resize_frame_when_dragged(self):
-        print("resizing", self.resize_move_ctr)
+        # print("resizing", self.resize_move_ctr)
         self.resize_move_ctr += 1
         self.resize(handle_dragged=True)
 
@@ -362,25 +326,6 @@ class DRFrame(DraggableFrame):
         DraggableFrame.setPos(self, *args, **kwargs)
         self.drag_point.setPos(*args, **kwargs)
         self.update_window_graphics()
-
-    def set_quad_box_corners(p0=None, p1=None, p2=None, p3=None):
-        # if p2 is not None:
-        #     self.quad.right.setTipPoint(Vec3(*p2))
-        # if p1 is not None:
-        #     self.quad.right.setTailPoint(Vec3(*p1))
-
-        # if p2 is not None:
-        #     self.quad.bottom.setTipPoint(Vec3(*p2))
-        # if p3 is not None:
-        #     self.quad.bottom.setTailPoint(Vec3(*p3))
-
-        # if p1 is not None:
-        #     self.quad.top.setTipPoint(Vec3(*p1))
-        # if p3 is not None:
-        #     self.quad.left.setTipPoint(Vec3(*p3))
-
-        # self.quad._update_b2d()
-        pass
 
     @staticmethod
     def label_vector(vec, text, camera_gear):
@@ -416,3 +361,15 @@ class DRFrame(DraggableFrame):
         label = BasicOrientedText(camera_gear, update_orientation_on_camera_rotate=True, text=text)
         label.reparentTo(vec)
         vec.set_label(label, set_to="tip")
+
+
+
+class DRDrawFrame(DRFrame):
+    """ draggable, resizable and drawable-on frame """
+    def __init__(self, *args, **kwargs):
+        """ """
+        DRFrame.__init__(self, *args, **kwargs)
+
+        self.p3d_draw_direct_object = DirectObject.DirectObject()
+        self.p3d_draw_direct_object.accept(
+            'mouse1', self.collisionPicker.onMouseTask)
