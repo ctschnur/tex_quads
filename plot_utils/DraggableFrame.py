@@ -15,7 +15,11 @@ from interactive_tools.dragging_and_dropping_objects import DragAndDropObjectsMa
 from interactive_tools.pickables import PickablePoint, PickablePointDragger
 from interactive_tools.pickable_object_dragger import PickableObjectDragger
 
+from interactive_tools.pickable_object_drawer import PanelDragDrawer
+
 from local_utils import math_utils
+
+from local_utils.math_utils import Panel
 
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector
 
@@ -184,7 +188,7 @@ class DRFrame(DraggableFrame):
         return self.get_right_vec_norm() * width
 
     def get_normal_vec(self):
-        return -math_utils.p3d_to_np(self.normal_vec)/np.linalg.norm(self.normal_vec)
+        return math_utils.p3d_to_np(self.normal_vec)/np.linalg.norm(self.normal_vec)
 
     def get_down_vec_norm(self):
         vec = -math_utils.p3d_to_np(self.up_vec)
@@ -363,13 +367,65 @@ class DRFrame(DraggableFrame):
         vec.set_label(label, set_to="tip")
 
 
-
 class DRDrawFrame(DRFrame):
-    """ draggable, resizable and drawable-on frame """
+    """ draggable, resizable and drawable-on frame
+        1) make the background quad pickable
+        2) draw LINE Strips interactively
+          i) draw point3d's at the intersection point of pen and quad
+          ii) every time the mouse moves during drawing, update the drawing
+        3) eradicate diseases:
+          i) prevent from drawing when the frame isn't focused (i.e. if the normal vector isn't antiparallel to the camera's lookat vector)
+          ii) prevent from drawing if you hit the frame from behind (essentially the same as (i))
+
+    """
     def __init__(self, *args, **kwargs):
         """ """
         DRFrame.__init__(self, *args, **kwargs)
 
-        self.p3d_draw_direct_object = DirectObject.DirectObject()
-        self.p3d_draw_direct_object.accept(
-            'mouse1', self.collisionPicker.onMouseTask)
+        self.pom.tag(self.bg_quad.get_p3d_nodepath())
+
+        # self.v0 = Vec3(0., 0., 0.)
+        # self.normal_vec = DRFrame.normal_vec_0
+        # self.up_vec = DRFrame.up_vec_0
+        # self.width = DRFrame.width_0
+        # self.height = DRFrame.height_0
+
+        self.panel_drag_drawer = PanelDragDrawer(self.bg_quad, self.camera_gear, self.get_panel())
+        # self.panel_drag_drawer.add_on_state_change_function(self.refresh_panel)
+
+        self.dadom.add_dragger(self.panel_drag_drawer)
+
+        self.draw_parent_node = TQGraphicsNodePath()
+        self.draw_parent_node.reparentTo(self.bg_quad)
+
+        self.draw_point = Point3d()
+        self.draw_point.reparentTo(engine.tq_graphics_basics.tq_render)
+        self.draw_point.setColor(Vec4(1, 0.5, 1., 1.), 1)
+
+        self.change_ctr = 0
+
+    def get_panel(self):
+        return Panel(self.v0, self.get_right_vec_norm(), self.get_down_vec_norm(), self.width, self.height)
+
+    def move_frame_when_dragged(self):
+        self.panel_drag_drawer.set_panel(self.get_panel())
+        DRFrame.move_frame_when_dragged(self)
+        # print("custom move_frame_when_dragged: ", )
+
+    def resize_frame_when_dragged(self):
+        self.panel_drag_drawer.set_panel(self.get_panel())
+        DRFrame.resize_frame_when_dragged(self)
+        # print("custom resize_frame_when_dragged: ", )
+
+    # def draw_pick(self):
+    #     # new_handle_pos = self.drag_point.getPos()
+    #     # self.v0 = new_handle_pos
+
+    #     # # self.update_helper_graphics()
+    #     # self.update_window_graphics()
+
+    #     self.change_ctr += 1
+
+    #     print("picked, self.change_ctr: ", self.change_ctr)
+
+    #     self.draw_point.setPos(Vec3(1., 1., 0.))

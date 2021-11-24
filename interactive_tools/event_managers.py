@@ -38,10 +38,10 @@ class DragDropEventManager:
 
         self.mouse_position_before_dragging = mouse_pos
 
-        self.p_xy_offset = conventions.getFilmSizeCoordinates(-self.mouse_position_before_dragging[0], -self.mouse_position_before_dragging[1], p_x_0=0., p_y_0=0.)
+        self.p_xy_at_init_drag = conventions.getFilmCoordsFromMouseCoords(-self.mouse_position_before_dragging[0], -self.mouse_position_before_dragging[1], p_x_0=0., p_y_0=0.)
 
         print("event_managers: mouse_position_before_dragging: ", self.mouse_position_before_dragging)
-        print("event_managers: p_xy_offset: ", self.p_xy_offset)
+        print("event_managers: p_xy_offset: ", self.p_xy_at_init_drag)
 
         self._register_event("escape", sys.exit) # FIXME: why?
         self._register_event('mouse1-up', self.end_dragging)

@@ -246,10 +246,10 @@ class Orbiter:
         print("handle_shift_mouse1")
         self.ddem = DragDropEventManager()
 
-        # ---- calculate (solely camera and object needed and the recorded mouse position before dragging) the self.p_xy_offset
+        # ---- calculate (solely camera and object needed and the recorded mouse position before dragging) the self.p_xy_at_init_drag
         # between -1 and 1 in both x and y
         mouse_position_before_dragging = base.mouseWatcherNode.getMouse()
-        p_xy_offset = conventions.getFilmSizeCoordinates(
+        p_xy_offset = conventions.getFilmCoordsFromMouseCoords(
             -mouse_position_before_dragging[0],
             -mouse_position_before_dragging[1],
             p_x_0=0., p_y_0=0.)
@@ -299,9 +299,9 @@ class Orbiter:
 
         # print("p_xy_offset: ", p_xy_offset)
 
-        p_x, p_y = conventions.getFilmSizeCoordinates(
+        p_x, p_y = conventions.getFilmCoordsFromMouseCoords(
             mouse_pos[0], mouse_pos[1], p_xy_offset[0], p_xy_offset[1])
-        # p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], 0., 0.)
+        # p_x, p_y = conventions.getFilmCoordsFromMouseCoords(mouse_pos[0], mouse_pos[1], 0., 0.)
 
         drag_vec = p_x * e_cross + p_y * e_up
 
@@ -648,3 +648,39 @@ class Orbiter:
 
         # aspect2d.setScale(1., 1., 1.)
         # aspect2d.setScale(1./400, 1, 1./300)
+
+    def get_cam_forward_normal_vector(self):
+        v_cam_forward = math_utils.p3d_to_np(
+            engine.tq_graphics_basics.tq_render.getRelativeVector(
+            self.camera, self.camera.node().getLens().getViewVector()))
+
+        return v_cam_forward / np.linalg.norm(v_cam_forward)
+
+    def get_cam_up_normal_vector(self):
+        v_cam_up = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getUpVector()))
+        return v_cam_up / np.linalg.norm(v_cam_up)
+
+    def get_cam_pos(self):
+        return math_utils.p3d_to_np(self.camera.getPos())
+
+    def get_e_x_prime(self):
+        return math_utils.p3d_to_np(np.cross(self.get_cam_forward_normal_vector(), self.get_cam_up_normal_vector()))
+
+    def get_e_y_prime(self):
+        # v_cam_forward_vec = self.get_cam_forward_normal_vector()
+        # v_cam_forward_normal_vec = v_cam_forward_vec/np.linalg.norm(v_cam_forward_vec)
+
+        # print("v_cam_forward_normal_vec: ", v_cam_forward_normal_vec)
+
+        # e_x = self.get_cam_up_normal_vector()
+        # return -math_utils.p3d_to_np(np.cross(v_cam_forward_normal_vec, e_x))
+
+        return self.get_cam_up_normal_vector()
+
+    # def get_shoot_pos_from_mouse(self, mouse_pos_x, mouse_pos_y):
+    #     """ clicking on the screen, this is the position of the point in the
+    #         camera plane (orthogonal lens) where the mouse is pointing at.
+    #         args:
+    #             mouse_pos_x(or y): -1 (-1), to 1 (1) lower left (upper right) corner of the window """
+
+    #     cam_pos = self.get_cam_pos()

@@ -38,7 +38,7 @@ from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadL
 from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 import plot_utils.ui_thread_logger
 
-from plot_utils.DraggableFrame import DraggableFrame, DRFrame
+from plot_utils.DraggableFrame import DraggableFrame, DRFrame, DRDrawFrame
 
 from statemachine.edgeplayer import EdgePlayerSM
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
@@ -137,6 +137,12 @@ class MyApp(ShowBase):
 
         cg = cameras.Orbiter.Orbiter(base.cam, radius=3.)
 
+        cs = CoordinateSystemP3dPlain()
+        cs.attach_to_render()
+
+        # cs = CoordinateSystem(cg)
+        # cs.attach_to_render()
+
         # base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
         # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
 
@@ -179,8 +185,9 @@ class MyApp(ShowBase):
         # line.setColor(Vec4(0., 1., 1., 1.), 1)
         # line.setPos(Vec3(-0.8, 0., 0.7))
 
-        df = DRFrame(cg, height=0.2, width=0.7)
-        df.attach_to_render()
+        # df = DRFrame(cg, height=0.2, width=0.7)
+        # df.attach_to_render()
+
         # df.setPos(Vec3(0.1, 0., 0.))
 
         # df.setColor(Vec4(0., 1., 1., 1.), 1)
@@ -192,6 +199,8 @@ class MyApp(ShowBase):
         # self.vecp0.reparentTo(engine.tq_graphics_basics.tq_render)
         # self.vecp0.setColor(Vec4(0., 0., 0., 1.), 1)
 
+        ddf = DRDrawFrame(cg, height=0.2, width=0.7)
+        ddf.attach_to_render()
 
         # -----------
 

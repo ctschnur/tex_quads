@@ -156,12 +156,17 @@ def compute2dPosition(nodepath, point=Point3(0, 0, 0)):
     return None
 
 
-def getFilmSizeCoordinates(m_x, m_y, p_x_0=0., p_y_0=0.):
+def getFilmCoordsFromMouseCoords(m_x, m_y, p_x_0=0., p_y_0=0.):
     """ get actual orthogonal viewing film coordinates,
     (like those returned by getFilmSize())
-    (dependent on the window's aspect ratio), from mouse coordinates
-    which are by default between -1 and 1 (window edges) """
+    (dependent on the window's aspect ratio)
+    args:
+        m_x, m_y : mouse coordinates, between -1 and 1 (window edges)
+        p_x_0, p_y_0 : offsets
+
+    returns: two numbers between p_x(or y)_0 + (-1)*filmsize_x(or y) /2 and p_x(or y)_0 + filmsize_x(or y) /2 """
     filmsize = base.cam.node().getLens().getFilmSize()
+    # print("filmsize: ", filmsize)
 
     p_x = p_x_0 + m_x * filmsize[0] / 2.
     p_y = p_y_0 + m_y * filmsize[1] / 2.

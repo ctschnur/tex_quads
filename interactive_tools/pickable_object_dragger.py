@@ -83,10 +83,10 @@ class PickableObjectDragger(DragDropEventManager):
         mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
         # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
 
-        # print("p_xy_offset: ", self.p_xy_offset)
+        # print("p_xy_offset: ", self.p_xy_at_init_drag)
 
-        p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], self.p_xy_offset[0], self.p_xy_offset[1])
-        # p_x, p_y = conventions.getFilmSizeCoordinates(mouse_pos[0], mouse_pos[1], 0., 0.)
+        p_x, p_y = conventions.getFilmCoordsFromMouseCoords(mouse_pos[0], mouse_pos[1], self.p_xy_at_init_drag[0], self.p_xy_at_init_drag[1])
+        # p_x, p_y = conventions.getFilmCoordsFromMouseCoords(mouse_pos[0], mouse_pos[1], 0., 0.)
 
         drag_vec = p_x * e_cross + p_y * e_up
 
