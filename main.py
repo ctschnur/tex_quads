@@ -73,6 +73,8 @@ from simple_objects.text import BasicText, Basic2dText
 
 from plot_utils.StreamFrames import StreamFramesFromRecorder
 
+from plot_utils.colors.colors import get_color
+
 
 def plot_audio_file_profile(camera_gear):
     """ """
@@ -122,6 +124,13 @@ def plot_audio_file_profile(camera_gear):
 
     f2d3.set_xlim(min(t), max(t))
     f2d3.set_ylim(-max(y), max(y))
+
+
+class GNodeClass(TQGraphicsNodePath):
+    """ Group Node, merely for grouping """
+    def __init__(self, *args, **kwargs):
+        TQGraphicsNodePath.__init__(self, *args, **kwargs)
+
 
 
 class MyApp(ShowBase):
@@ -198,6 +207,40 @@ class MyApp(ShowBase):
         # self.vecp0.setTailPoint(Vec3(0., 0., 0.))
         # self.vecp0.reparentTo(engine.tq_graphics_basics.tq_render)
         # self.vecp0.setColor(Vec4(0., 0., 0., 1.), 1)
+
+
+        # -------------
+
+        # slp = primitives.SegmentedLinePrimitive(color=get_color("yellow"), thickness=2)
+
+        # slp.extendCoords([np.array([0., 0., 0.]), np.array([1., 1., 1.]), np.array([1., 0., 0.])])
+
+        # slp.attach_to_render()
+
+        # slp.extendCoords([np.array([1., 1., 0.])])
+
+        # slp.attach_to_render()
+
+        # -------------
+
+        gn = GNodeClass()
+        gn.attach_to_render()
+
+        slp = primitives.SegmentedLinePrimitive(color=get_color("yellow"), thickness=2)
+
+        slp.extendCoords([np.array([0., 0., 0.]), np.array([1., 1., 1.]), np.array([1., 0., 0.])])
+
+        slp.reparentTo(gn)
+
+        slp.extendCoords([np.array([1., 1., 0.])])
+
+        slp.reparentTo(gn)
+
+        # -------------
+
+
+
+        # slp.reparentTo_p3d(render)
 
         ddf = DRDrawFrame(cg, height=0.2, width=0.7)
         ddf.attach_to_render()

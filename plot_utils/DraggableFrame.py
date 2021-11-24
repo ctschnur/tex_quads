@@ -19,7 +19,7 @@ from interactive_tools.pickable_object_drawer import PanelDragDrawer
 
 from local_utils import math_utils
 
-from local_utils.math_utils import Panel
+# from local_utils.math_utils import Panel
 
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector
 
@@ -367,6 +367,46 @@ class DRFrame(DraggableFrame):
         vec.set_label(label, set_to="tip")
 
 
+class PanelGraphics(TQGraphicsNodePath):
+    def __init__(self, *args, **kwargs):
+        TQGraphicsNodePath.__init__(self, *args, **kwargs)
+
+class PanelGeometry:
+    """ only the panel geometry and helper functions """
+    def __init__(self, r0, n1, n2, l1, l2, *args, **kwargs):
+        """
+            args:
+                r0: position of plane
+                n1: normal vector 1
+                n2: normal vector 2
+                l1: length 1
+                l2: length 2
+            TODO: alternatively introduce up_vector, normal vector and l1, l2 """
+
+        self.set_panel_geometry(r0, n1, n2, l1, l2)
+
+    def set_panel_geometry(self, r0, n1, n2, l1, l2):
+        self.r0 = r0
+
+        assert math_utils.equal_up_to_epsilon(np.linalg.norm(n1), 1., epsilon=0.0001)
+        self.n1 = n1
+
+        math_utils.equal_up_to_epsilon(np.linalg.norm(n2), 1., epsilon=0.0001)
+        self.n2 = n2
+
+        assert l1 > 0
+        self.l1 = l1
+
+        assert l2 > 0
+        self.l2 = l2
+
+    def get_plane_normal_vector(self):
+        return np.cross(self.n1, self.n2)
+
+    def __repr__(self):
+        return "(r0: %s, n1: %s, n2: %s, l1: %f, l2: %f)" % (str(self.r0), str(self.n1), str(self.n2), self.l1, self.l2)
+
+
 class DRDrawFrame(DRFrame):
     """ draggable, resizable and drawable-on frame
         1) make the background quad pickable
@@ -390,7 +430,10 @@ class DRDrawFrame(DRFrame):
         # self.width = DRFrame.width_0
         # self.height = DRFrame.height_0
 
-        self.panel_drag_drawer = PanelDragDrawer(self.bg_quad, self.camera_gear, self.get_panel())
+        panel_graphics = PanelGraphics()
+        panel_graphics.reparentTo(self)
+
+        self.panel_drag_drawer = PanelDragDrawer(self.bg_quad, self.camera_gear, self.get_panel_geometry(), panel_graphics)
         # self.panel_drag_drawer.add_on_state_change_function(self.refresh_panel)
 
         self.dadom.add_dragger(self.panel_drag_drawer)
@@ -404,16 +447,16 @@ class DRDrawFrame(DRFrame):
 
         self.change_ctr = 0
 
-    def get_panel(self):
-        return Panel(self.v0, self.get_right_vec_norm(), self.get_down_vec_norm(), self.width, self.height)
+    def get_panel_geometry(self):
+        return PanelGeometry(self.v0, self.get_right_vec_norm(), self.get_down_vec_norm(), self.width, self.height)
 
     def move_frame_when_dragged(self):
-        self.panel_drag_drawer.set_panel(self.get_panel())
+        self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
         DRFrame.move_frame_when_dragged(self)
         # print("custom move_frame_when_dragged: ", )
 
     def resize_frame_when_dragged(self):
-        self.panel_drag_drawer.set_panel(self.get_panel())
+        self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
         DRFrame.resize_frame_when_dragged(self)
         # print("custom resize_frame_when_dragged: ", )
 

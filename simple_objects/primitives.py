@@ -84,6 +84,8 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
 
         self.updateObject()
 
+    # def set_parent_node_to_reattach_upon_removal()
+
     def updateObject(self):
         from simple_objects.custom_geometry import createColoredSegmentedLineGeomNode
 

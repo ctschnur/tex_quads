@@ -54,7 +54,6 @@ class DragDropEventManager:
 
         self.on_state_change_functions_with_args.append((func, args))
 
-
     def remove_on_state_change_function(self, func):
         """ remove a function """
 
@@ -70,7 +69,7 @@ class DragDropEventManager:
 
         return task.cont
 
-
     def end_dragging(self):
+        print("end dragging")
         self.mouse_position_before_dragging = None
         taskMgr.remove(self.dragging_mouse_move_task)
