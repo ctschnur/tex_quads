@@ -107,3 +107,24 @@ def getTextureFromImage(pnmImage):
     myTexture = Texture()
     myTexture.load(pnmImage)
     return myTexture
+
+
+def getTextureFromPILImage(pil_image, flip_over_y_axis=False):
+    """
+    args:
+        pil_image: rgba pil image """
+    img_arr_2d = np.array(pil_image)
+
+    if flip_over_y_axis == True:
+        img_arr_2d = np.flip(img_arr_2d, 0).astype(img_arr_2d.dtype)
+
+    num_of_pixels_x = np.shape(img_arr_2d)[1]
+    num_of_pixels_y = np.shape(img_arr_2d)[0]
+    num_of_channels = np.shape(img_arr_2d)[2]
+
+    current_texture = Texture()
+    current_texture.setup2dTexture(
+        num_of_pixels_x, num_of_pixels_y, Texture.T_unsigned_byte, Texture.F_rgba)
+    current_texture.setRamImage(img_arr_2d)
+
+    return current_texture, num_of_pixels_x, num_of_pixels_y

@@ -75,6 +75,8 @@ from plot_utils.StreamFrames import StreamFramesFromRecorder
 
 from plot_utils.colors.colors import get_color
 
+from plot_utils.pdf_renderer import PDFPageTextureObject, PopplerPDFRenderer
+
 
 def plot_audio_file_profile(camera_gear):
     """ """
@@ -236,9 +238,14 @@ class MyApp(ShowBase):
 
         slp.reparentTo(gn)
 
+        print("-----: ", engine.tq_graphics_basics.get_window_size_x())
+
         # -------------
 
 
+        ppr = PopplerPDFRenderer("pdfs/sample.pdf")
+        ppto = PDFPageTextureObject(1, ppr)
+        ppto.attach_to_render()
 
         # slp.reparentTo_p3d(render)
 

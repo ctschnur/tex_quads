@@ -533,6 +533,7 @@ class Orbiter:
         # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
         # to self\.r + r_0
         self.r = self.r + 0.05
+        # print("r: ", self.r)
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
