@@ -20,7 +20,7 @@ import sys
 import pytest
 import gltf
 
-from cameras.Orbiter import Orbiter
+from cameras.Orbiter import OrbiterOrtho
 
 from direct.task import Task
 
@@ -35,7 +35,7 @@ class MyApp(ShowBase):
         base.setFrameRateMeter(True)
         engine.tq_graphics_basics.tq_render.setAntialias(AntialiasAttrib.MAuto)
 
-        ob = Orbiter(base.cam, radius=3.)
+        ob = OrbiterOrtho(base.cam, r_init=3.)
         cs = CoordinateSystem(ob)
 
         ob.set_view_to_yz_plane()

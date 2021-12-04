@@ -20,7 +20,7 @@ import sys
 import pytest
 # import gltf
 
-from cameras.Orbiter import Orbiter
+from cameras.Orbiter import OrbiterOrtho
 
 from direct.task import Task
 

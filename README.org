@@ -21,12 +21,15 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - [X] make an animated plot in the 2d frame with a queue of frames of of xy data
   - [X] make a set of xy data frames and cycle through these frames, updating the plot
 - [X] stream a FFT of the microphone audio
+- [ ] make an orthographic orbiter camera that zooms (changing the 'film size' instead of distance to center)
+  - [ ] zooming towards center based on mouse coordinates
 - [ ] make a draw on screen (2d plane) functionality
   - [X] draw a draggable point and plane
-  - [ ] make a draggable, snappable window
-    - -> [ ] calculate the window's width and height and make them read-only variables
-    - [ ] make plane resizable and open-/closeable
+  - +[ ] make a draggable, snappable window+
+    - [X] calculate the window's width and height and make them read-only variables
+    - [X] make plane resizable
   - [ ] implement sketching on this plane
+    - [ ] restrict sketching to only the plane boundaries
 - [X] display a frame2d with the time-domain data of the audio file
 - +[ ] make an interactive frame2d with a vertical line to interactively select an x-value+
 

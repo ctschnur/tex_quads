@@ -9,7 +9,7 @@ import math
 from direct.showbase.ShowBase import ShowBase, DirectObject
 from panda3d.core import AntialiasAttrib, NodePath, Vec3, Point3, Point2, Mat4, Vec4, DirectionalLight, AmbientLight, PointLight, Vec3
 
-from cameras.Orbiter import Orbiter
+from cameras.Orbiter import OrbiterOrtho
 from sequence.sequence import Sequence
 
 
@@ -17,7 +17,7 @@ def draw_nbody_system(self):
     shade_of_gray = 0.1
     base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
-    ob = Orbiter(base.cam, radius=3.)
+    ob = OrbiterOrtho(base.cam, r_init=3.)
     # ob.set_view_to_xy_plane()
     # ob.set_view_to_xz_plane()
 

@@ -586,7 +586,7 @@ class CoordinateSystem(TQGraphicsNodePath):
         from simple_objects.text import Pinned2dLabel
         import cameras
 
-        if isinstance(self.camera, cameras.Orbiter.Orbiter):
+        if isinstance(self.camera, cameras.Orbiter.OrbiterOrtho):
             myPinnedLabelx = Pinned2dLabel(
                 refpoint3d=Vec3(1., 0., 0.), text="x", xshift=0.02, yshift=0.02)
             myPinnedLabelx.reparentTo(self)

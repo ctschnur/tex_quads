@@ -24,7 +24,6 @@ import sys
 import pytest
 
 import cameras.Orbiter
-import cameras.plain_camera_gear
 from direct.task import Task
 from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, SelectableBezierCurve
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
@@ -146,7 +145,7 @@ class MyApp(ShowBase):
         shade_of_gray = 0.2
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
-        cg = cameras.Orbiter.Orbiter(base.cam, radius=3.)
+        cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=1.)
 
         cs = CoordinateSystemP3dPlain()
         cs.attach_to_render()
@@ -241,7 +240,6 @@ class MyApp(ShowBase):
         print("-----: ", engine.tq_graphics_basics.get_window_size_x())
 
         # -------------
-
 
         ppr = PopplerPDFRenderer("pdfs/sample.pdf")
         ppto = PDFPageTextureObject(1, ppr)

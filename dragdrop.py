@@ -22,7 +22,7 @@ import sys
 import pytest
 import gltf
 
-from cameras.Orbiter import Orbiter
+from cameras.Orbiter import OrbiterOrtho
 
 from direct.task import Task
 
@@ -144,7 +144,7 @@ class MyApp(ShowBase):
         base.setFrameRateMeter(True)
         engine.tq_graphics_basics.tq_render.setAntialias(AntialiasAttrib.MAuto)
 
-        ob = Orbiter(radius=3.)
+        ob = OrbiterOrtho(r_init=3.)
         # cs = CoordinateSystem(ob)
 
         # # -- plot surface using points

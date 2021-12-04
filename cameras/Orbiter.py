@@ -63,93 +63,26 @@ class OrbiterVisualAids(TQGraphicsNodePath):
             self.crosshair = None
 
 
-class OrbiterLens:
-    """ an Orbiter instance has an OrbiterLens to zoom
-        with orthographic projection (then, the lens has to
-        be modified, i.e. the FilmSize) """
-
-    def __init__(self,
-                 # lookat_position=Vec3(0,0,0),
-                 # camera_position=Vec3(5, 5, 2)
-                 camera
-                 ):
-        self.camera = camera
-        self.lens = OrthographicLens()
-        print("self.lens : ", self.lens)
-        self.setOrthoLensRange(None, 5.)  # only initially!
-        # ^ the point is to change this interactively
-
-        self.lens.setNearFar(0.001, 50.)
-
-        # you can also check for the properties of your lens/camera
-        print("OrbiterLens: orthographic: ", self.lens.isOrthographic())
-        # finally, set the just created Lens() to your main camera
-        self.camera.node().setLens(self.lens)
-
-        # Make sure that what you want to display is within the Lenses box
-        # (beware of near and far planes)
-        # Since it's orthogonal projection, letting the camera's position
-        # vary doesn't do anything to the displayed content (except maybe
-        # hiding it beyond the near/far planes)
-
-        # self.camera.setPos(camera_position[0], camera_position[1], camera_position[2])  # this manipulates the viewing matrix
-
-        # self.camera.lookAt(self.orbit_center)  # this manipulates the viewing matrix
-
-        # self.set_camera_pos_spherical_coords()
-
-    def setOrthoLensRange(self, width, height):
-        """ an orthographic lens' `zoom`
-            is controlled by the film size
-        Parameters:
-        width  -- width of the orthographic lens in world coordinates
-        height -- height ---------------- '' ------------------------
-        """
-
-        if width is None and height:
-            width = height * engine.tq_graphics_basics.get_window_aspect_ratio()
-        elif height is None:
-            print("ERR: height is None")
-            exit(1)
-
-        width = height * engine.tq_graphics_basics.get_window_aspect_ratio()
-        # print("Ortho Lens Film: ", "width: ", width, ", height: ", height)
-        # setFilmSize specifies the size of the Lens box
-        # I call it a *viewing box* if the projection matrix produces
-        # orthogonal projection, and *viewing frustum* if the projection
-        # matrix includes perspective)
-        self.lens.setFilmSize(width, height)
-
-        self.width = width
-        self.height = height
-
-    def getOrthoLensRange(self):
-        """ when calling mouse_pos = self.base.mouseWatcherNode.getMouse(),
-        then mouse_pos is a 2d point in the range (-1, 1), (-1, 1).
-        To get the position relative to the film size (for my custom orthogonal
-        lens), """
-        return self.width, self.height
-
-
-class Orbiter:
+class OrbiterOrtho:
     """ """
-
     # when flipping over, the eye vector and z-vector are multiplied by -1.
     # but still, to prevent graphics glitches in the situation where
     # the lookat vector and view vector are perfectly aligned ("theta = 0"),
     # theta_epsilon provides a small but visually unnoticeable offset
     # theta_epsilon = 1.0e-10
     theta_epsilon = 1.0e-5
+    r0 = 1.
 
-    def __init__(self, camera, radius=2., enable_visual_aids=True):
+    def __init__(self, camera, r_init=2., enable_visual_aids=True):
         base.disableMouse()
 
         self.orbit_center = None
         self.set_orbit_center(Vec3(0., 0., 0.), not_just_init=False)
 
-        self.before_aspect_ratio_changed_at_init = True
+        self.before_aspect_ratio_changed_at_init = True  # ?
 
-        self.r = radius
+        self.r_init = r_init
+        self.r = r_init
         self.phi = 0.
         self.theta = np.pi/3.
 
@@ -163,10 +96,13 @@ class Orbiter:
         self.window_resize_hooks = []  # store function objects
 
         # --- set the lens
-        self.orbiterLens = OrbiterLens(camera)
+        self.lens = OrthographicLens()
+        self.lens.setNearFar(0.001, 50.)
+        self.camera.node().setLens(self.lens)
 
         # --- initial setting of the position
-        self.set_camera_pos_spherical_coords(recalculate_film_size=True)
+        self.set_camera_pos_spherical_coords(# recalculate_film_size=True
+        )
 
         # --- event handling to reorient the camera
         from panda3d.core import ModifierButtons
@@ -196,9 +132,11 @@ class Orbiter:
         # taskMgr.add(self.poll_zoom_plus_minus, 'Zoom')
 
         # blender-like usage of 1, 3, 7 keys to align views with axes
-        base.accept('1', self.set_view_to_xz_plane)
+        # base.accept('1', self.set_view_to_xz_plane)
         base.accept('3', self.set_view_to_yz_plane)
         base.accept('7', self.set_view_to_xy_plane)
+
+        base.accept('1', self.set_view_to_xz_plane_and_reset_zoom)
 
         # base.accept('wheel_up', self.handle_wheel_up)
 
@@ -254,7 +192,7 @@ class Orbiter:
             -mouse_position_before_dragging[1],
             p_x_0=0., p_y_0=0.)
 
-        self.ddem.add_on_state_change_function(Orbiter.set_new_panning_orbit_center_from_dragged_mouse,
+        self.ddem.add_on_state_change_function(OrbiterOrtho.set_new_panning_orbit_center_from_dragged_mouse,
                                                args=(self, p_xy_offset, self.get_orbit_center()))
         self.ddem.init_dragging()
 
@@ -376,8 +314,8 @@ class Orbiter:
             theta = self.theta
 
         if correct_for_camera_setting == True:
-            if theta % np.pi < Orbiter.theta_epsilon:
-                theta = theta + Orbiter.theta_epsilon
+            if theta % np.pi < OrbiterOrtho.theta_epsilon:
+                theta = theta + OrbiterOrtho.theta_epsilon
 
         if fixed_phi:
             phi = fixed_phi
@@ -440,7 +378,8 @@ class Orbiter:
             print("self.orbit_center is None")
             exit(1)
 
-    def set_camera_pos_spherical_coords(self, recalculate_film_size=False):
+    def set_camera_pos_spherical_coords(self, # recalculate_film_size=True
+    ):
         x, y, z, up_vector, eye_vector = self.get_spherical_coords(
             get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
 
@@ -453,21 +392,22 @@ class Orbiter:
             Mat4(eye_vector[0], 0, 0, 0, 0, 1, 0, 0, 0, 0, up_vector[2], 0, 0, 0, 0, 1))
 
         # if self.before_aspect_ratio_changed_at_init == True:
-        #     self.orbiterLens.setOrthoLensRange(None, self.get_ortho_lense_range_to_height_from_radius_contrib())
+        #     self.set_orthographic_zoom(None, self.get_ortho_lense_range_to_height_from_radius_contrib())
         # else:
-        #     self.orbiterLens.setOrthoLensRange(None, self.get_ortho_lense_range_to_height_from_radius_contrib())
+        #     self.set_orthographic_zoom(None, self.get_ortho_lense_range_to_height_from_radius_contrib())
 
         # base the film size on the window dimensions, not on the radius of the camera around the orbit center
 
-        if recalculate_film_size == True:
-            self.set_film_size_from_window_dimensions()
+        # if recalculate_film_size == True:
+
+        self.set_film_size_from_window_dimensions()
 
         self.camera.lookAt(self.get_orbit_center())
         self.run_camera_move_hooks()
 
-    def get_ortho_lense_range_to_height_from_radius_contrib(self):
-        """ """
-        return self.r + 0.1
+    def set_view_to_xz_plane_and_reset_zoom(self):
+        self.r = self.r_init
+        self.set_view_to_xz_plane()
 
     def set_pointlight_pos_spherical_coords(self):
         x, y, z = self.get_spherical_coords(offset_phi=np.pi/2.)
@@ -488,7 +428,7 @@ class Orbiter:
         """ set view to the xy plane """
         self.phi = -np.pi/2.
         self.theta = 0.  # np.pi/2.
-        # self.theta = Orbiter.theta_epsilon
+        # self.theta = OrbiterOrtho.theta_epsilon
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
@@ -501,7 +441,7 @@ class Orbiter:
     def set_view_to_xz_plane(self):
         self.phi = -np.pi/2.
         self.theta = np.pi/2
-        # self.theta = Orbiter.theta_epsilon
+        # self.theta = OrbiterOrtho.theta_epsilon
         self.set_camera_pos_spherical_coords()
         self.set_pointlight_pos_spherical_coords()
 
@@ -519,7 +459,7 @@ class Orbiter:
         # print("aftera updating theta: \t", self.theta)
 
     def handle_zoom_plus(self):
-        # print("plus pressed")
+        print("zooming in")
         # to give an effective zoom effect in orthographic projection
         # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
         # to self\.r + r_0
@@ -528,7 +468,7 @@ class Orbiter:
         self.set_pointlight_pos_spherical_coords()
 
     def handle_zoom_minus(self):
-        # print("minus pressed")
+        print("zooming out")
         # to give an effective zoom effect in orthographic projection
         # the films size is adjusted and mapped (in set_camera_pos_spherical_coords())
         # to self\.r + r_0
@@ -567,46 +507,36 @@ class Orbiter:
             # run the function
             c_hook()
 
-    def get_lens(self):
-        """ get my lens """
-        return self.orbiterLens
-
     def set_film_size_from_window_dimensions(self, called_from_orbiter_init=False):
         """ """
-        # print("aspect ratio changed")
+        print("set_film_size_from_window_dimensions called, self.r=", self.r)
 
         aspect_ratio = None
         if self.before_aspect_ratio_changed_at_init == True or called_from_orbiter_init == True:
-            # print("self.before_aspect_ratio_changed_at_init : ",
-            #       self.before_aspect_ratio_changed_at_init)
             aspect_ratio = conventions.winsizex_0/conventions.winsizey_0
 
             if called_from_orbiter_init == False:
                 self.before_aspect_ratio_changed_at_init = False
         else:
-            # print("self.before_aspect_ratio_changed_at_init : ",
-            #       self.before_aspect_ratio_changed_at_init)
             aspect_ratio = engine.tq_graphics_basics.get_window_aspect_ratio()
             # print("aspect ratio : ", aspect_ratio)
             # print(engine.tq_graphics_basics.get_window_size_x(),
             #       engine.tq_graphics_basics.get_window_size_y())
-            # self.lens.setOrthoLensRange(None, 2. * aspect_ratio)
-
-            # scale_factor = 1./320. # engine.tq_graphics_basics.get_window_size_y()
-            # engine.tq_graphics_basics.get_window_size_y()
+            # self.set_orthographic_zoom(None, 2. * aspect_ratio)
             scale_factor = 1./(conventions.winsizey_0/2.)
-            # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
 
-            # offset = self.get_ortho_lense_range_to_height_from_radius_contrib()
-            # offset = 0
-            # print("offset: ", offset)
+            scale_factor *= self.convert_r_to_filmsize_offset_scale_factor()
 
             filmsize_x = engine.tq_graphics_basics.get_window_size_x()*scale_factor
             filmsize_y = engine.tq_graphics_basics.get_window_size_y()*scale_factor
 
-            # filmsize_y += float(filmsize_x) % float(self.get_ortho_lense_range_to_height_from_radius_contrib())
+            print("filmsize_x, filmsize_y: ", filmsize_x, filmsize_y)
 
-            self.get_lens().lens.setFilmSize(filmsize_x, filmsize_y)
+            print("not at init")
+            self.lens.setFilmSize(filmsize_x, filmsize_y)
+
+    def convert_r_to_filmsize_offset_scale_factor(self):
+        return self.r/OrbiterOrtho.r0
 
     def scale_aspect2d_from_window_dimensions(self):
         """ when window dimensions change by resizing the window, I want the aspect2d viewport to scale with it, so that
@@ -668,20 +598,40 @@ class Orbiter:
         return math_utils.p3d_to_np(np.cross(self.get_cam_forward_normal_vector(), self.get_cam_up_normal_vector()))
 
     def get_e_y_prime(self):
-        # v_cam_forward_vec = self.get_cam_forward_normal_vector()
-        # v_cam_forward_normal_vec = v_cam_forward_vec/np.linalg.norm(v_cam_forward_vec)
-
-        # print("v_cam_forward_normal_vec: ", v_cam_forward_normal_vec)
-
-        # e_x = self.get_cam_up_normal_vector()
-        # return -math_utils.p3d_to_np(np.cross(v_cam_forward_normal_vec, e_x))
-
         return self.get_cam_up_normal_vector()
 
-    # def get_shoot_pos_from_mouse(self, mouse_pos_x, mouse_pos_y):
-    #     """ clicking on the screen, this is the position of the point in the
-    #         camera plane (orthogonal lens) where the mouse is pointing at.
-    #         args:
-    #             mouse_pos_x(or y): -1 (-1), to 1 (1) lower left (upper right) corner of the window """
+    # --- for zooming orthographically
 
-    #     cam_pos = self.get_cam_pos()
+    def set_orthographic_zoom(self, width, height):
+        """ an orthographic lens' `zoom`
+            is controlled by the film size
+        args:
+            width:  width of the orthographic lens in world coordinates
+            height:  height ---------------- '' ------------------------
+        """
+
+        if width is None and height:
+            width = height * engine.tq_graphics_basics.get_window_aspect_ratio()
+        elif height is None:
+            print("ERR: height is None")
+            exit(1)
+
+        width = height * engine.tq_graphics_basics.get_window_aspect_ratio()
+        print("Ortho Lens Film: ", "width: ", width, ", height: ", height)
+        # setFilmSize specifies the size of the Lens box
+        # I call it a *viewing box* if the projection matrix produces
+        # orthogonal projection, and *viewing frustum* if the projection
+        # matrix includes perspective)
+        self.lens.setFilmSize(width, height)
+
+        print("-------- self.lens.setFilmSize(width, height): ", width, height)
+
+        self.width = width
+        self.height = height
+
+    def getOrthoLensRange(self):
+        """ when calling mouse_pos = self.base.mouseWatcherNode.getMouse(),
+        then mouse_pos is a 2d point in the range (-1, 1), (-1, 1).
+        To get the position relative to the film size (for my custom orthogonal
+        lens), """
+        return self.width, self.height

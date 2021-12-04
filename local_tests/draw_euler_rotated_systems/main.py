@@ -20,7 +20,7 @@ import os, sys
 import pytest
 import gltf
 
-from cameras.Orbiter import Orbiter
+from cameras.Orbiter import OrbiterOrtho
 
 from direct.task import Task
 
@@ -46,7 +46,7 @@ class MyApp(ShowBase):
         #     lookat_position=Vec3(0, 0, 0),
         #     camera_position=Vec3(5, 5, 2))
 
-        ob = Orbiter(radius=3.)
+        ob = OrbiterOrtho(r_init=3.)
 
         cs = CoordinateSystem()
 
