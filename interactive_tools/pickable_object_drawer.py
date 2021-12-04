@@ -120,9 +120,9 @@ class PanelDragDrawer(DragDropEventManager):
 
         # print("r0_shoot: ", r0_shoot)
         # print("self.panel_geometry.get_plane_normal_vector(): ", self.panel_geometry.get_plane_normal_vector())
-        r_strike = math_utils.LinePlaneCollision(self.panel_geometry.get_plane_normal_vector(), self.panel_geometry.r0, self.camera_gear.get_cam_forward_normal_vector(), r0_shoot)
+        r_strike = math_utils.LinePlaneCollision(self.panel_geometry.get_plane_normal_vector(), self.panel_geometry.r0, self.camera_gear.get_cam_forward_vector_normalized(), r0_shoot)
 
-        # print("self.camera_gear.get_cam_forward_normal_vector():, ", self.camera_gear.get_cam_forward_normal_vector())
+        # print("self.camera_gear.get_cam_forward_vector_normalized():, ", self.camera_gear.get_cam_forward_vector_normalized())
         # print("r_strike: ", r_strike)
 
         in_plane_vec = r_strike - self.panel_geometry.r0
@@ -131,7 +131,7 @@ class PanelDragDrawer(DragDropEventManager):
         x1_strike = np.dot(self.panel_geometry.n1, in_plane_vec)
         x2_strike = np.dot(self.panel_geometry.n2, in_plane_vec)
 
-        print("x1_strike, x2_strike: ", x1_strike, x2_strike)
+        # print("x1_strike, x2_strike: ", x1_strike, x2_strike)
         return np.array([x1_strike, x2_strike])
 
     # def cleanup_after_dragging(self):

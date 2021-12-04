@@ -760,7 +760,8 @@ class CrossHair3d(TQGraphicsNodePath):
     def update(self):
         """ resets the positions """
 
-        orbit_center = self.camera_gear.get_orbit_center()
+        orbit_center = math_utils.np_to_p3d_Vec3(self.camera_gear.get_orbit_center())
+
         if not self.l1o:
             self.l1o = Line1dSolid(
                 thickness=self.crosshair_outer_thickness, color=self.crosshair_outer_color)

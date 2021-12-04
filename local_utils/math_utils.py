@@ -441,3 +441,47 @@ def decompose_affine_trafo_4x4(mat4x4_np):
             # print(scale)
 
     return np.array(T), np.array(R), np.array(S)
+
+def get_lookat_view_matrix(eye, at, up):
+    """ it's always a model-view-projection matrix, the projection should be built into OrthographicLens
+        reference: https://www.geertarien.com/blog/2017/07/30/breakdown-of-the-lookAt-function-in-OpenGL/
+    args:
+        eye: camera position
+        at: looking at direction
+        up: up direction (continuous quantity)
+    """
+
+    # vec3 zaxis = normalize(at - eye);
+    # vec3 xaxis = normalize(cross(zaxis, up));
+    # vec3 yaxis = cross(xaxis, zaxis);
+
+    # negate(zaxis);
+
+    # mat4 viewMatrix = {
+    #     vec4(xaxis.x, xaxis.y, xaxis.z, -dot(xaxis, eye)),
+    #     vec4(yaxis.x, yaxis.y, yaxis.z, -dot(yaxis, eye)),
+    #     vec4(zaxis.x, zaxis.y, zaxis.z, -dot(zaxis, eye)),
+    #     vec4(0, 0, 0, 1)
+    #   };
+
+    zaxis = at - eye
+    zaxis = zaxis / np.linalg.norm(zaxis)
+
+    xaxis = np.cross(zaxis, up)
+    xaxis = xaxis / np.linalg.norm(xaxis)
+
+    yaxis = np.cross(xaxis, zaxis)
+
+    view_matrix = np.array([
+        [xaxis[0], xaxis[1], xaxis[2], -np.dot(xaxis, eye)],
+        [yaxis[0], yaxis[1], yaxis[2], -np.dot(yaxis, eye)],
+        [zaxis[0], zaxis[1], zaxis[2], -np.dot(zaxis, eye)],
+        [0., 0., 0., 1.]])
+
+    return view_matrix
+
+def get_e_theta(theta, phi):
+    """ e_theta unit vector, https://en.wikipedia.org/wiki/Spherical_coordinate_system (or theta hat)"""
+    return np.array([np.cos(phi) * np.cos(theta),
+                      np.cos(theta) * np.sin(phi),
+                      -np.sin(theta)])
