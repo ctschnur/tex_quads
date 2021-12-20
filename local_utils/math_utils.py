@@ -457,7 +457,7 @@ def get_lookat_view_matrix(eye, at, up):
 
     # negate(zaxis);
 
-    # mat4 viewMatrix = {
+    # mat4 viweMatrix = {
     #     vec4(xaxis.x, xaxis.y, xaxis.z, -dot(xaxis, eye)),
     #     vec4(yaxis.x, yaxis.y, yaxis.z, -dot(yaxis, eye)),
     #     vec4(zaxis.x, zaxis.y, zaxis.z, -dot(zaxis, eye)),
@@ -480,8 +480,47 @@ def get_lookat_view_matrix(eye, at, up):
 
     return view_matrix
 
+def get_ortho_projection_matrix(right, left, up, bottom, near, far):
+    """ according to http://learnwebgl.brown37.net/08_projections/projections_ortho.html,
+        a projection matrix projects all vertices in a scene into the cube between
+        (-1, -1, -1), (+1, +1, +1) of the viewing frustum.
+        In panda3d, I'm not sure how to set a basic projection matrix like this, without
+        using setFilmSize or getFilmSize, lenses, etc. .
+        I think, the Lens corresponds to the projection matrix """
+    mid_x = (left + right) / 2.
+    mid_y = (bottom + up) / 2.
+    mid_z = (-near + -far) / 2.
+
+    centerAboutOrigin = np.array([[1., 0., 0., -mid_x],
+                                  [0., 1., 0., -mid_y],
+                                  [0., 0., 1., -mid_z],
+                                  [0., 0., 0., 1.    ]])
+
+    scale_x = 2.0 / (right - left)
+    scale_y = 2.0 / (up - bottom)
+    scale_z = 2.0 / (far - near)
+
+    scaleViewingVolume = np.array([[scale_x, 0.      , 0.,      0.],
+                                   [0.,      scale_y,  0.,      0.],
+                                   [0.,      0.      , scale_z, 0.],
+                                   [0.,      0.      , 0.,      1.]])
+
+    convertToLeftHanded = np.array([[1., 0.,  0., 0.],
+                                    [0., 1.,  0., 0.],
+                                    [0., 0., -1., 0.],
+                                    [0., 0.,  0., 1.]])
+
+    # convertToLeftHanded = np.array([[1., 0.,  0., 0.],
+    #                                 [0., 0.,  1., 0.],
+    #                                 [0., 1.,  0., 0.],
+    #                                 [0., 0.,  0., 1.]])
+
+    return np.linalg.multi_dot([centerAboutOrigin, scaleViewingVolume, convertToLeftHanded
+    ])
+
+
 def get_e_theta(theta, phi):
     """ e_theta unit vector, https://en.wikipedia.org/wiki/Spherical_coordinate_system (or theta hat)"""
     return np.array([np.cos(phi) * np.cos(theta),
-                      np.cos(theta) * np.sin(phi),
-                      -np.sin(theta)])
+                     np.cos(theta) * np.sin(phi),
+                     -np.sin(theta)])

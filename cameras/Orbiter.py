@@ -90,10 +90,14 @@ class OrbiterOrtho:
         self.phi = OrbiterOrtho.phi_0
         self.theta = OrbiterOrtho.theta_0
 
+        # self._previous_zoom_step_plane_coords = None
+        # self.set_previous_zoom_step_plane_coords(0., 0.)
+
         # camera stuff
         self.camera = camera
         # # init the camera pos
         x, y, z = self.get_cam_coords(correct_for_camera_setting=True, fixed_phi=self.phi, fixed_theta=self.theta, fixed_r=self.radius)
+
         self.camera.setPos(x, y, z)  # TODO: is this really necessary in addition to the setViewMatrix ?
 
         # --- hooks for camera movement
@@ -110,6 +114,8 @@ class OrbiterOrtho:
         # --- initial setting of the position
         self.update_camera_pos(# recalculate_film_size=True
         )
+
+
 
         self.set_view_matrix_after_updated_camera_pos()
 
@@ -187,6 +193,7 @@ class OrbiterOrtho:
         base.accept("aspectRatioChanged", self.run_window_resize_hooks)
         self.add_window_resize_hook(self.set_film_size_from_window_dimensions)
         self.add_window_resize_hook(self.scale_aspect2d_from_window_dimensions)
+
 
     def handle_shift_mouse1(self):
         """ """
@@ -342,15 +349,48 @@ class OrbiterOrtho:
                              np.sin(theta) * np.sin(phi),
                              np.cos(theta)])
 
+    # def get_ortho_zoom_coords_offset_3d(self):
+    #     ortho_zoom_coords_offset = self.get_ortho_zoom_coords_offset_2d()
+    #     # TODO: do it with arbitrary orientation, not just x right, z up
+    #     ortho_zoom_coords_offset = np.array([ortho_zoom_coords_offset[0], 0., ortho_zoom_coords_offset[1]])
+    #     return ortho_zoom_coords_offset
+
+    def get_and_update_total_lookat_from_coords(self):
+        """ orbiter center and orthographic zoom offset """
+        orbit_center = self.get_orbit_center()
+
+        # offset_coords_2d = self.get_ortho_zoom_coords_offset_2d()
+        # offset_coords_3d = self.get_ortho_zoom_coords_offset_3d()
+
+        # self.set_previous_zoom_step_plane_coords(*offset_coords_2d)
+
+        return orbit_center  # + offset_coords_3d
+
     def get_cam_coords(self, offset_theta=0., offset_phi=0., fixed_phi=None, fixed_theta=None, fixed_r=None, correct_for_camera_setting=False):
         """ """
         # get corrected quantities
         theta_c, phi_c, r_c = self.correct_cam_spherical_coords(fixed_phi, fixed_theta, fixed_r, correct_for_camera_setting)
 
-        orbit_center = self.get_orbit_center()
+        total_lookat_from_coords = self.get_and_update_total_lookat_from_coords()
+
         spherical_coords_only = self.get_cam_spherical_coords_only(theta_c + offset_theta, phi_c + offset_phi, r_c)
 
-        return orbit_center + spherical_coords_only
+        return total_lookat_from_coords + spherical_coords_only
+
+    # def get_ortho_zoom_coords_offset_2d(self):
+    #     """ the camera coordinates are offset, in order to zoom into the
+    #         spot under the mouse """
+    #     # x1_p, x2_p = self.get_previous_zoom_step_plane_coords()
+    #     x1_p, x2_p = 0., 0.
+    #     if not base.mouseWatcherNode.hasMouse():
+    #         return np.array([x1_p, x2_p])
+
+    #     # x1_p, x2_p = np.array([0., 0.])
+    #     x1_n, x2_n = self.get_zoom_step_plane_coords()
+    #     # calculate the difference
+    #     offset_coords = np.array([x1_n - x1_p, x2_n - x2_p])
+
+    #     return offset_coords
 
     def set_orbit_center(self, orbit_center, not_just_init=True):
         """
@@ -383,7 +423,7 @@ class OrbiterOrtho:
             print("self._orbit_center is None")
             exit(1)
 
-    def get_eye_vector_1(self):
+    def get_eye_vector_prime(self):
         """ """
         if self.on_other_side_p() == True:
             # in the case where -z is up, to provide visual consistency when flipping over
@@ -391,7 +431,7 @@ class OrbiterOrtho:
         else:
             return Vec3(1., 0., 0.)  # in the case where z is up
 
-    def get_up_vector_1(self):
+    def get_up_vector_prime(self):
         """ """
         if self.on_other_side_p() == True:
             return Vec3(0., 0., -1)  # -z is up
@@ -405,26 +445,16 @@ class OrbiterOrtho:
         print("update_camera_pos")
         x, y, z = self.get_cam_coords(correct_for_camera_setting=True, fixed_phi=fixed_phi, fixed_theta=fixed_theta, fixed_r=fixed_r)
         self.camera.setPos(x, y, z)  # TODO: is this really necessary in addition to the setViewMatrix ?
-
-        # eye_vector = self.get_eye_vector_1()
-        # up_vector = self.get_up_vector_1()
-        # self.camera.node().getLens().setViewMat(
-        #     Mat4(eye_vector[0], 0, 0, 0, 0, 1, 0, 0, 0, 0, up_vector[2], 0, 0, 0, 0, 1))
-
         self.set_view_matrix_after_updated_camera_pos()
-
         self.set_film_size_from_window_dimensions()
-        # self.camera.lookAt(self.get_orbit_center())
-
         self.run_camera_move_hooks()
 
     def set_view_matrix_after_updated_camera_pos(self):
         """ this arcball camera's eye and up vectors change upon
             change of spherical coordinates and offset change """
 
-
-        # TOOD: work out what's right with the old and what's wrong with the new method
-        # by inspecting the viewing matrix (for the old method also before and after an additional lookAt)
+        # old method: p3d's OrthographicLens' ViewMatrix and projection matrix
+        # aren't really the same thing as in OpenGL, but I got it to work
 
         # --- new method
 
@@ -446,16 +476,22 @@ class OrbiterOrtho:
 
         # self.camera.node().getLens().setViewMat(Mat4(*vm_forrowvecs_tuple))
 
-
         # --- old method
-
-        eye_vector = self.get_eye_vector_1()
-        # eye_vector = self.get_cam_pos()
-        up_vector = self.get_up_vector_1()
+        # attention! these aren't really eye and up vectors in the global picture
+        eye_vector_prime = self.get_eye_vector_prime()
+        up_vector_prime = self.get_up_vector_prime()
         self.camera.node().getLens().setViewMat(
-            Mat4(eye_vector[0], 0, 0, 0, 0, 1, 0, 0, 0, 0, up_vector[2], 0, 0, 0, 0, 1))
+            Mat4(eye_vector_prime[0], 0, 0, 0, 0, 1, 0, 0, 0, 0, up_vector_prime[2], 0, 0, 0, 0, 1))
 
-        self.camera.lookAt(Vec3(*self.get_orbit_center()))
+        # print("getViewMat 1: ", self.camera.node().getLens().getViewMat())
+        # print("get_projection_mat 1: ", self.camera.node().getLens().get_projection_mat())
+
+        lookat_vec = self.get_and_update_total_lookat_from_coords()
+        # lookat_vec = self.get_orbit_center()
+        self.camera.lookAt(Vec3(*lookat_vec))
+
+        # print("getViewMat 2: ", self.camera.node().getLens().getViewMat())
+        # print("get_projection_mat 2: ", self.camera.node().getLens().get_projection_mat())
 
     def set_view_to_xz_plane_and_reset_zoom(self):
         self.radius = self.radius_init
@@ -464,7 +500,6 @@ class OrbiterOrtho:
     def set_pointlight_pos_spherical_coords(self):
         x, y, z = self.get_cam_coords(offset_phi=np.pi/2.)
         self.pl_nodepath.setPos(x, y, z)
-        # self.pl_nodepath.lookAt(self.get_orbit_center())
 
     def handle_wheel_up(self):
         self.phi = self.phi + 0.05
@@ -588,8 +623,23 @@ class OrbiterOrtho:
             self.lens.setFilmSize(filmsize_x, filmsize_y)
             self.lens.setNearFar(-500., 500.)
 
-            # if base.mouseWatcherNode.hasMouse():
-            #     print("get_coords_2d_for_mouse_zoom: ", self.get_coords_2d_for_mouse_zoom())
+    # def set_previous_zoom_step_plane_coords(self, x1, x2):
+    #     """ """
+    #     self._previous_zoom_step_plane_coords = np.array([x1, x2])
+
+    def get_previous_zoom_step_plane_coords(self):
+        return self._previous_zoom_step_plane_coords
+
+    def get_zoom_step_plane_coords(self):
+        """ the plane coords on which to re-center the view such that
+            the objects under the cursor are not moved while zooming, relative to the stationary cursor.
+            call this after set_film_size_from_window_dimensions and after setting all coords """
+        if base.mouseWatcherNode.hasMouse():
+            # print("get_coords_2d_for_mouse_zoom: ", self.get_coords_2d_for_mouse_zoom())
+            return self.get_coords_2d_for_mouse_zoom()
+        else:
+            # mouse not in window
+            return np.array([0., 0.])
 
     def convert_r_to_filmsize_offset_scale_factor(self):
         return self.radius/OrbiterOrtho.r0
@@ -684,13 +734,6 @@ class OrbiterOrtho:
 
         self.width = width
         self.height = height
-
-    def getOrthoLensRange(self):
-        """ when calling mouse_pos = self.base.mouseWatcherNode.getMouse(),
-        then mouse_pos is a 2d point in the range (-1, 1), (-1, 1).
-        To get the position relative to the film size (for my custom orthogonal
-        lens), """
-        return self.width, self.height
 
     def get_coords_2d_for_mouse_zoom(self):
         """ mouse_pos as returned from base.mouseWatcherNode.getMouse()

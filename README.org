@@ -21,8 +21,8 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - [X] make an animated plot in the 2d frame with a queue of frames of of xy data
   - [X] make a set of xy data frames and cycle through these frames, updating the plot
 - [X] stream a FFT of the microphone audio
-- [ ] make an orthographic orbiter camera that zooms (changing the 'film size' instead of distance to center)
-  - [ ] zooming towards center based on mouse coordinates
+- [X] make an orthographic orbiter camera that zooms (changing the 'film size' instead of distance to center)
+- [ ] create new camera gear that is optimized for 2d viewing and panning over a pdf
 - [ ] make a draw on screen (2d plane) functionality
   - [X] draw a draggable point and plane
   - +[ ] make a draggable, snappable window+

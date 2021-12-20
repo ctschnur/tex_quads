@@ -24,10 +24,6 @@ import sys
 import pytest
 
 import cameras.Orbiter
-
-from cameras.Orbiter import OrbiterOrtho
-from cameras.panner2d import Panner2d
-
 from direct.task import Task
 from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, SelectableBezierCurve
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
@@ -81,54 +77,54 @@ from plot_utils.colors.colors import get_color
 from plot_utils.pdf_renderer import PDFPageTextureObject, PopplerPDFRenderer
 
 
-# def plot_audio_file_profile(camera_gear):
-#     """ """
-#     f2d3 = Frame2d(attach_to_space="aspect2d")
-#     # f2d3 = Frame2d(attach_to_space="render", camera_gear=camera_gear, update_labels_orientation=True
-#     # )
+def plot_audio_file_profile(camera_gear):
+    """ """
+    f2d3 = Frame2d(attach_to_space="aspect2d")
+    # f2d3 = Frame2d(attach_to_space="render", camera_gear=camera_gear, update_labels_orientation=True
+    # )
 
-#     wave_file_path = "/home/chris/Desktop/playbacktest2.wav"
-#     wf = wave.open(wave_file_path, 'rb')
-#     p = pyaudio.PyAudio()
-#     stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-#                               channels=wf.getnchannels(),
-#                               rate=wf.getframerate(),
-#                               output=True)
-#     data = wf.readframes(
-#         CHUNK * get_wave_file_number_of_frames(wave_file_path))
+    wave_file_path = "/home/chris/Desktop/playbacktest2.wav"
+    wf = wave.open(wave_file_path, 'rb')
+    p = pyaudio.PyAudio()
+    stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
+                              channels=wf.getnchannels(),
+                              rate=wf.getframerate(),
+                              output=True)
+    data = wf.readframes(
+        CHUNK * get_wave_file_number_of_frames(wave_file_path))
 
-#     y = np.fromstring(np.ravel(data), dtype=np.int32)
-#     t_f = get_wave_file_duration(wave_file_path)
-#     t = np.linspace(0., 1., num=len(y)) * t_f
+    y = np.fromstring(np.ravel(data), dtype=np.int32)
+    t_f = get_wave_file_duration(wave_file_path)
+    t = np.linspace(0., 1., num=len(y)) * t_f
 
-#     t_scale_factor = 0.05
-#     strip_width = 0.25
-#     space = 0.125
-#     f2d3.set_figsize(*np.array([t_f * t_scale_factor, strip_width]))
-#     f2d3.setPos(0., 0, 0.)
+    t_scale_factor = 0.05
+    strip_width = 0.25
+    space = 0.125
+    f2d3.set_figsize(*np.array([t_f * t_scale_factor, strip_width]))
+    f2d3.setPos(0., 0, 0.)
 
-#     step = int((len(y)-1)/25)
-#     y = np.abs(y[0:-1:step])
-#     t = t[0:-1:step]
+    step = int((len(y)-1)/25)
+    y = np.abs(y[0:-1:step])
+    t = t[0:-1:step]
 
-#     y = y.astype(float)
-#     t = t.astype(float)
+    y = y.astype(float)
+    t = t.astype(float)
 
-#     y = y/max(y)
-#     t = t/max(t)
+    y = y/max(y)
+    t = t/max(t)
 
-#     space = 0.05
+    space = 0.05
 
-#     color="orange"
+    color="orange"
 
-#     for i, (ti, yi) in enumerate(zip(t, y)):
-#         if np.abs(yi) < 1e-8:
-#             f2d3.plot([ti, ti], [-space, +space], color=color)
-#         else:
-#             f2d3.plot([ti, ti], [0, yi], color=color)
+    for i, (ti, yi) in enumerate(zip(t, y)):
+        if np.abs(yi) < 1e-8:
+            f2d3.plot([ti, ti], [-space, +space], color=color)
+        else:
+            f2d3.plot([ti, ti], [0, yi], color=color)
 
-#     f2d3.set_xlim(min(t), max(t))
-#     f2d3.set_ylim(-max(y), max(y))
+    f2d3.set_xlim(min(t), max(t))
+    f2d3.set_ylim(-max(y), max(y))
 
 
 class GNodeClass(TQGraphicsNodePath):
@@ -149,18 +145,82 @@ class MyApp(ShowBase):
         shade_of_gray = 0.2
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
-        # cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=5.)
-        # cg.set_view_to_xz_plane()
-
-        cg = Panner2d(base.cam, # view_distance=15.
-        )
-
-        # self.cg = cg
+        cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=1.)
 
         cs = CoordinateSystemP3dPlain()
         cs.attach_to_render()
 
+        # # -----------
+        # lens = OrthographicLens()
+        # far = 1.
+        # near = -1.
+        # lens.setNearFar(near, far)
+        # x_filmsize = 2 * 1.
+        # y_filmsize = x_filmsize * 9./16. * 2
+        # # x_filmsize = 2 * 1.
+        # # y_filmsize = 2 * 1.
+        # # x_filmsize = 1.
+        # # y_filmsize = 1.
+        # lens.setFilmSize(x_filmsize, y_filmsize)
+        # base.cam.node().setLens(lens)
 
+        # print("proj mat (1): ")
+        # print(base.cam.node().getLens().getProjectionMat())
+        # print(base.cam.node().getLens().getFilmSize())
+        # # -----------
+
+        # -----------
+        lens = MatrixLens()
+        # lens.setNearFar(-500., 500.)
+        # x_filmsize = 2 * 1.
+        # y_filmsize = x_filmsize * 9./16.
+        # lens.setFilmSize(x_filmsize, y_filmsize)
+
+        far = 100.
+        near = -100.
+
+        x_filmsize = 2 * 1.5
+        y_filmsize = x_filmsize * 9./16.
+
+        right = x_filmsize/2.
+        left = -right
+        up = y_filmsize/2.
+        bottom = -up
+
+        proj_mat = math_utils.get_ortho_projection_matrix(right, left, up, bottom, near, far)
+
+        lens.setUserMat(math_utils.to_forrowvecs(proj_mat))
+
+        # lens.setUserMat(np.flatten(proj_mat))
+
+        base.cam.node().setLens(lens)
+
+        print("proj mat (2): ")
+        print(base.cam.node().getLens().getProjectionMat())
+        print(base.cam.node().getLens().getFilmSize())
+        # -----------
+
+        # base.cam.setLens()
+
+        # cs = CoordinateSystem(cg)
+        # cs.attach_to_render()
+
+        # base.accept("d", lambda: exec("import ipdb; ipdb.set_trace()"))
+        # dep = DraggableEdgePlayer("/home/chris/Desktop/playbacktest2.wav", cg, taskMgr)
+
+        # f2d3 = Frame2d(camera_gear=cg, attach_to_space="render", update_labels_orientation=True)
+        # # f2d3.set_figsize(0.8, 0.5)
+        # sffr = StreamFramesFromRecorder(f2d3)
+
+        # plot_audio_file_profile(cg)
+
+        a = Vector()
+        a.setTipPoint(Vec3(0., 0., 1.)*0.2)
+        a.setTailPoint(Vec3(0., 0., 0.))
+        a.reparentTo_p3d(render)
+        a.setColor(Vec4(0., 1., 1., 1.), 1)
+
+        # cg.set_view_to_xz_plane()
 
         # df = DraggableFrame(cg)
         # df.setPos(Vec3(0., 0., 0.6))
@@ -233,9 +293,9 @@ class MyApp(ShowBase):
 
         # # -------------
 
-        ppr = PopplerPDFRenderer("pdfs/sample.pdf")
-        ppto = PDFPageTextureObject(1, ppr)
-        ppto.attach_to_render()
+        # ppr = PopplerPDFRenderer("pdfs/sample.pdf")
+        # ppto = PDFPageTextureObject(1, ppr)
+        # ppto.attach_to_render()
 
         # # slp.reparentTo_p3d(render)
 
@@ -254,100 +314,6 @@ class MyApp(ShowBase):
         # b2d2.setColor(Vec4(1., 0., 1., 0.1), 1)
 
         # b2d2.setScale(0.2, 1.0, 1.)
-
-        self.a = Vector()
-        self.a.setTipPoint(Vec3(0., 0., 1.)*0.2)
-        self.a.setTailPoint(Vec3(0., 0., 0.))
-        self.a.reparentTo_p3d(render)
-        self.a.setColor(Vec4(0., 1., 1., 1.), 1)
-
-        # self.camera = self.cg.camera
-
-        # base.accept('mouse1', self.onPress)
-        # self.p_xy_offset = None
-
-    # def onPress(self):
-    #     mouse_pos = base.mouseWatcherNode.getMouse()
-
-    #     mouse_position_before_dragging = base.mouseWatcherNode.getMouse()
-    #     p_xy_at_init_drag = conventions.getFilmCoordsFromMouseCoords(
-    #         -mouse_position_before_dragging[0],
-    #         -mouse_position_before_dragging[1],
-    #         p_x_0=0., p_y_0=0.)
-
-    #     self.p_xy_at_init_drag = p_xy_at_init_drag
-
-
-
-    #     r0_obj = math_utils.p3d_to_np(-Vec3(p_xy_at_init_drag[0], 0., p_xy_at_init_drag[1]))
-    #     self.position_before_dragging = Vec3(*r0_obj)
-
-    #     self.task_obj_update = taskMgr.add(self.update_vectors, 'update_vectors')
-
-    #     # self.a.setTailPoint(-Vec3(*r0_obj) + self.cg.visual_aids.crosshair.getPos())
-
-    #     print("onPress -----------------")
-
-    # def update_vectors(self, task):
-    #     """ """
-    #     if base.mouseWatcherNode.hasMouse():
-    #         mouse_pos = base.mouseWatcherNode.getMouse()
-    #         # mouse_position_before_dragging = base.mouseWatcherNode.getMouse()
-    #         # p_xy_offset = conventions.getFilmCoordsFromMouseCoords(
-    #         #     -mouse_position_before_dragging[0],
-    #         #     -mouse_position_before_dragging[1],
-    #         #     p_x_0=0., p_y_0=0.)
-
-    #         p_xy_offset = self.p_xy_offset
-
-
-    #         r0_obj = math_utils.p3d_to_np(Vec3(0., 0., 0.))
-
-    #         v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getViewVector()))
-    #         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
-    #         # self.camera.node().getLens().getViewVector()
-
-    #         v_cam_up = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getUpVector()))
-    #         v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
-
-    #         r_cam = math_utils.p3d_to_np(self.camera.getPos())
-
-    #         e_up = math_utils.p3d_to_np(v_cam_up/np.linalg.norm(v_cam_up))
-
-    #         e_cross = math_utils.p3d_to_np(np.cross(v_cam_forward/np.linalg.norm(v_cam_forward), e_up))
-
-    #         # determine the middle origin of the draggable plane (where the plane intersects the camera's forward vector)
-    #         r0_middle_origin = math_utils.LinePlaneCollision(v_cam_forward, r0_obj, v_cam_forward, r_cam)
-
-    #         # print("r0_obj", r0_obj)
-    #         # print("v_cam_forward", v_cam_forward)
-    #         # print("v_cam_up", v_cam_up)
-    #         # print("r_cam", r_cam)
-    #         # print("e_up", e_up)
-    #         # print("e_cross", e_cross)
-    #         # print("r0_middle_origin", r0_middle_origin)
-
-    #         # -- calculate the bijection between mouse coordinates m_x, m_y and plane coordinates p_x, p_y
-
-    #         mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
-    #         # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
-
-    #         # print("p_xy_offset: ", self.p_xy_at_init_drag)
-
-    #         p_x, p_y = conventions.getFilmCoordsFromMouseCoords(mouse_pos[0], mouse_pos[1], self.p_xy_at_init_drag[0], self.p_xy_at_init_drag[1])
-    #         # p_x, p_y = conventions.getFilmCoordsFromMouseCoords(mouse_pos[0], mouse_pos[1], 0., 0.)
-
-    #         drag_vec = p_x * e_cross + p_y * e_up
-
-    #         # print("drag_vec", drag_vec)
-
-    #         # set the position while dragging
-    #         self.this_frame_drag_pos = self.position_before_dragging + Vec3(*drag_vec)
-
-    #         self.a.setTipPoint(self.this_frame_drag_pos)
-    #         return task.cont
-    #     else:
-    #         return task.done
 
 app = MyApp()
 app.run()
