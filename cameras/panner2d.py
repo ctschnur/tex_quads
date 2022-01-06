@@ -73,9 +73,9 @@ class Panner2dVisualAids(TQGraphicsNodePath):
 
 class Panner2d:
     """ """
-    view_distance_max = 100.
+    view_distance_max = 1000.
     # view_distance_0 = view_distance_max/2.
-    view_distance_0 = 50.
+    view_distance_0 = 500.
     view_distance_steps = 10
     view_distance_step_size = (view_distance_max)/view_distance_steps
     view_distance_min = view_distance_step_size
@@ -211,8 +211,6 @@ class Panner2d:
 
         self.view_distance = Panner2d.view_distance_0
         self.x = [0., 0.]
-
-
 
         # lookat
         self.x_vvec = Vector()

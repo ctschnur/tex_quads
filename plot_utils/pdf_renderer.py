@@ -24,7 +24,6 @@ from poppler import load_from_file, PageRenderer  # python-poppler
 from PIL import Image, ImageTk
 
 
-
 SCREEN_SIZE_IN_PIXELS_X = 1920
 SCREEN_SIZE_IN_PIXELS_Y = 1080
 
@@ -54,7 +53,7 @@ class PopplerPDFRenderer:
         self.pdf_filepath = pdf_filepath
         # self.pdf_filepath = "sample.pdf"
 
-        self.pdf_document = load_from_file(self.pdf_filepath)
+        self.poppler_document = load_from_file(self.pdf_filepath)
         self.renderer = PageRenderer()
 
         # pil_image.save("img1.png")
@@ -66,7 +65,7 @@ class PopplerPDFRenderer:
 
     def getPILImage(self, page=0):
         """ get a pdf page as a PNMImage """
-        pdf_page = self.pdf_document.create_page(page)
+        pdf_page = self.poppler_document.create_page(page)
 
         w_in_cm, h_in_cm = get_page_dims_from_page_in_cm(pdf_page)
         w_in_pixels_for_render = cm_to_pixels_for_render(w_in_cm)
@@ -83,6 +82,10 @@ class PopplerPDFRenderer:
             )
 
         return pil_image
+
+    def get_number_of_pages(self):
+        """ """
+        return self.poppler_document.pages
 
 
 class PDFPageTextureObject(IndicatorPrimitive):
@@ -134,3 +137,8 @@ class PDFPageTextureObject(IndicatorPrimitive):
         # self.setTransparency(True)
 
         self.setTransparency(TransparencyAttrib.MAlpha)
+
+    def get_size(self):
+        """ returns width, height """
+        pixels_per_unit = conventions.get_pixels_per_unit()
+        return self.num_of_pixels_x * (1./pixels_per_unit), self.num_of_pixels_y * (1./pixels_per_unit)

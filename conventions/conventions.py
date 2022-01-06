@@ -50,15 +50,18 @@ def getMat4_scale_unit_quad_to_image_aspect_ratio(image_width_pixels, image_heig
                      [0, 0, quad_scalez * 1., 0],
                      [0, 0, 0, 1]])
 
+def get_pixels_per_unit():
+    return engine.tq_graphics_basics.get_window_size_y()/2.
+
 
 def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution_forrowvecs():
     # a single unit takes an amount of pixels of the p3d window
     # by convention here, the height of what the initial fixed camera
     # displays is exactly 2, i.e. the distance d((0,0,-1), (0,0,1))
-    pixel_per_unit = engine.tq_graphics_basics.get_window_size_y()/2.
-    return Mat4(1./pixel_per_unit, 0, 0, 0,
+    pixels_per_unit = get_pixels_per_unit()
+    return Mat4(1./pixels_per_unit, 0, 0, 0,
                 0, 1, 0, 0,
-                0, 0, 1./pixel_per_unit, 0,
+                0, 0, 1./pixels_per_unit, 0,
                 0, 0, 0, 1)
 
 
@@ -66,10 +69,10 @@ def getMat4_scale_quad_for_texture_pixels_to_match_screen_resolution():
     # a single unit takes an amount of pixels of the p3d window
     # by convention here, the height of what the initial fixed camera
     # displays is exactly 2, i.e. the distance d((0,0,-1), (0,0,1))
-    pixel_per_unit = engine.tq_graphics_basics.get_window_size_y()/2.
-    return Mat4(1./pixel_per_unit, 0, 0, 0,
+    pixels_per_unit = get_pixels_per_unit()
+    return Mat4(1./pixels_per_unit, 0, 0, 0,
                 0, 1, 0, 0,
-                0, 0, 1./pixel_per_unit, 0,
+                0, 0, 1./pixels_per_unit, 0,
                 0, 0, 0, 1)
 
 

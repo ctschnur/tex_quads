@@ -137,7 +137,6 @@ class GNodeClass(TQGraphicsNodePath):
         TQGraphicsNodePath.__init__(self, *args, **kwargs)
 
 
-
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -230,14 +229,38 @@ class MyApp(ShowBase):
 
         # # -------------
 
+
+
         ppr = PopplerPDFRenderer("pdfs/sample.pdf")
-        ppto = PDFPageTextureObject(1, ppr)
-        ppto.attach_to_render()
+
+        pptos = []
+
+        y_pages_distance = 0.1
+
+        for i in range(ppr.get_number_of_pages()):
+            ppto = PDFPageTextureObject(i, ppr)
+            ppto.attach_to_render()
+
+            pos_3d = ppto.getPos()
+            x0 = pos_3d[0]
+            y0 = pos_3d[2]  # since z is up in p3d and y is up in the 2d pdf convention here
+
+            x_size, y_size = ppto.get_size()
+
+            y = y0
+            x = x0
+
+            if i > 0:
+                y -= y_pages_distance
+            y -= (i + 1.) * y_size
+
+            ppto.setPos(Vec3(x, 0., y))
+            pptos.append(ppto)
 
         # # slp.reparentTo_p3d(render)
 
-        ddf = DRDrawFrame(cg, height=0.2, width=0.7)
-        ddf.attach_to_render()
+        # ddf = DRDrawFrame(cg, height=0.2, width=0.7)
+        # ddf.attach_to_render()
 
         # # -----------
 
