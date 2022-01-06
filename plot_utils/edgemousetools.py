@@ -70,7 +70,7 @@ class EdgeHoverer:
             return False, None, None, None, None, None, None
 
         ray_direction, ray_aufpunkt = cameraray.getCameraMouseRay(
-            self.camera_gear.camera, mouse_pos)
+            self.camera_gear.p3d_camera, mouse_pos)
         r1 = ray_aufpunkt
         e1 = ray_direction
 

@@ -152,15 +152,12 @@ class MyApp(ShowBase):
         # cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=5.)
         # cg.set_view_to_xz_plane()
 
-        cg = Panner2d(base.cam, # view_distance=15.
-        )
+        cg = Panner2d(base.cam)
 
         # self.cg = cg
 
         cs = CoordinateSystemP3dPlain()
         cs.attach_to_render()
-
-
 
         # df = DraggableFrame(cg)
         # df.setPos(Vec3(0., 0., 0.6))
@@ -194,12 +191,12 @@ class MyApp(ShowBase):
 
         # df.setColor(Vec4(0., 1., 1., 1.), 1)
 
-        # self.vecp0 = Vector()
-        # # self.vecp0.setTipPoint(Vec3(-1., 0., 1.))
-        # self.vecp0.setTipPoint(Vec3(0., 0., 0.))
-        # self.vecp0.setTailPoint(Vec3(0., 0., 0.))
-        # self.vecp0.reparentTo(engine.tq_graphics_basics.tq_render)
-        # self.vecp0.setColor(Vec4(0., 0., 0., 1.), 1)
+        self.vecp0 = Vector()
+        # self.vecp0.setTipPoint(Vec3(-1., 0., 1.))
+        self.vecp0.setTipPoint(Vec3(1., 0., 0.))
+        self.vecp0.setTailPoint(Vec3(0., 0., 0.))
+        self.vecp0.reparentTo(engine.tq_graphics_basics.tq_render)
+        self.vecp0.setColor(Vec4(1., 0., 0., 0.5), 1)
 
 
         # -------------
@@ -239,8 +236,8 @@ class MyApp(ShowBase):
 
         # # slp.reparentTo_p3d(render)
 
-        # ddf = DRDrawFrame(cg, height=0.2, width=0.7)
-        # ddf.attach_to_render()
+        ddf = DRDrawFrame(cg, height=0.2, width=0.7)
+        ddf.attach_to_render()
 
         # # -----------
 
@@ -255,11 +252,11 @@ class MyApp(ShowBase):
 
         # b2d2.setScale(0.2, 1.0, 1.)
 
-        self.a = Vector()
-        self.a.setTipPoint(Vec3(0., 0., 1.)*0.2)
-        self.a.setTailPoint(Vec3(0., 0., 0.))
-        self.a.reparentTo_p3d(render)
-        self.a.setColor(Vec4(0., 1., 1., 1.), 1)
+        # self.a = Vector()
+        # self.a.setTipPoint(Vec3(0., 0., 1.))
+        # self.a.setTailPoint(Vec3(0., 0., 0.))
+        # self.a.reparentTo_p3d(render)
+        # self.a.setColor(Vec4(0., 1., 1., 1.), 1)
 
         # self.camera = self.cg.camera
 

@@ -312,7 +312,7 @@ class Basic2dText(BasicText):
 
         # self.camera_gear = camera_gear
 
-        # heading, pitch, roll = self.camera_gear.camera.getHpr()
+        # heading, pitch, roll = self.camera_gear.p3d_camera.getHpr()
 
         # print("render, heading, pitch, roll: ", render, heading, pitch, roll)
 
@@ -361,7 +361,7 @@ class BasicOrientedText(Text):
         x, y, z, up_vector, eye_vector = self.camera_gear.get_spherical_coords(
             get_up_vector=True, get_eye_vector=True, correct_for_camera_setting=True)
 
-        heading, pitch, roll = self.camera_gear.camera.getHpr()
+        heading, pitch, roll = self.camera_gear.p3d_camera.getHpr()
         # roll += 90.
         # pitch += 90.
         if up_vector == Vec3(0, 0, -1) and eye_vector == Vec3(-1, 0, 0):

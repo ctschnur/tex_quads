@@ -40,7 +40,6 @@ class CollisionPicker:
 
         # -- things that are needed to do picking from different camera orientations
         self.camera_gear = camera_gear  # e.g. the orbiter class is a camera_gear
-        self.camera = self.camera_gear.camera
         self.tq_render = tq_render
 
         self.mouse_watcher_node = mousewatchernode
@@ -54,7 +53,7 @@ class CollisionPicker:
 
         # -- a ray is a half-inifinite straight line
         # it is supposed to shoot out orthogonally to the view plane and hit an object
-        self.pick_collision_ray.setOrigin(self.camera.getPos(self.tq_render.get_p3d_nodepath()))
+        self.pick_collision_ray.setOrigin(self.camera_gear.p3d_camera.getPos(self.tq_render.get_p3d_nodepath()))
 
         # -- TODO: update this every time the orbiter camera position changes
         # first, transform the (0,1,0) vector into render's coordinate system
@@ -66,7 +65,7 @@ class CollisionPicker:
         self.pick_collision_node.addSolid(self.pick_collision_ray)  # the pick ray is actually a 3d object
 
         # attach the CollisionNode to the camera (not the CollisionRay)
-        self.pick_collision_node_nodepath = self.camera.attachNewNode(self.pick_collision_node)
+        self.pick_collision_node_nodepath = self.camera_gear.p3d_camera.attachNewNode(self.pick_collision_node)
 
         # set a collide mask to the pick_collision_node, 2 objects that should be able to collide must have the same collide mask!
         self.pick_collision_node.setFromCollideMask(GeomNode.getDefaultCollideMask()
@@ -87,7 +86,7 @@ class CollisionPicker:
 
         mouse_pos = base.mouseWatcherNode.getMouse()
 
-        self.pick_collision_ray.setFromLens(self.camera.node(), mouse_pos[0], mouse_pos[1])
+        self.pick_collision_ray.setFromLens(self.camera_gear.p3d_camera.node(), mouse_pos[0], mouse_pos[1])
 
         # now actually (manually) traverse to see if the two objects are collided (traverse the render tree (is the camera included there?))
         self.pick_traverser.traverse(engine.tq_graphics_basics.tq_render.get_p3d_nodepath())  # this should fill up the collision queue

@@ -53,15 +53,15 @@ class PickableObjectDragger(DragDropEventManager):
 
         v_cam_forward = math_utils.p3d_to_np(
             engine.tq_graphics_basics.tq_render.getRelativeVector(
-            self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
+            self.camera_gear.p3d_camera, self.camera_gear.p3d_camera.node().getLens().getViewVector()))
 
         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
         # self.camera_gear.node().getLens().getViewVector()
 
-        v_cam_up = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera_gear.camera, self.camera_gear.camera.node().getLens().getUpVector()))
+        v_cam_up = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera_gear.p3d_camera, self.camera_gear.p3d_camera.node().getLens().getUpVector()))
         v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
 
-        r_cam = math_utils.p3d_to_np(self.camera_gear.camera.getPos())
+        r_cam = math_utils.p3d_to_np(self.camera_gear.p3d_camera.getPos())
 
         e_up = math_utils.p3d_to_np(v_cam_up/np.linalg.norm(v_cam_up))
 

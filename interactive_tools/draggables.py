@@ -31,7 +31,7 @@ class DraggablePoint(PickablePoint):
 
         # self.pom.tag(self.get_p3d_nodepath())
 
-        self.pt_dragger = PickablePointDragger(self, self.camera_gear.camera)
+        self.pt_dragger = PickablePointDragger(self, self.camera_gear.p3d_camera)
         # self.pt_dragger.add_on_state_change_function(sayhi)
 
         self.dadom = DragAndDropObjectsManager()

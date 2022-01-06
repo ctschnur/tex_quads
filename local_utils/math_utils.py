@@ -372,6 +372,9 @@ def equal_up_to_epsilon(num1, num2, epsilon=0.001):
     """ """
     return np.abs(num1 - num2) <= epsilon
 
+def vectors_equal_up_to_epsilon(vec1, vec2, epsilon_per_component=0.001):
+    return np.all(np.abs(vec1 - vec2) <= epsilon_per_component)
+
 
 def generate_polynomial(x, coeffs, shifts):
     """ """
@@ -524,3 +527,15 @@ def get_e_theta(theta, phi):
     return np.array([np.cos(phi) * np.cos(theta),
                      np.cos(theta) * np.sin(phi),
                      -np.sin(theta)])
+
+
+def vectors_parallel_or_antiparallel_p(vec1, vec2):
+    """
+    args:
+        vec1, vec2: np vectors of 3 components """
+
+    vec1 /= np.linalg.norm(vec1)
+    vec2 /= np.linalg.norm(vec2)
+
+
+    return np.all(vec1 == vec2) or np.all(vec1 == -vec2)

@@ -761,7 +761,7 @@ class Point3dCursor(TQGraphicsNodePath):
         """ """
         # -- get the forward vector of the camera in the coordinate system of the cursor
         v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(
-            self.camera_gear.camera, self.camera_gear.camera.node().getLens().getViewVector()))
+            self.camera_gear.p3d_camera, self.camera_gear.p3d_camera.node().getLens().getViewVector()))
         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
 
         # now set the rotation to point into the direction of v_cam_forward
