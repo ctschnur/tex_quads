@@ -7,7 +7,7 @@ from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInter
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d, GNodeClass
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, TextureOf2dImageData
 
 from simple_objects.text import Fixed2dLabel
@@ -47,6 +47,8 @@ from statemachine.edgeplayer import EdgePlayerSM
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
 
 from engine.tq_graphics_basics import TQGraphicsNodePath
+
+
 import engine.tq_graphics_basics
 from simple_objects.mpl_integration import RotatingMatplotlibFigure
 
@@ -131,12 +133,6 @@ from plot_utils.pdf_renderer import PDFPageTextureObject, PopplerPDFRenderer
 #     f2d3.set_ylim(-max(y), max(y))
 
 
-class GNodeClass(TQGraphicsNodePath):
-    """ Group Node, merely for grouping """
-    def __init__(self, *args, **kwargs):
-        TQGraphicsNodePath.__init__(self, *args, **kwargs)
-
-
 class MyApp(ShowBase):
     def __init__(self):
         ShowBase.__init__(self)
@@ -151,7 +147,7 @@ class MyApp(ShowBase):
         # cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=5.)
         # cg.set_view_to_xz_plane()
 
-        cg = Panner2d(base.cam)
+        # cg = Panner2d(base.cam)
 
         # self.cg = cg
 
@@ -229,33 +225,13 @@ class MyApp(ShowBase):
 
         # # -------------
 
+        # TODO: set Panner2d position from pdf width
 
+        from pdf_viewer.tools import PDFViewer
 
-        ppr = PopplerPDFRenderer("pdfs/sample.pdf")
+        pdfv = PDFViewer(base.cam, "pdfs/sample.pdf")
+        pdfv.attach_to_render()
 
-        pptos = []
-
-        y_pages_distance = 0.1
-
-        for i in range(ppr.get_number_of_pages()):
-            ppto = PDFPageTextureObject(i, ppr)
-            ppto.attach_to_render()
-
-            pos_3d = ppto.getPos()
-            x0 = pos_3d[0]
-            y0 = pos_3d[2]  # since z is up in p3d and y is up in the 2d pdf convention here
-
-            x_size, y_size = ppto.get_size()
-
-            y = y0
-            x = x0
-
-            if i > 0:
-                y -= y_pages_distance
-            y -= (i + 1.) * y_size
-
-            ppto.setPos(Vec3(x, 0., y))
-            pptos.append(ppto)
 
         # # slp.reparentTo_p3d(render)
 

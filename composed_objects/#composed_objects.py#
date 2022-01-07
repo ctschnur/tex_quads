@@ -31,7 +31,8 @@ import numpy as np
 import numpy as np
 
 
-class GNodeClass(TQGraphicsNodePath):
+class GNodeClass(
+TQGraphicsNodePath):
     """ Group Node, merely for grouping """
     def __init__(self, *args, **kwargs):
         TQGraphicsNodePath.__init__(self, *args, **kwargs)

@@ -73,11 +73,10 @@ class Panner2dVisualAids(TQGraphicsNodePath):
 
 class Panner2d:
     """ """
-    view_distance_max = 1000.
+    view_distance_max = 100.
     # view_distance_0 = view_distance_max/2.
-    view_distance_0 = 500.
-    view_distance_steps = 10
-    view_distance_step_size = (view_distance_max)/view_distance_steps
+    view_distance_0 = 50.
+    view_distance_step_size = 10.
     view_distance_min = view_distance_step_size
 
     panner_zoom_0 = 1.  # percentage, 0 to 1
@@ -113,7 +112,7 @@ class Panner2d:
         if view_distance is not None:
             self.view_distance = view_distance
         else:
-            self.view_distance = self.view_distance_0
+            self.view_distance = Panner2d.view_distance_0
 
 
         # camera stuff
@@ -152,10 +151,13 @@ class Panner2d:
         from direct.showbase.ShowBase import DirectObject
 
         # changing zoom
-        base.accept('control-wheel_down', self.handle_zoom_minus)
-        base.accept('control-wheel_up', self.handle_zoom_plus)
+        base.accept('control-wheel_down', self.handle_zoom_minus_with_mouse)
+        base.accept('control-wheel_up', self.handle_zoom_plus_with_mouse)
 
-        # base.accept('control-wheel_up', self.handle_zoom_sin)
+        base.accept('control--', self.handle_zoom_minus_general)
+        base.accept('control-+', self.handle_zoom_plus_general)
+        base.accept('control---repeat', self.handle_zoom_minus_general)
+        base.accept('control-+-repeat', self.handle_zoom_plus_general)
 
         # changing shift in horizontal direction
         base.accept('shift-wheel_up', self.handle_control_wheel_up)
@@ -205,59 +207,13 @@ class Panner2d:
         self.add_window_resize_hook(self.update_film_size_from_window_dimensions)
         self.add_window_resize_hook(self.scale_aspect2d_from_window_dimensions)
 
-
-        # self.view_distance = Panner2d.view_distance_0 # 50.
-        # self.x = [2.,  4.1]
-
-        self.view_distance = Panner2d.view_distance_0
-        self.x = [0., 0.]
-
-        # lookat
-        self.x_vvec = Vector()
-        self.x_vvec.setColor(Vec4(0., 0., 0., 1.), 1)
-        # self.x_vvec.setTipPoint(Vec3(self.x[0], 0., self.x[1]))
-        self.x_vvec.setTipPoint(Vec3(0., 0., 0.))
-        self.x_vvec.setTailPoint(Vec3(0., 0., 0.))
-        self.x_vvec.reparentTo(engine.tq_graphics_basics.tq_render)
-
-        # yellow
-        self.v1_vvec = Vector()
-        self.v1_vvec.setColor(Vec4(1., 1., 0., 1.), 1)
-        self.v1_vvec.setTipPoint(Vec3(0., 0., 0.))
-        self.v1_vvec.setTailPoint(Vec3(0., 0., 0.))
-        self.v1_vvec.reparentTo(engine.tq_graphics_basics.tq_render)
-
-        # grey
-        # dark grey
-        self.A_vvec = Vector()
-        self.A_vvec.setColor(Vec4(0.5, 0.5, 0.5, 1.), 1)
-        self.A_vvec.setTipPoint(Vec3(0., 0., 0.))
-        self.A_vvec.setTailPoint(Vec3(0., 0., 0.))
-        self.A_vvec.reparentTo(engine.tq_graphics_basics.tq_render)
-
-        # light grey
-        self.B_vvec = Vector()
-        self.B_vvec.setColor(Vec4(0.75, 0.75, 0.75, 1.), 1)
-        self.B_vvec.setTipPoint(Vec3(0., 0., 0.))
-        self.B_vvec.setTailPoint(Vec3(0., 0., 0.))
-        self.B_vvec.reparentTo(engine.tq_graphics_basics.tq_render)
-
-
-        # blue
-        self.C_vvec = Vector()
-        self.C_vvec.setColor(Vec4(0., 0., 1., 0.5), 1)
-        self.C_vvec.setTipPoint(Vec3(0., 0., 0.))
-        self.C_vvec.setTailPoint(Vec3(0., 0., 0.))
-        self.C_vvec.reparentTo(engine.tq_graphics_basics.tq_render)
-
-
-        # next lookat
-        self.next_lookat_vvec = Vector()
-        self.next_lookat_vvec.setColor(Vec4(0., 1., 0., 0.5), 1)
-        self.next_lookat_vvec.setTipPoint(Vec3(0., 0., 0.))
-        self.next_lookat_vvec.setTailPoint(Vec3(0., 0., 0.))
-        self.next_lookat_vvec.reparentTo(engine.tq_graphics_basics.tq_render)
-
+        # # lookat
+        # self.x_vvec = Vector()
+        # self.x_vvec.setColor(Vec4(0., 0., 0., 1.), 1)
+        # # self.x_vvec.setTipPoint(Vec3(self.x[0], 0., self.x[1]))
+        # self.x_vvec.setTipPoint(Vec3(0., 0., 0.))
+        # self.x_vvec.setTailPoint(Vec3(0., 0., 0.))
+        # self.x_vvec.reparentTo(engine.tq_graphics_basics.tq_render)
 
         self.update_camera_pos()
         self.set_lookat_after_updated_camera_pos()
@@ -270,6 +226,12 @@ class Panner2d:
         # self.set_lookat_after_updated_camera_pos()
 
         # taskMgr.add(self.zoom_to_2d_coords_of_mouse_task, 'zoom-updating')
+
+    def update_three(self):
+        """ """
+        self.update_camera_pos()
+        self.set_lookat_after_updated_camera_pos()
+        self.update_film_size_from_window_dimensions()
 
 
     @staticmethod
@@ -356,35 +318,41 @@ class Panner2d:
         """ """
         # print("update_film_size_from_window_dimensions called, self.view_distance=", self.view_distance)
 
-        aspect_ratio = None
+        # aspect_ratio = None
         if self.before_aspect_ratio_changed_at_init == True or called_from_init == True:
-            aspect_ratio = conventions.winsizex_0/conventions.winsizey_0
+            # aspect_ratio = conventions.winsizex_0/conventions.winsizey_0
 
             if called_from_init == False:
                 self.before_aspect_ratio_changed_at_init = False
         else:
-            aspect_ratio = engine.tq_graphics_basics.get_window_aspect_ratio()
-            # print("aspect ratio : ", aspect_ratio)
-            # print(winsizex,
-            #       winsizey)
-            scale_factor = 1./(conventions.winsizey_0/2.)
-            scale_factor *= self.get_filmsize_scale_factor()
-
-            winsizex = engine.tq_graphics_basics.get_window_size_x()
-            winsizey = engine.tq_graphics_basics.get_window_size_y()
-
-            filmsize_x = winsizex*scale_factor
-            filmsize_y = winsizey*scale_factor
-
+            filmsize_x, filmsize_y = self.get_filmsize()
             # print("filmsize_x, filmsize_y: ", filmsize_x, filmsize_y)
-
             # print("not at init")
             self.lens.setFilmSize(filmsize_x, filmsize_y)
             self.lens.setNearFar(Panner2d.near_0, Panner2d.far_0)
 
-
     def get_filmsize_scale_factor(self):
         return self.view_distance/Panner2d.view_distance_0
+
+    def get_filmsize(self):
+        """ after the window has been initialized and a default film size has been set """
+        # aspect_ratio = engine.tq_graphics_basics.get_window_aspect_ratio()
+        # print("aspect ratio : ", aspect_ratio)
+        # print(winsizex,
+        #       winsizey)
+        scale_factor = 1./(conventions.winsizey_0/2.)
+        scale_factor *= self.get_filmsize_scale_factor()
+
+        winsizex = engine.tq_graphics_basics.get_window_size_x()
+        winsizey = engine.tq_graphics_basics.get_window_size_y()
+
+        filmsize_x = winsizex*scale_factor
+        filmsize_y = winsizey*scale_factor
+
+        return filmsize_x, filmsize_y
+
+    def set_filmsize(self, filmsize_x, filmsize_y):
+        self.lens.setFilmSize(filmsize_x, filmsize_y)
 
     def scale_aspect2d_from_window_dimensions(self):
         """ when window dimensions change by resizing the window, I want the aspect2d viewport to scale with it, so that
@@ -610,53 +578,8 @@ class Panner2d:
 
         assert math_utils.vectors_parallel_or_antiparallel_p(Panner2d.plane_normal, self.get_cam_forward_vector_normalized())
 
-    def handle_zoom_sin(self):
-        """
-        increase/decrease view distance with sin function (zoom towards lookat) """
-
-        print("zoom sin: ")
-
-        self.sin_zoom_param += np.pi / 50.
-
-        print("self.sin_zoom_param:", self.sin_zoom_param)
-
-        old_view_distance = self.view_distance
-        new_view_distance = self.view_distance_step_size + self.view_distance_max * (1. + np.sin(self.sin_zoom_param))
-
-        view_distance_step = new_view_distance - old_view_distance
-
-        # self.view_distance = np.clip(, self.view_distance_min, self.view_distance_max)
-
-        self.view_distance = new_view_distance
-
-        self.update_camera_pos()
-        self.update_film_size_from_window_dimensions()
-
-        # print("self.get_coords_2d_from_mouse_pos_for_zoom(): ", self.get_coords_2d_from_mouse_pos_for_zoom())
-
-        # from_mouse_coords_after = self.get_coords_2d_from_mouse_pos_for_zoom()
-
-        # print("from_mouse_coords_before: ", from_mouse_coords_before)
-        # print("from_mouse_coords_after: ", from_mouse_coords_after)
-
-        # _vec = (from_mouse_coords_before - from_mouse_coords_after)
-        # self._accumulated_from_mouse_offset += _vec
-
-        # _vec = self._accumulated_from_mouse_offset[0] * Panner2d.n1 + self._accumulated_from_mouse_offset[1] * Panner2d.n2
-
-        # self.set_lookat_after_updated_camera_pos(lookat=self.get_lookat_vector() + _vec)
-
-        # self.p3d_camera.setPos(*(self.get_cam_coords() + _vec))
-
     def get_in_plane_point_from_2d_coords(self, x1, x2):
         return x1 * self.n1 + x2 * self.n2
-
-
-    # def zoom_to_2d_coords_of_mouse_task(self, task):
-    #     if base.mouseWatcherNode.hasMouse():
-    #         self.zoom_to_2d_coords_of_mouse()
-
-    #     return task.cont
 
     def zoom_to_2d_coords_of_mouse_task_and_doit(self):
         self.zoom_to_2d_coords_of_mouse(sign=-1., doit=True)
@@ -671,12 +594,6 @@ class Panner2d:
             x1, x2: coords in the plane of the panner
             sign: positive: zoom in (+)
                   negative: zoom out (-)
-
-        1. calculate the line between camera position and mouse plane intersection (v1)
-        2. move the camera along this line such that the mouse plane intersection stays the same across the zoom calls
-           given the view_distance_step, and the old_view_distance
-           i) calculate horizontal and vertical displacement of the camera, and apply them (update_camera_pos)
-           ii) apply the new view_distance (self.update_film_size_from_window_dimensions())
         """
 
         # print("self.get_cam_coords(): ", self.get_cam_coords())
@@ -687,12 +604,16 @@ class Panner2d:
         #                                                     math_utils.p3d_to_np(self.p3d_camera.getPos())))
 
         old_view_distance = self.view_distance
-        new_view_distance = np.clip(old_view_distance -1.*sign* self.view_distance_step_size, self.view_distance_min, self.view_distance_max)
+        new_view_distance = np.clip(old_view_distance -1.*sign* Panner2d.view_distance_step_size, Panner2d.view_distance_min, Panner2d.view_distance_max)
         view_distance_step = new_view_distance - old_view_distance  # zoom in: negative
         displacements_scale_factor = -1. * view_distance_step / old_view_distance
 
         x_displacement = x1 * displacements_scale_factor
         y_displacement = x2 * displacements_scale_factor
+
+        print("Panner2d.view_distance_max: ", Panner2d.view_distance_max)
+        print("old_view_distance", old_view_distance)
+        print("new_view_distance", new_view_distance)
 
         if doit == True:
             self.x[0] += x_displacement
@@ -704,8 +625,20 @@ class Panner2d:
         self.update_film_size_from_window_dimensions()
 
 
-    def handle_zoom_plus(self):
+    def handle_zoom_plus_with_mouse(self):
         self.zoom_to_2d_coords_of_mouse(sign=1., doit=True)
 
-    def handle_zoom_minus(self):
+    def handle_zoom_minus_with_mouse(self):
         self.zoom_to_2d_coords_of_mouse(sign=-1., doit=True)
+
+    def handle_zoom_plus_general(self):
+        # if base.mouseWatcherNode.hasMouse():
+        #     self.handle_zoom_plus_with_mouse()
+        # else:
+        self.zoom_to_2d_coords(0., 0., sign=+1., doit=True)
+
+    def handle_zoom_minus_general(self):
+        # if base.mouseWatcherNode.hasMouse():
+        #     self.handle_zoom_minus_with_mouse()
+        # else:
+        self.zoom_to_2d_coords(0., 0., sign=-1., doit=True)

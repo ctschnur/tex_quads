@@ -31,6 +31,7 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
   - [ ] implement sketching on this plane
     - [ ] restrict sketching to only the plane boundaries
       - [ ] TODO clip everything over the plane boundary
+      - [ ] TODO Panner2d: fix: ~view_distance_0~ doesn't do what it implies and affects zooming range
 - [X] display a frame2d with the time-domain data of the audio file
 - +[ ] make an interactive frame2d with a vertical line to interactively select an x-value+
 
