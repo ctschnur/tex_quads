@@ -283,11 +283,11 @@ class Frame2d(TQGraphicsNodePath):
     def toggle_clipping_planes(self):
         """ """
         if len(self.clipping_planes_p3d_nodepaths) == 0: # no clipping planes enabled
-            self.set_clipping_planes()
+            self.turn_clipping_planes_on()
         else:
-            self.remove_clipping_planes()
+            self.turn_clipping_planes_off()
 
-    def remove_clipping_planes(self):
+    def turn_clipping_planes_off(self):
         """ """
         for nodepath in self.clipping_planes_p3d_nodepaths:
             nodepath.removeNode()
@@ -296,12 +296,15 @@ class Frame2d(TQGraphicsNodePath):
 
         self.clipping_planes_p3d_nodepaths = []
 
-    def set_clipping_planes(self):
+    def turn_clipping_planes_on(self):
         """ the lines may extend outside of the 'frame'
             setting clipping planes are one way to prevent them from being
-            rendered outside """
+            rendered outside
 
-        self.remove_clipping_planes()
+            if dimensions of the frame are updated, set_clipping_panel_geometry must be called before this
+            with the appriopriate panel geometry """
+
+        self.turn_clipping_planes_off()
 
         for i, normal_vector in zip(Frame2d.axis_direction_indices,
                                     Frame2d.axis_direction_vectors):
@@ -362,7 +365,7 @@ class Frame2d(TQGraphicsNodePath):
 
         if update_graphics==True:
             self.quad.setPos(Vec3(0., 0., self.height))
-            self.set_clipping_planes()
+            self.turn_clipping_planes_on()
             self.update_graphics_alignment()
 
     def update_graphics_alignment(self):

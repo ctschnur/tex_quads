@@ -41,7 +41,9 @@ from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadL
 from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 import plot_utils.ui_thread_logger
 
-from plot_utils.DraggableFrame import DraggableFrame, DRFrame, DRDrawFrame
+from plot_utils.DraggableFrame import DraggableFrame
+from plot_utils.DraggableResizableFrame import DraggableResizableFrame
+from plot_utils.DraggableResizableDrawableOnFrame import DraggableResizableDrawableOnFrame
 
 from statemachine.edgeplayer import EdgePlayerSM
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
@@ -81,6 +83,8 @@ from plot_utils.StreamFrames import StreamFramesFromRecorder
 from plot_utils.colors.colors import get_color
 
 from plot_utils.pdf_renderer import PDFPageTextureObject, PopplerPDFRenderer
+
+from pdf_viewer.tools import PDFViewer, PDFPanner2d
 
 
 # def plot_audio_file_profile(camera_gear):
@@ -179,7 +183,7 @@ class MyApp(ShowBase):
         # line.setColor(Vec4(0., 1., 1., 1.), 1)
         # line.setPos(Vec3(-0.8, 0., 0.7))
 
-        # df = DRFrame(cg, height=0.2, width=0.7)
+        # df = DraggableResizableFrame(cg, height=0.2, width=0.7)
         # df.attach_to_render()
 
         # df.setPos(Vec3(0.1, 0., 0.))
@@ -227,16 +231,24 @@ class MyApp(ShowBase):
 
         # TODO: set Panner2d position from pdf width
 
-        from pdf_viewer.tools import PDFViewer
 
-        pdfv = PDFViewer(base.cam, "pdfs/sample.pdf")
+        # cg_pdf_panner2d = PDFPanner2d(base.cam)
+
+        # cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=5.)
+        # cg.set_view_to_xz_plane()
+
+        cg_pdf_panner2d = PDFPanner2d(base.cam)
+
+        pdfv = PDFViewer(cg_pdf_panner2d, "pdfs/sample.pdf")
         pdfv.attach_to_render()
 
 
         # # slp.reparentTo_p3d(render)
 
-        # ddf = DRDrawFrame(cg, height=0.2, width=0.7)
-        # ddf.attach_to_render()
+        ddf = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7)
+        ddf.attach_to_render()
+        ddf.setPos(Vec3(-1., -0.5, 0.))
+
 
         # # -----------
 

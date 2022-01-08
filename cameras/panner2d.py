@@ -27,8 +27,6 @@ import engine
 from engine.tq_graphics_basics import TQGraphicsNodePath
 import engine.tq_graphics_basics
 
-from plot_utils.DraggableFrame import PanelGeometry
-
 from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d
 
 

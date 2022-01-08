@@ -42,7 +42,7 @@ class PanelDragDrawer(DragDropEventManager):
 
     def set_panel_geometry(self, panel_geometry):
         self.panel_geometry = panel_geometry
-        print("set panel_geometry: ", self.panel_geometry)
+        # print("set panel_geometry: ", self.panel_geometry)
 
     def get_tq_nodepath_handle_for_dragger(self):
         """ """

@@ -27,7 +27,7 @@ class PDFViewer(TQGraphicsNodePath):
 
     upper_scroll_margin = 0.4
 
-    def __init__(self, p3d_camera, pdf_filepath, *args, **kwargs):
+    def __init__(self, pdf_panner2d, pdf_filepath, *args, **kwargs):
         TQGraphicsNodePath.__init__(self, *args, **kwargs)
 
         # logical variables
@@ -36,7 +36,7 @@ class PDFViewer(TQGraphicsNodePath):
         self.y_pages_distance = PDFViewer.y_pages_distance_0
 
         # derived
-        self.pdf_panner2d = PDFPanner2d(base.cam)  # something like Panner2d
+        self.pdf_panner2d = pdf_panner2d  # something like Panner2d
         self.ppr = PopplerPDFRenderer(self.pdf_filepath)
 
         # direct objects

@@ -37,7 +37,7 @@ from plot_utils.ui_thread_logger import UIThreadLogger, ProcessingBox, UIThreadL
 from plot_utils.ui_thread_logger import UIThreadLogger, uiThreadLogger
 import plot_utils.ui_thread_logger
 
-from plot_utils.DraggableFrame import DraggableFrame, DRFrame, DRDrawFrame
+from plot_utils.DraggableFrame import DraggableFrame, DraggableResizableFrame, DraggableResizableDrawableOnFrame
 
 from statemachine.edgeplayer import EdgePlayerSM
 from interactive_tools.draggables import DraggablePoint, DraggableEdgePlayer
@@ -247,7 +247,7 @@ class MyApp(ShowBase):
         # line.setColor(Vec4(0., 1., 1., 1.), 1)
         # line.setPos(Vec3(-0.8, 0., 0.7))
 
-        # df = DRFrame(cg, height=0.2, width=0.7)
+        # df = DraggableResizableFrame(cg, height=0.2, width=0.7)
         # df.attach_to_render()
 
         # df.setPos(Vec3(0.1, 0., 0.))
@@ -299,7 +299,7 @@ class MyApp(ShowBase):
 
         # # slp.reparentTo_p3d(render)
 
-        # ddf = DRDrawFrame(cg, height=0.2, width=0.7)
+        # ddf = DraggableResizableDrawableOnFrame(cg, height=0.2, width=0.7)
         # ddf.attach_to_render()
 
         # # -----------
