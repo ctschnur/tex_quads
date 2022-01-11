@@ -94,13 +94,14 @@ class DraggableResizableFrame(DraggableFrame):
     width_0 = 1.6
     height_min = 0.2
     width_min = height_min * 1.6
+    v0_0 = Vec3(0., 0., 0.)
 
     def __init__(self, camera_gear, helper_graphics_active=False, **kwargs):
         """ """
         DraggableFrame.__init__(self, camera_gear, **kwargs)
 
         # init geometry
-        self.v0 = Vec3(0., 0., 0.)
+        self.v0 = DraggableResizableFrame.v0_0
         self.normal_vec = DraggableResizableFrame.normal_vec_0
         self.up_vec = DraggableResizableFrame.up_vec_0
         self.width = DraggableResizableFrame.width_0
@@ -191,8 +192,7 @@ class DraggableResizableFrame(DraggableFrame):
         DraggableResizableFrame.label_vector2(self.vc_g, "vc", self.camera_gear)
 
     def move_frame_when_dragged(self):
-        new_handle_pos = self.drag_point.getPos()
-        self.v0 = new_handle_pos
+        self.update_logical_position_from_drag_point()
 
         # self.update_helper_graphics()
         self.update_window_graphics()
@@ -351,11 +351,15 @@ class DraggableResizableFrame(DraggableFrame):
 
     def setPos(self, *args, **kwargs):
         """ """
-        DraggableFrame.setPos(self, *args, **kwargs)
-        self.drag_point.setPos(*args, **kwargs)
+        # DraggableFrame.setPos(self, *args, **kwargs)
+        # self.drag_point.setPos(*args, **kwargs)
+
 
         self.v0 = np.array(*args)  # logical
         self.update_window_graphics()  # for this to work, the logical v0 has to be set
+
+        self.move_frame_when_dragged()
+
 
     @staticmethod
     def label_vector(vec, text, camera_gear):

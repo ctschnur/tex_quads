@@ -127,7 +127,7 @@ def plot_audio_file_profile(camera_gear):
     f2d3.set_ylim(-max(y), max(y))
 
 
-class GNodeClass(TQGraphicsNodePath):
+class GroupNode(TQGraphicsNodePath):
     """ Group Node, merely for grouping """
     def __init__(self, *args, **kwargs):
         TQGraphicsNodePath.__init__(self, *args, **kwargs)
@@ -276,7 +276,7 @@ class MyApp(ShowBase):
 
         # -------------
 
-        gn = GNodeClass()
+        gn = GroupNode()
         gn.attach_to_render()
 
         slp = primitives.SegmentedLinePrimitive(color=get_color("yellow"), thickness=2)

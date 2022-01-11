@@ -65,14 +65,14 @@ class MyApp(ShowBase):
 
         # # -- make draggable control points
         # objectManager = ObjectMangerClass()
-        # mouseCollision = mouseCollisionClass()
+        # mouseCollision = MouseCollisionClass()
 
         control_points = []
         for p in point_coords_arr:
             pt = Point(pos=Vec3(*p), thickness=10)
             pt.setHpr(90, 0, 0)  # 90 degrees yaw
             # control_points.append(pt)
-            # draggable = dragDropObjectClass(pt.nodepath, objectManager)
+            # draggable = DragDropObjectClass(pt.nodepath, objectManager)
             pt.showBounds()
             control_points.append(pt)
 

@@ -25,7 +25,6 @@ class DragAndDropObjectsManager:
     is searched for the picked tq_nodepath """
 
     def __init__( self ):
-        self.objectIdCounter = 0
         self.draggers = []
 
     def add_dragger(self, dragger):

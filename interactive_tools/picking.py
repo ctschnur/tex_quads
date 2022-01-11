@@ -12,23 +12,21 @@ from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay
 
 import numpy as np
 
-
 import engine
 
 class PickableObjectManager:
     """ Each pickable object has to have an individual tag,
     at creation, use this class to generate a new individual tag for it """
 
-    def __init__( self ):
+    def __init__(self):
         """ """
-        self.objectIdCounter = 0
+        self.object_id_ctr = 0
 
-    def tag( self, objectNp, # objectClass
-    ):
+    def tag(self, object_nodepath):
         """ """
-        self.objectIdCounter += 1
-        objectTag = str(self.objectIdCounter)
-        objectNp.setTag('objectId', objectTag)
+        self.object_id_ctr += 1
+        object_tag = str(self.object_id_ctr)
+        object_nodepath.setTag('pickable_object_tag', object_tag)
 
 
 class CollisionPicker:
@@ -91,14 +89,20 @@ class CollisionPicker:
         # now actually (manually) traverse to see if the two objects are collided (traverse the render tree (is the camera included there?))
         self.pick_traverser.traverse(engine.tq_graphics_basics.tq_render.get_p3d_nodepath())  # this should fill up the collision queue
 
+        print("self.collision_queue.getNumEntries(): ", self.collision_queue.getNumEntries())
         if self.collision_queue.getNumEntries() > 0:
             # first, sort the entries (? which direction does it do that? to the camera?)
+
+            self.collision_queue.sortEntries()  # sort front-to-back from the ray's direction
+
             entry = self.collision_queue.getEntry(0)  # get the first entry (closest I suppose)
             picked_obj = entry.getIntoNodePath()  # return the nodepath of the 'into-object' of the collision
-            picked_obj_with_tag = picked_obj.findNetTag('objectId')  # get the object specifically with that tag (may be a child of the picked object)
+            picked_obj_with_tag = picked_obj.findNetTag('pickable_object_tag')  # get the object specifically with that tag (may be a child of the picked object)
 
-            # check to see if indeed an object was picked, and which posiition it has
+            print("picked_obj_with_tag: ", picked_obj_with_tag)
+            # check to see if indeed an object was picked, and which position it has
             if not picked_obj_with_tag.isEmpty():
+                print("hey")
                 picked_obj_pos = entry.getSurfacePoint(engine.tq_graphics_basics.tq_render.get_p3d_nodepath())
 
                 print("picked object: ",

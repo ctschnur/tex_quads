@@ -23,19 +23,16 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
 - [X] stream a FFT of the microphone audio
 - [X] make an orthographic orbiter camera that zooms (changing the 'film size' instead of distance to center)
 - [X] create new camera gear that is optimized for 2d viewing and panning over a pdf
+- [ ] make the pdf annotator view better
+  - [ ] zoom to 10% (min) and 1000% (max) as in Firefox
 - [ ] make a draw on screen (2d plane) functionality
   - [X] draw a draggable point and plane
   - +[ ] make a draggable, snappable window+
     - [X] calculate the window's width and height and make them read-only variables
     - [X] make plane resizable
   - [ ] implement sketching on this plane
-    - [ ] restrict sketching to only the plane boundaries
-      - [ ] TODO clip everything over the plane boundary
-      - [ ] TODO Panner2d: fix: ~view_distance_0~ doesn't do what it implies and affects zooming range
-      - [ ] TODO When DraggableResizableDrawableOnFrame and PDFViewer overlap, I can't draw on DraggableResizableDrawableOnFrame or drag it. There is a double intersection when picking
-- [X] display a frame2d with the time-domain data of the audio file
-- +[ ] make an interactive frame2d with a vertical line to interactively select an x-value+
-
+    - [ ] make an eraser for the plane
+        
 ** Branched Podcast Interface
 - [X] Plot parametric curves
 - [X] Make blender-like side, top, front view (map to number keys)

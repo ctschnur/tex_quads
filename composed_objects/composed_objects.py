@@ -30,21 +30,10 @@ import numpy as np
 
 import numpy as np
 
-
-class GNodeClass(TQGraphicsNodePath):
-    """ Group Node, merely for grouping """
+class GroupNode(TQGraphicsNodePath):
+    """ """
     def __init__(self, *args, **kwargs):
         TQGraphicsNodePath.__init__(self, *args, **kwargs)
-
-
-class GroupNode(TQGraphicsNodePath):
-    """ Documentation for GroupNode
-    """
-
-    def __init__(self):
-        super(GroupNode, self).__init__()
-        self.set_p3d_nodepath(NodePath("empty"))
-        # self.reparentTo(engine.tq_graphics_basics.tq_render)
 
     def addChildNodePaths(self, nodepaths):
         for np in nodepaths:

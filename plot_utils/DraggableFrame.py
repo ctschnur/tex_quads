@@ -64,3 +64,7 @@ class DraggableFrame(TQGraphicsNodePath):
         self.p3d_draw_direct_object = DirectObject.DirectObject()
         self.p3d_draw_direct_object.accept(
             'mouse1', self.collisionPicker.onMouseTask)
+
+    def update_logical_position_from_drag_point(self):
+        new_handle_pos = self.drag_point.getPos()
+        self.v0 = new_handle_pos

@@ -7,7 +7,7 @@ from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInter
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d, GNodeClass
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d, GroupNode
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, TextureOf2dImageData
 
 from simple_objects.text import Fixed2dLabel
@@ -197,6 +197,18 @@ class MyApp(ShowBase):
         self.vecp0.reparentTo(engine.tq_graphics_basics.tq_render)
         self.vecp0.setColor(Vec4(1., 0., 0., 0.5), 1)
 
+        self.vecp1 = Vector()
+        self.vecp1.setTipPoint(Vec3(0., 1., 0.))
+        self.vecp1.setTailPoint(Vec3(0., 0., 0.))
+        self.vecp1.reparentTo(engine.tq_graphics_basics.tq_render)
+        self.vecp1.setColor(Vec4(0., 1., 0., 0.5), 1)
+
+        self.vecp2 = Vector()
+        self.vecp2.setTipPoint(Vec3(0., 0., 1.))
+        self.vecp2.setTailPoint(Vec3(0., 0., 0.))
+        self.vecp2.reparentTo(engine.tq_graphics_basics.tq_render)
+        self.vecp2.setColor(Vec4(0., 0., 1., 0.5), 1)
+
 
         # -------------
 
@@ -212,18 +224,18 @@ class MyApp(ShowBase):
 
         # -------------
 
-        gn = GNodeClass()
-        gn.attach_to_render()
+        # gn = GroupNode()
+        # gn.attach_to_render()
 
-        slp = primitives.SegmentedLinePrimitive(color=get_color("yellow"), thickness=2)
+        # slp = primitives.SegmentedLinePrimitive(color=get_color("yellow"), thickness=2)
 
-        slp.extendCoords([np.array([0., 0., 0.]), np.array([1., 1., 1.]), np.array([1., 0., 0.])])
+        # slp.extendCoords([np.array([0., 0., 0.]), np.array([1., 1., 1.]), np.array([1., 0., 0.])])
 
-        slp.reparentTo(gn)
+        # slp.reparentTo(gn)
 
-        slp.extendCoords([np.array([1., 1., 0.])])
+        # slp.extendCoords([np.array([1., 1., 0.])])
 
-        slp.reparentTo(gn)
+        # slp.reparentTo(gn)
 
         # print("-----: ", engine.tq_graphics_basics.get_window_size_x())
 
@@ -238,16 +250,16 @@ class MyApp(ShowBase):
         # cg.set_view_to_xz_plane()
 
         cg_pdf_panner2d = PDFPanner2d(base.cam)
-
         pdfv = PDFViewer(cg_pdf_panner2d, "pdfs/sample.pdf")
         pdfv.attach_to_render()
 
+        # slp.reparentTo_p3d(render)
 
-        # # slp.reparentTo_p3d(render)
-
-        ddf = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7)
-        ddf.attach_to_render()
-        ddf.setPos(Vec3(-1., -0.5, 0.))
+        # ddf = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7)
+        # ddf.attach_to_render()
+        # ddf.setPos(Vec3(-1., -0.5, 1.))
+        # ddf.bg_quad.setColor(Vec4(1., 1., 1., 0.0), 1)
+        # ddf.bg_quad.set_border_color(Vec4(1., 0., 0., 1.0), 1)
 
 
         # # -----------
