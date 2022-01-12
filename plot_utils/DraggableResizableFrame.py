@@ -236,6 +236,14 @@ class DraggableResizableFrame(DraggableFrame):
 
         return DraggableResizableFrame.resize_box_handle_scale/2 * down_vec/np.linalg.norm(down_vec) - DraggableResizableFrame.resize_box_handle_scale/2 * right_vec/np.linalg.norm(right_vec)
 
+    def set_width(self, width):
+        self.width = width
+        self.update_window_graphics()
+
+    def set_height(self, height):
+        self.height = height
+        self.update_window_graphics()
+
     def update_window_graphics(self):
         self.bg_quad.set_height(self.height)
         self.bg_quad.set_width(self.width)

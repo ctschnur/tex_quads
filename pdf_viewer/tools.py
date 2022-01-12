@@ -33,7 +33,7 @@ class PDFViewer(TQGraphicsNodePath):
     filmsize_x_0 = 1.
     filmsize_y_0 = 1.
 
-    drawing_mode_1_width = 10.  # in this drawing mode, you have huge margins in wich to draw and put derivations
+    drawing_mode_1_width = 15.  # in this drawing mode, you have huge margins in wich to draw and put derivations
     # TODO: make a drawing mode 2, where you exit those margins, this makes navigation a bit more messy, but you have
     # infinite margins
 
@@ -161,8 +161,8 @@ class PDFViewer(TQGraphicsNodePath):
         self.margins_quad.set_width(width)
 
         # self.margins_quad.setPos(PDFViewer.margins_quad_pos_0)
-        self.margins_quad.setColor(Vec4(1., 0., 0., 1.), 1)
-        self.margins_quad.b2d.setColor(Vec4(1., 1., 1., 0.1), 1)
+        self.margins_quad.setColor(Vec4(1., 0., 0., 0.3), 1)
+        self.margins_quad.b2d.setColor(Vec4(1., 1., 1., 0.9), 1)
 
         first_page_width = self.pptos[0].get_size()[0]
 

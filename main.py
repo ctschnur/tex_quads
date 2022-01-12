@@ -86,6 +86,8 @@ from plot_utils.pdf_renderer import PDFPageTextureObject, PopplerPDFRenderer
 
 from pdf_viewer.tools import PDFViewer, PDFPanner2d
 
+from pdf_annotator.tools import PDFAnnotator
+
 
 # def plot_audio_file_profile(camera_gear):
 #     """ """
@@ -249,17 +251,38 @@ class MyApp(ShowBase):
         # cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=5.)
         # cg.set_view_to_xz_plane()
 
-        cg_pdf_panner2d = PDFPanner2d(base.cam)
-        pdfv = PDFViewer(cg_pdf_panner2d, "pdfs/sample.pdf")
-        pdfv.attach_to_render()
+        # # ------ PDF Viewer -----------
 
-        # slp.reparentTo_p3d(render)
+        # cg_pdf_panner2d = PDFPanner2d(base.cam)
+        # pdfv = PDFViewer(cg_pdf_panner2d, "pdfs/sample.pdf")
+        # pdfv.attach_to_render()
+
+        # # slp.reparentTo_p3d(render)
 
         # ddf = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7)
         # ddf.attach_to_render()
         # ddf.setPos(Vec3(-1., -0.5, 1.))
         # ddf.bg_quad.setColor(Vec4(1., 1., 1., 0.0), 1)
         # ddf.bg_quad.set_border_color(Vec4(1., 0., 0., 1.0), 1)
+
+        # ------ PDF Annotator -----------
+
+        cg_pdf_panner2d = PDFPanner2d(base.cam)
+        # pdfa = PDFAnnotator(cg_pdf_panner2d, "pdfs/sample.pdf")
+        pdfa = PDFAnnotator(cg_pdf_panner2d, "pdfs/Bruus-Flensberg-1.pdf")
+        pdfa.attach_to_render()
+
+        # slp.reparentTo_p3d(render)
+
+
+        # ddf = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7)
+        # ddf.attach_to_render()
+        # ddf.setPos(Vec3(-1., -0.5, 1.))
+        # ddf.bg_quad.setColor(Vec4(1., 1., 1., 0.0), 1)
+        # ddf.bg_quad.set_border_color(Vec4(1., 0., 0., 1.0), 1)
+
+
+
 
 
         # # -----------

@@ -1,4 +1,6 @@
 * Samples
+** PDF annotation
+[[file:Peek-pdf-annotator-1.gif]]
 ** Live audio plotting
 [[file:Peek-FT-from-audio.gif]]
 ** N-body motion
