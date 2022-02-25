@@ -31,7 +31,13 @@ class DraggableFrame(TQGraphicsNodePath):
         self.drag_point.reparentTo(engine.tq_graphics_basics.tq_render)
         self.drag_point.setColor(Vec4(1.0, 0., 0., 1.), 1)
 
-        self.bg_quad = Quad(thickness=1.5)
+        self.quad_border_thickness = None
+        if "quad_border_thickness" in kwargs:
+            self.quad_border_thickness = kwargs.get("quad_border_thickness")
+        elif self.quad_border_thickness is None:
+            self.quad_border_thickness = 1.5
+
+        self.bg_quad = Quad(thickness=self.quad_border_thickness)
 
         if height is None:
             height = height_0

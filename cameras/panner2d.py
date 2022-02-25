@@ -32,8 +32,10 @@ from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, 
 from panda3d.core import ModifierButtons
 from direct.showbase.ShowBase import DirectObject
 
+from cameras.camera_gear import CameraGear
 
-class Panner2d:
+
+class Panner2d(CameraGear):
     """ """
 
     # TODO: 1 to 1 mapping from self.view_distance to filmsize, using aspect_ratio
@@ -60,6 +62,9 @@ class Panner2d:
     plane_normal = np.cross(n1, n2)
 
     def __init__(self, p3d_camera, enable_visual_aids=True):
+        """ """
+        CameraGear.__init__(self)
+
         base.disableMouse()
 
         self._coords_3d_of_corner = None
@@ -113,8 +118,6 @@ class Panner2d:
         base.accept('shift-mouse1', self.handle_shift_mouse1)
 
         # -- window resize
-        self.window_resize_hooks = []  # store function objects
-
         base.accept("aspectRatioChanged", self.run_window_resize_hooks)
 
         self.add_window_resize_hook(self.update_film_size_from_view_distance)
@@ -204,19 +207,19 @@ class Panner2d:
         self.set_corner_to_coords(math_utils.indexable_vec3_to_p3d_Vec3(new_orbit_center))
 
     def handle_wheel_up(self):
-        print("handle_wheel_up: self.x[1]: ", self.x[1])
+        # print("handle_wheel_up: self.x[1]: ", self.x[1])
         self.x[1] += 0.1
         self.p_previous_offset[1] -= 0.1
 
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_lookat_after_updated_camera_pos()
 
     def handle_wheel_down(self):
-        print("handle_wheel_down: self.x[1]: ", self.x[1])
+        # print("handle_wheel_down: self.x[1]: ", self.x[1])
         self.x[1] -= 0.1
         self.p_previous_offset[1] += 0.1
 
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_lookat_after_updated_camera_pos()
 
 
@@ -224,14 +227,14 @@ class Panner2d:
         self.x[0] += 0.1
         self.p_previous_offset[0] -= 0.1
 
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_lookat_after_updated_camera_pos()
 
     def handle_control_wheel_up(self):
         self.x[0] -= 0.1
         self.p_previous_offset[0] += 0.1
 
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_lookat_after_updated_camera_pos()
 
     @staticmethod
@@ -311,7 +314,7 @@ class Panner2d:
         if at_init == True:
             return
 
-        self.update_camera_pos()
+        self.update_camera_state()
 
     def get_coords_2d_from_mouse_pos_for_zoom(self, mouse_pos=None, get_r=False):
         """ get the 2d coordinates of the panner plane from the mouse collision """
@@ -391,28 +394,12 @@ class Panner2d:
 
         self.ddem.init_dragging()
 
-    # -- window resize
-
-    def add_window_resize_hook(self, func):
-        """ func is the function to run when the window resizes;
-        if it depends on parameters, they can be set upon adding
-        the hook by just using a lambda function """
-        self.window_resize_hooks.append(func)
-
-    def remove_window_resize_hook(self, func):
-        """ remove the hook """
-        self.window_resize_hooks.remove(func)
-
-    def run_window_resize_hooks(self):
-        for c_hook in self.window_resize_hooks:
-            # run the function
-            c_hook()
-
     # -- updating camera --
 
-    def update_camera_pos(self, view_distance=None, on_init=False):
+    def update_camera_state(self, view_distance=None, on_init=False):
         """ based on this class' internal variables """
         self.p3d_camera.setPos(*self.get_cam_coords())
+        self.run_camera_move_hooks()
 
     def get_cam_coords(self, at_init=False, fixed_x_1=None, fixed_x_2=None):
         """ gets the camera coordinates in 3d, based on the x_1 and x_2 of the plane """
@@ -502,7 +489,7 @@ class Panner2d:
             self.p_previous_offset[1] -= y_displacement
             self.view_distance = new_view_distance
 
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_lookat_after_updated_camera_pos()
         self.update_film_size_from_view_distance()
 

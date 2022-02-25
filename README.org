@@ -30,8 +30,10 @@ Have a look in the [[file:samples/][samples]] folder for some screenshots/gifs o
   - +[ ] make a draggable, snappable window+
     - [X] calculate the window's width and height and make them read-only variables
     - [X] make plane resizable
+    - [ ] make a Box
   - [ ] implement sketching on this plane
     - [ ] make an eraser for the plane
+    - [ ] draw lines in 2d and smooth
         
 ** Branched Podcast Interface
 - [X] Plot parametric curves

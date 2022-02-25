@@ -53,7 +53,7 @@ class PDFAnnotator(PDFViewer):
 
             self.pptos.append(ppto)
 
-            drawing_frame = DraggableResizableDrawableOnFrame(self.pdf_panner2d, height=0.2, width=0.7)
+            drawing_frame = DraggableResizableDrawableOnFrame(self.pdf_panner2d, height=0.2, width=0.7, quad_border_thickness=10.)
             # drawing_frame.reparentTo(self)
 
             drawing_frame.attach_to_render()

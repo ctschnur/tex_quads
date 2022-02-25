@@ -29,6 +29,8 @@ import engine
 from engine.tq_graphics_basics import TQGraphicsNodePath
 import engine.tq_graphics_basics
 
+from cameras.camera_gear import CameraGear
+
 
 class OrbiterVisualAids(TQGraphicsNodePath):
     """ A set of graphics that helps the orbiter """
@@ -63,7 +65,7 @@ class OrbiterVisualAids(TQGraphicsNodePath):
             self.crosshair = None
 
 
-class OrbiterOrtho:
+class OrbiterOrtho(CameraGear):
     """ """
     # when flipping over, the eye vector and z-vector are multiplied by -1.
     # but still, to prevent graphics glitches in the situation where
@@ -78,6 +80,9 @@ class OrbiterOrtho:
 
 
     def __init__(self, camera, r_init=2., enable_visual_aids=True):
+        """ """
+        CameraGear.__init__(self)
+
         base.disableMouse()
 
         self._orbit_center = None
@@ -95,16 +100,11 @@ class OrbiterOrtho:
 
         # camera stuff
         self.camera = camera
+
         # # init the camera pos
         x, y, z = self.get_cam_coords(correct_for_camera_setting=True, fixed_phi=self.phi, fixed_theta=self.theta, fixed_r=self.radius)
 
         self.camera.setPos(x, y, z)  # TODO: is this really necessary in addition to the setViewMatrix ?
-
-        # --- hooks for camera movement
-        self.camera_move_hooks = []  # store function objects
-
-        # --- hooks for window resize
-        self.window_resize_hooks = []  # store function objects
 
         # --- set the lens
         self.lens = OrthographicLens()
@@ -112,7 +112,7 @@ class OrbiterOrtho:
         self.camera.node().setLens(self.lens)
 
         # --- initial setting of the position
-        self.update_camera_pos(# recalculate_film_size=True
+        self.update_camera_state(# recalculate_film_size=True
         )
 
 
@@ -406,7 +406,7 @@ class OrbiterOrtho:
             if self.visual_aids:
                 self.visual_aids.update()
 
-            self.update_camera_pos()
+            self.update_camera_state()
             self.set_pointlight_pos_spherical_coords()
 
     def get_orbit_center(self, numpy=True):
@@ -438,11 +438,11 @@ class OrbiterOrtho:
         else:
             return Vec3(0., 0., 1.)  # z is up
 
-    def update_camera_pos(self, fixed_phi=None, fixed_theta=None, fixed_r=None, # recalculate_film_size=True
-                          on_init=False
+    def update_camera_state(self, fixed_phi=None, fixed_theta=None, fixed_r=None, # recalculate_film_size=True
+                            on_init=False
     ):
         """ based on this class' internal variables """
-        print("update_camera_pos")
+        print("update_camera_state")
         x, y, z = self.get_cam_coords(correct_for_camera_setting=True, fixed_phi=fixed_phi, fixed_theta=fixed_theta, fixed_r=fixed_r)
         self.camera.setPos(x, y, z)  # TODO: is this really necessary in addition to the setViewMatrix ?
         self.set_view_matrix_after_updated_camera_pos()
@@ -503,12 +503,12 @@ class OrbiterOrtho:
 
     def handle_wheel_up(self):
         self.phi = self.phi + 0.05
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
 
     def handle_wheel_down(self):
         self.phi = self.phi - 0.05
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
 
     def set_view_to_xy_plane(self):
@@ -516,83 +516,53 @@ class OrbiterOrtho:
         self.phi = -np.pi/2.
         self.theta = 0.  # np.pi/2.
         # self.theta = OrbiterOrtho.theta_epsilon
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
 
     def set_view_to_yz_plane(self):
         self.phi = 0.
         self.theta = np.pi/2.
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
 
     def set_view_to_xz_plane(self):
         self.phi = -np.pi/2.
         self.theta = np.pi/2
         # self.theta = OrbiterOrtho.theta_epsilon
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
 
     def handle_control_wheel_down(self):
         self.theta = self.theta - 0.05
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
 
     def handle_control_wheel_up(self):
         # print("previous theta: \t", self.theta)
         self.theta = self.theta + 0.05
         # print("after setting theta: \t", self.theta)
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
         # print("aftera updating theta: \t", self.theta)
 
     def handle_zoom_plus(self):
         print("zooming in")
         # to give an effective zoom effect in orthographic projection
-        # the films size is adjusted and mapped (in update_camera_pos())
+        # the films size is adjusted and mapped (in update_camera_state())
         # to self\.r + r_0
         self.radius = self.radius - 0.05
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
 
     def handle_zoom_minus(self):
         print("zooming out")
         # to give an effective zoom effect in orthographic projection
-        # the films size is adjusted and mapped (in update_camera_pos())
+        # the films size is adjusted and mapped (in update_camera_state())
         # to self\.r + r_0
         self.radius = self.radius + 0.05
         # print("r: ", self.radius)
-        self.update_camera_pos()
+        self.update_camera_state()
         self.set_pointlight_pos_spherical_coords()
-
-    def add_camera_move_hook(self, func):
-        """ func is the function to run when the camera moves;
-        if it depends on parameters, they can be set upon adding
-        the hook by just using a lambda function """
-        self.camera_move_hooks.append(func)
-
-    def remove_camera_move_hook(self, func):
-        """ remove the hook """
-        self.camera_move_hooks.remove(func)
-
-    def run_camera_move_hooks(self):
-        for c_hook in self.camera_move_hooks:
-            # run the function
-            c_hook()
-
-    def add_window_resize_hook(self, func):
-        """ func is the function to run when the window resizes;
-        if it depends on parameters, they can be set upon adding
-        the hook by just using a lambda function """
-        self.window_resize_hooks.append(func)
-
-    def remove_window_resize_hook(self, func):
-        """ remove the hook """
-        self.window_resize_hooks.remove(func)
-
-    def run_window_resize_hooks(self):
-        for c_hook in self.window_resize_hooks:
-            # run the function
-            c_hook()
 
     def set_film_size_from_window_dimensions(self, called_from_orbiter_init=False):
         """ """

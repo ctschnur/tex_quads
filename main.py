@@ -268,10 +268,9 @@ class MyApp(ShowBase):
         # ------ PDF Annotator -----------
 
         cg_pdf_panner2d = PDFPanner2d(base.cam)
-        # pdfa = PDFAnnotator(cg_pdf_panner2d, "pdfs/sample.pdf")
-        pdfa = PDFAnnotator(cg_pdf_panner2d, "pdfs/Bruus-Flensberg-1.pdf")
+        pdfa = PDFAnnotator(cg_pdf_panner2d, "pdfs/sample.pdf")
+        # pdfa = PDFAnnotator(cg_pdf_panner2d, "pdfs/Bruus-Flensberg-1.pdf")
         pdfa.attach_to_render()
-
         # slp.reparentTo_p3d(render)
 
 
@@ -281,9 +280,12 @@ class MyApp(ShowBase):
         # ddf.bg_quad.setColor(Vec4(1., 1., 1., 0.0), 1)
         # ddf.bg_quad.set_border_color(Vec4(1., 0., 0., 1.0), 1)
 
+        # TODO: Point3d: Scale it to match PDFPanner2d's scaling movements
 
-
-
+        from pdf_annotator.gui.point3d import Point3dCGPanner
+        p_ind_panner = Point3dCGPanner(cg_pdf_panner2d, scale=2.)
+        p_ind_panner.setPos(Vec3(1., 0., 1.))
+        p_ind_panner.setColor(Vec4(0., 0., 0., 1.))
 
         # # -----------
 

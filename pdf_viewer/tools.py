@@ -62,7 +62,7 @@ class PDFViewer(TQGraphicsNodePath):
 
 
         # quad visualizing large margins for visual orientation
-        self.margins_quad = Quad(thickness=4.)
+        self.margins_quad = Quad(thickness=10.)
         self.margins_quad.reparentTo(self)
 
         # plot
@@ -106,7 +106,7 @@ class PDFViewer(TQGraphicsNodePath):
         self.pdf_panner2d.x[1] += actual_pos_step
         self.pdf_panner2d.p_previous_offset[1] -= actual_pos_step
 
-        self.pdf_panner2d.update_camera_pos()
+        self.pdf_panner2d.update_camera_state()
         self.pdf_panner2d.set_lookat_after_updated_camera_pos()
         self.pdf_panner2d.update_film_size_from_view_distance()
 
@@ -122,7 +122,7 @@ class PDFViewer(TQGraphicsNodePath):
         self.pdf_panner2d.x[0] = x_val
         self.pdf_panner2d.p_previous_offset[0] = -x_val
 
-        self.pdf_panner2d.update_camera_pos()
+        self.pdf_panner2d.update_camera_state()
         self.pdf_panner2d.set_lookat_after_updated_camera_pos()
         self.pdf_panner2d.update_film_size_from_view_distance()
 

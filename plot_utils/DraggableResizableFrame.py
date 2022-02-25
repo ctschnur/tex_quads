@@ -403,14 +403,3 @@ class DraggableResizableFrame(DraggableFrame):
         label = BasicOrientedText(camera_gear, update_orientation_on_camera_rotate=True, text=text)
         label.reparentTo(vec)
         vec.set_label(label, set_to="tip")
-
-    def switch_clip_on(self):
-        """ """
-        right_vec_normal = self.get_right_vec()
-        down_vec_normal = self.get_down_vec()
-        pass
-
-    def switch_clip_off(self):
-        """ """
-        pass
-

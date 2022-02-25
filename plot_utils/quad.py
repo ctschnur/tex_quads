@@ -30,24 +30,23 @@ class Quad(TQGraphicsNodePath):
         self.width = None
         self.height = None
 
-        self.dwidth = None
-        self.dheight = None
-
         TQGraphicsNodePath.__init__(self)
 
         self.set_pos_vec3(pos_vec3)
 
-        self.top = Line1dSolid(**kwargs)
-        self.top.reparentTo(self)
 
-        self.bottom = Line1dSolid(**kwargs)
-        self.bottom.reparentTo(self)
+        self.border_line_top = Line1dSolid(**kwargs)
+        self.border_line_top.reparentTo(self)
 
-        self.left = Line1dSolid(**kwargs)
-        self.left.reparentTo(self)
+        self.border_line_bottom = Line1dSolid(**kwargs)
+        self.border_line_bottom.reparentTo(self)
 
-        self.right = Line1dSolid(**kwargs)
-        self.right.reparentTo(self)
+        self.border_line_left = Line1dSolid(**kwargs)
+        self.border_line_left.reparentTo(self)
+
+        self.border_line_right = Line1dSolid(**kwargs)
+        self.border_line_right.reparentTo(self)
+
 
         self.b2d = Box2d()  # background box
         self.b2d.reparentTo(self)
@@ -66,10 +65,10 @@ class Quad(TQGraphicsNodePath):
         # return TQGraphicsNodePath.setColor(self, *args, **kwargs)
 
     def set_border_color(self, *args, **kwargs):
-        self.top.setColor(*args, **kwargs)
-        self.bottom.setColor(*args, **kwargs)
-        self.left.setColor(*args, **kwargs)
-        self.right.setColor(*args, **kwargs)
+        self.border_line_top.setColor(*args, **kwargs)
+        self.border_line_bottom.setColor(*args, **kwargs)
+        self.border_line_left.setColor(*args, **kwargs)
+        self.border_line_right.setColor(*args, **kwargs)
 
     def set_pos_vec3(self, pos_vec3):
         """ set position of upper left corner of the quad (in aspect2d) """
@@ -117,17 +116,17 @@ class Quad(TQGraphicsNodePath):
                                   Vec3(0., 0., 1.) * self.height)
 
     def set_corners_graphical(self):
-        self.top.setTailPoint(self._p0)
-        self.top.setTipPoint(self._p1)
+        self.border_line_top.setTailPoint(self._p0)
+        self.border_line_top.setTipPoint(self._p1)
 
-        self.bottom.setTailPoint(self._p3)
-        self.bottom.setTipPoint(self._p2)
+        self.border_line_bottom.setTailPoint(self._p3)
+        self.border_line_bottom.setTipPoint(self._p2)
 
-        self.left.setTailPoint(self._p0)
-        self.left.setTipPoint(self._p3)
+        self.border_line_left.setTailPoint(self._p0)
+        self.border_line_left.setTipPoint(self._p3)
 
-        self.right.setTailPoint(self._p1)
-        self.right.setTipPoint(self._p2)
+        self.border_line_right.setTailPoint(self._p1)
+        self.border_line_right.setTipPoint(self._p2)
 
     def update(self):
         """ if are_all_graphics_data_specified returns True,
@@ -151,7 +150,7 @@ class Quad(TQGraphicsNodePath):
         pass
 
     def remove(self):
-        self.top.remove()
-        self.left.remove()
-        self.right.remove()
-        self.bottom.remove()
+        self.border_line_top.remove()
+        self.border_line_left.remove()
+        self.border_line_right.remove()
+        self.border_line_bottom.remove()
