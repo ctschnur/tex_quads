@@ -126,26 +126,25 @@ class MyApp(ShowBase):
         # s2d.attach_to_render()
 
         # rss1 = createRoundedStrokeSegment2d()
-        # s2d.add_stroke_segment(rss1)
+        # s2d.append_stroke_segment(rss1)
 
         # rss2 = createRoundedStrokeSegment2d(p1=(0., 0.), p2=(2., 3.))
-        # s2d.add_stroke_segment(rss2)
+        # s2d.append_stroke_segment(rss2)
 
         s2d2 = Stroke2d()
         s2d2.attach_to_render()
-        s2d2.add_point((0., 0.))
+        s2d2.append_point((0., 0.))
 
-        s2d2.add_point((1., 0.))
+        s2d2.append_point((1., 0.))
 
-        s2d2.add_point((1., 1.))
+        s2d2.append_point((1., 1.))
 
-        s2d2.add_point((1., 1.))
+        s2d2.append_point((1., 1.))
 
         # rss2 = createRoundedStrokeSegment2d()
         # rss1.reparentTo(render
 
         cg_pdf_panner2d = PDFPanner2d(base.cam)
-
 
         drawing_frame = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7, quad_border_thickness=10.)
         # drawing_frame.reparentTo(self)

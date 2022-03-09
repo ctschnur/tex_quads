@@ -146,30 +146,31 @@ class PanelDragDrawer(DragDropEventManager):
         DragDropEventManager.end_dragging(self)
 
 
-
-
 class PanelDragDrawer2dLines(PanelDragDrawer):
     """ """
     def __init__(self, *args, **kwargs):
         PanelDragDrawer.__init__(self, *args, **kwargs)
 
     def init_dragging(self):
-        """ save original position """
-
-        # print("######## init drag drawing")
-
-        # init stroke graphics
-        # self.current_line = primitives.SegmentedLinePrimitive(color=get_color("blue"), thickness=2)
-        # self.current_line = primitives.SegmentedSmooth2dLinePrimitive(color=get_color("blue"), thickness=2)
-
+        """ """
         self.current_line = primitives.Stroke2d()
-
-        # s2d2.add_point((0., 0.))
-
         coords_2d = np.array([self.getCoords2dForStroke()])
         coords_3d = self.convertPanel2dTo3dCoords(coords_2d)
 
-        self.current_line.extendCoords(coords_3d)
+        self.current_line.append_point((coords_3d[0][0], coords_3d[0][2]))
         self.current_line.reparentTo(self.panel_graphics)
 
         DragDropEventManager.init_dragging(self)
+
+    def update(self):
+        """ """
+        if self.current_line is None:
+            print("-------- hey")
+            self.init_dragging()
+        else:
+            coords_2d = np.array([self.getCoords2dForStroke()])
+            coords_3d = self.convertPanel2dTo3dCoords(coords_2d)
+
+            parent_p3d_node = self.current_line.getParent_p3d()
+
+            self.current_line.append_point((coords_3d[0][0], coords_3d[0][2]))

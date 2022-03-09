@@ -90,8 +90,6 @@ class SegmentedLinePrimitive(TQGraphicsNodePath):
     # def set_parent_node_to_reattach_upon_removal()
 
     def updateObject(self):
-
-
         # destroy old object
         if self.get_p3d_nodepath() is not None:
             self.removeNode()
@@ -200,32 +198,35 @@ class ConePrimitive(TQGraphicsNodePath):
 
 class Stroke2d(TQGraphicsNodePath):
     """ a stroke is a collection of stroke segments """
+    epsilon_0 = 0.01
+    radius_0 = 0.01
     def __init__(self, *args, **kwargs):
         TQGraphicsNodePath.__init__(self, *args, **kwargs)
-        # stroke_segments = []
+        self.stroke_segments = []
         self.last_added_point = None  # np array
 
-    def add_stroke_segment(self, stroke_segment_p3d_np):
-        # stroke_segments.append()
+    def append_stroke_segment(self, stroke_segment_p3d_np):
+        self.stroke_segments.append(stroke_segment_p3d_np)
         stroke_segment_p3d_np.reparentTo(self.get_p3d_nodepath())
 
-    def add_point(self, point):
+    def append_point(self, point):
         """
         Args: point: 2d tuple (*, *) """
-        add_point_p = None
+        append_point_p = None
         if self.last_added_point is not None:
-            if math_utils.vectors_equal_up_to_epsilon(np.array(self.last_added_point), np.array(point), epsilon_per_component=0.001):
-                add_point_p = False
+            if math_utils.vectors_equal_up_to_epsilon(np.array(self.last_added_point), np.array(point), epsilon_per_component=Stroke2d.epsilon_0):
+                append_point_p = False
             else:
-                add_point_p = True
+                append_point_p = True
         else:
             self.last_added_point = np.array([point[0], point[1]])
-            add_point_p = True
+            append_point_p = True
 
-        if add_point_p == True:
+        if append_point_p == True:
             rss = createRoundedStrokeSegment2d(p1=(self.last_added_point[0], self.last_added_point[1]),
-                                               p2=(point[0], point[1]))
-            self.add_stroke_segment(rss)
+                                               p2=(point[0], point[1]),
+                                               radius=Stroke2d.radius_0)
+            self.append_stroke_segment(rss)
 
             self.last_added_point = np.array([point[0], point[1]])
 

@@ -13,7 +13,7 @@ from interactive_tools.dragging_and_dropping_objects import DragAndDropObjectsMa
 from interactive_tools.pickables import PickablePoint, PickablePointDragger
 from interactive_tools.pickable_object_dragger import PickableObjectDragger
 
-from interactive_tools.pickable_object_drawer import PanelDragDrawer
+from interactive_tools.pickable_object_drawer import PanelDragDrawer, PanelDragDrawer2dLines
 
 import numpy as np
 
@@ -38,13 +38,17 @@ class DraggableResizableDrawableOnFrame(DraggableResizableFrame):
         DraggableResizableFrame.__init__(self, *args, **kwargs)
         self.pom.tag(self.bg_quad.get_p3d_nodepath())
 
-        panel_graphics = PanelGraphics()
-        panel_graphics.reparentTo(self)
+        self.panel_graphics = PanelGraphics()
+        self.panel_graphics.reparentTo(self)
 
-        self.panel_drag_drawer = PanelDragDrawer(self.bg_quad, self.camera_gear, self.get_panel_geometry(), panel_graphics)
-        self.dadom.add_dragger(self.panel_drag_drawer)
+        self.panel_drag_drawer = None
+        self.init_panel_drag_drawer()
 
         self.change_ctr = 0
+
+    def init_panel_drag_drawer(self):
+        self.panel_drag_drawer = PanelDragDrawer2dLines(self.bg_quad, self.camera_gear, self.get_panel_geometry(), self.panel_graphics)
+        self.dadom.add_dragger(self.panel_drag_drawer)
 
     def move_frame_when_dragged(self):
         self.update_logical_position_from_drag_point()
@@ -55,27 +59,30 @@ class DraggableResizableDrawableOnFrame(DraggableResizableFrame):
         self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
         DraggableResizableFrame.resize_frame_when_dragged(self)
 
+class DraggableResizableDrawableOnFrame2d(DraggableResizableDrawableOnFrame):
+    """ DraggableResizableDrawableOnFrame with 2d lines of a certain thickness"""
+    def __init__(self, *args, **kwargs):
+        """ """
+        DraggableResizableDrawableOnFrame.__init__(self, *args, **kwargs)
+        self.pom.tag(self.bg_quad.get_p3d_nodepath())
 
-# class DraggableResizableDrawableOnFrame2dLines(DraggableResizableFrame):
-#     """ in 2d """
-#     def __init__(self, *args, **kwargs):
-#         """ """
-#         DraggableResizableFrame.__init__(self, *args, **kwargs)
-#         self.pom.tag(self.bg_quad.get_p3d_nodepath())
+        self.panel_graphics = PanelGraphics()
+        self.panel_graphics.reparentTo(self)
 
-#         panel_graphics = PanelGraphics()
-#         panel_graphics.reparentTo(self)
+        self.panel_drag_drawer = None
+        self.init_panel_drag_drawer()
 
-#         self.panel_drag_drawer = PanelDragDrawer(self.bg_quad, self.camera_gear, self.get_panel_geometry(), panel_graphics)
-#         self.dadom.add_dragger(self.panel_drag_drawer)
+        self.change_ctr = 0
 
-#         self.change_ctr = 0
+    def init_panel_drag_drawer(self):
+        self.panel_drag_drawer = PanelDragDrawer2dLines(self.bg_quad, self.camera_gear, self.get_panel_geometry(), self.panel_graphics)
+        self.dadom.add_dragger(self.panel_drag_drawer)
 
-#     def move_frame_when_dragged(self):
-#         self.update_logical_position_from_drag_point()
-#         self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
-#         self.update_window_graphics()
+    def move_frame_when_dragged(self):
+        self.update_logical_position_from_drag_point()
+        self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
+        self.update_window_graphics()
 
-#     def resize_frame_when_dragged(self):
-#         self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
-#         DraggableResizableFrame.resize_frame_when_dragged(self)
+    def resize_frame_when_dragged(self):
+        self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
+        DraggableResizableFrame.resize_frame_when_dragged(self)

@@ -1072,56 +1072,13 @@ def createCircle(color_vec4=Vec4(1., 1., 1., 1.), with_hole=False, num_of_verts=
 
     return geom_node
 
-
-# def createRoundedStrokeSegment(color_vec4=Vec4(1., 1., 1., 1.), circle_num_of_verts=10, radius=1.):
-#     # Own Geometry
-#     format = GeomVertexFormat.getV3c4()
-#     vdata = GeomVertexData("colored_circle", format, Geom.UHStatic)
-#     vdata.setNumRows(4)
-
-#     vertexPosWriter = GeomVertexWriter(vdata, "vertex")
-
-#     # generates circles in x-y plane
-#     circle_points = math_utils.get_circle_vertices(num_of_verts=circle_num_of_verts, radius=radius)
-
-#     for p in circle_points:
-#         vertexPosWriter.addData3f(p[0], p[1], p[2])
-
-#     # let's also add color to each vertex
-#     colorWriter = GeomVertexWriter(vdata, "color")
-
-#     for i in range(circle_num_of_verts):
-#         colorWriter.addData4f(color_vec4)
-
-#     # make primitives and assign vertices to them (primitives and primitive
-#     # groups can be made independently from vdata, and are later assigned
-#     # to vdata)
-#     line = GeomLinestrips(Geom.UHStatic)
-
-#     line.add_consecutive_vertices(0, circle_num_of_verts)
-
-#     with_hole = False
-#     if with_hole != True:
-#         line.add_vertex(0)  # connect it up at the end
-
-#     line.closePrimitive()  # the 1st primitive is finished
-
-#     # make a Geom object to hold the primitives
-#     geom = Geom(vdata)
-#     geom.addPrimitive(line)
-
-#     geom_node = GeomNode("colored_circle_node")
-#     geom_node.addGeom(geom)
-
-#     return geom_node
-
 def createRoundedStrokeSegment2d(
     # groupnode_pos_0 = Vec3(0., 0., 0.),
     # in xz-plane
     p1 = (2., 2.),
     p2 = (1., 1.),
 
-    disk_num_of_verts = 15,
+    disk_num_of_verts = 10,
     color_vec4=Vec4(1., 1., 1., 1.),
     radius = 0.02):
 
@@ -1142,7 +1099,6 @@ def createRoundedStrokeSegment2d(
     else:
         rotation_forrowvecs = (
             math_utils.get_Identity_forrowvecs())
-
 
     disks_groupnode_nodepath = NodePath("disks_gn")
 
@@ -1196,7 +1152,7 @@ def createRoundedStrokeSegment2d(
 
     connecting_line_nodepath.setLightOff(1)
     connecting_line_nodepath.setTwoSided(True)
-    connecting_line_nodepath.setRenderModeWireframe()
+    # connecting_line_nodepath.setRenderModeWireframe()
 
     stroke_translation_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(p1[0], p1[1], p1[2])
 
