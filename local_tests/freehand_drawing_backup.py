@@ -127,11 +127,6 @@ def plot_audio_file_profile(camera_gear):
     f2d3.set_ylim(-max(y), max(y))
 
 
-class GroupNode(TQGraphicsNodePath):
-    """ Group Node, merely for grouping """
-    def __init__(self, *args, **kwargs):
-        TQGraphicsNodePath.__init__(self, *args, **kwargs)
-
 
 
 class MyApp(ShowBase):

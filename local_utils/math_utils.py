@@ -49,6 +49,11 @@ def make_3x3_matrix_affine(m):
          [m[2][0], m[2][1], m[2][2], 0.],
          [0,       0,       0, 1.]])
 
+def get_Identity_3x3():
+    return np.array([[1., 0., 0.],
+                     [0., 1., 0.],
+                     [0., 0., 1.]])
+
 
 def to_forrowvecs(m4x4):
     """
@@ -60,6 +65,9 @@ def to_forrowvecs(m4x4):
     - m4x4 is a 4x4 matrix in the not-forrowvecs (normal) format
     """
     return Mat4(*tuple(np.transpose(m4x4).flatten()))
+
+def get_Identity_forrowvecs():
+    return to_forrowvecs(make_3x3_matrix_affine(get_Identity_3x3()))
 
 def from_forrowvecs(p3d_forrowvecs):
     """ """

@@ -8,6 +8,7 @@ from panda3d.core import (
     GeomLines,
     LineSegs,
     GeomNode,
+    Vec2,
     Vec3,
     Vec4,
     GeomPoints)
@@ -515,7 +516,7 @@ def create_GeomNode_Simple_Polygon_without_Hole(symbol_geometries):
     return polygonGeomNode
 
 
-def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.), num_of_verts=10):
+def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.), num_of_verts=10, origin_point=Vec3(0., 0., 0.), radius=1.):
     # Own Geometry
     # format = GeomVertexFormat.getV3c4t2()
     format = GeomVertexFormat.getV3c4()
@@ -527,13 +528,17 @@ def createColoredUnitDisk(color_vec4=Vec4(0., 0., 1., 1.), num_of_verts=10):
     # num_of_verts = 10
 
     # phi = 0.
-    r = 1.
+    r = radius
 
-    origin_point_x = 0.
-    origin_point_z = 0.
-    vertexPosWriter.addData3f(origin_point_x, 0, origin_point_z)
+    # origin_point_x = 0.
+    # origin_point_z = 0.
+    vertexPosWriter.addData3f(origin_point[0], origin_point[1], origin_point[2])
 
     circle_points = math_utils.get_circle_vertices(num_of_verts=num_of_verts, radius=r)
+
+    circle_points[:,0] += origin_point[0]
+    circle_points[:,1] += origin_point[1]
+    circle_points[:,2] += origin_point[2]
 
     _normal_vector_info = Vec3(0., 1., 0.)      # this is returned just as info about the normal vector of the generated geometry
     for p in circle_points:
@@ -704,6 +709,32 @@ def createColoredSegmentedLineGeomNode(coords,
     Args:
         coords: list of 3d np.array """
 
+    ls = LineSegs()
+    ls.setThickness(thickness)
+    ls.setColor(color)
+
+    # import ipdb; ipdb.set_trace()  # noqa BREAKPOINT
+    ls.moveTo(*tuple(coords[0]))
+
+    for i, coord in enumerate(coords):
+        ls.drawTo(*tuple(coord))
+        ls.moveTo(*tuple(coord))
+
+    geomnode = ls.create()
+    # nodepath = NodePath(geomnode)
+
+    return geomnode
+
+
+def createColoredSegmentedSmooth2dLineGeomNode(
+        coords,
+        thickness=5.,
+        color=Vec4(1., 1., 1., 1.)):
+    """ Plot a series of solid lines, connected to each other.
+    Args:
+        coords: list of 3d np.array """
+
+    # thickness = 100.
     ls = LineSegs()
     ls.setThickness(thickness)
     ls.setColor(color)
@@ -1040,3 +1071,140 @@ def createCircle(color_vec4=Vec4(1., 1., 1., 1.), with_hole=False, num_of_verts=
     geom_node.addGeom(geom)
 
     return geom_node
+
+
+# def createRoundedStrokeSegment(color_vec4=Vec4(1., 1., 1., 1.), circle_num_of_verts=10, radius=1.):
+#     # Own Geometry
+#     format = GeomVertexFormat.getV3c4()
+#     vdata = GeomVertexData("colored_circle", format, Geom.UHStatic)
+#     vdata.setNumRows(4)
+
+#     vertexPosWriter = GeomVertexWriter(vdata, "vertex")
+
+#     # generates circles in x-y plane
+#     circle_points = math_utils.get_circle_vertices(num_of_verts=circle_num_of_verts, radius=radius)
+
+#     for p in circle_points:
+#         vertexPosWriter.addData3f(p[0], p[1], p[2])
+
+#     # let's also add color to each vertex
+#     colorWriter = GeomVertexWriter(vdata, "color")
+
+#     for i in range(circle_num_of_verts):
+#         colorWriter.addData4f(color_vec4)
+
+#     # make primitives and assign vertices to them (primitives and primitive
+#     # groups can be made independently from vdata, and are later assigned
+#     # to vdata)
+#     line = GeomLinestrips(Geom.UHStatic)
+
+#     line.add_consecutive_vertices(0, circle_num_of_verts)
+
+#     with_hole = False
+#     if with_hole != True:
+#         line.add_vertex(0)  # connect it up at the end
+
+#     line.closePrimitive()  # the 1st primitive is finished
+
+#     # make a Geom object to hold the primitives
+#     geom = Geom(vdata)
+#     geom.addPrimitive(line)
+
+#     geom_node = GeomNode("colored_circle_node")
+#     geom_node.addGeom(geom)
+
+#     return geom_node
+
+def createRoundedStrokeSegment2d(
+    # groupnode_pos_0 = Vec3(0., 0., 0.),
+    # in xz-plane
+    p1 = (2., 2.),
+    p2 = (1., 1.),
+
+    disk_num_of_verts = 15,
+    color_vec4=Vec4(1., 1., 1., 1.),
+    radius = 0.02):
+
+    p1 = Vec3(p1[0], 0., p1[1])
+    p2 = Vec3(p2[0], 0., p2[1])
+
+    diff_vec = p2 - p1
+
+    epsilon = 0.001
+
+    vectors_equal_p = math_utils.vectors_equal_up_to_epsilon(p1, p2, epsilon_per_component=epsilon)
+
+    rotation_forrowvecs = None
+    if vectors_equal_p == False:
+        rotation_forrowvecs = (
+            math_utils.math_convention_to_p3d_mat4(
+            math_utils.getMat4by4_to_rotate_xhat_to_vector(diff_vec)))
+    else:
+        rotation_forrowvecs = (
+            math_utils.get_Identity_forrowvecs())
+
+
+    disks_groupnode_nodepath = NodePath("disks_gn")
+
+    geomnodes_disk1, _ = createColoredUnitDisk(color_vec4=color_vec4, num_of_verts=disk_num_of_verts, radius=radius)
+    geomnodes_disk2, _ = createColoredUnitDisk(color_vec4=color_vec4, num_of_verts=disk_num_of_verts, radius=radius)
+
+    geomnodes_disks_nodepath1 = NodePath(geomnodes_disk1)
+    geomnodes_disks_nodepath2 = NodePath(geomnodes_disk2)
+
+    geomnodes_disks_nodepath1.setMat(math_utils.get_R_y_forrowvecs(np.pi/2.) # * math_utils.getTranslationMatrix4x4_forrowvecs(p1[0], p1[1], p1[2])
+    )
+    # geomnodes_disks_nodepath2.setMat(math_utils.get_R_y_forrowvecs(np.pi/2.) * math_utils.getTranslationMatrix4x4_forrowvecs(p2[0], p2[1], p2[2]))
+
+
+
+    geomnodes_disks_nodepath2.setMat(math_utils.get_R_y_forrowvecs(np.pi/2.) * math_utils.getTranslationMatrix4x4_forrowvecs(np.linalg.norm(diff_vec), 0., 0.))
+
+    # disks_groupnode_nodepath.setMat()
+
+    geomnodes_disks_nodepath1.setLightOff(1)
+    geomnodes_disks_nodepath1.setTwoSided(True)
+    geomnodes_disks_nodepath1.reparentTo(disks_groupnode_nodepath)
+
+    geomnodes_disks_nodepath2.setLightOff(1)
+    geomnodes_disks_nodepath2.setTwoSided(True)
+    geomnodes_disks_nodepath2.reparentTo(disks_groupnode_nodepath)
+
+    disks_groupnode_nodepath.reparentTo(render)
+
+    # quad in between
+    connecting_line_geomnode = createColoredUnitQuadGeomNode(color_vec4=color_vec4, center_it=True)
+
+    thickness_scale=(2.*radius)/1.0
+
+    connecting_line_nodepath = NodePath(connecting_line_geomnode)
+
+    length_scaling_forrowvecs = None
+    if vectors_equal_p == False:
+        length_scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(
+            math_utils.getScalingMatrix4x4(np.linalg.norm(diff_vec), 1., 1.))
+    else:
+        # scale it down so it is not to be seen
+        length_scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(math_utils.getScalingMatrix4x4(epsilon, 1., epsilon))
+
+    thickness_scaling_forrowvecs = math_utils.math_convention_to_p3d_mat4(
+        math_utils.getScalingMatrix4x4(1., 1., thickness_scale))
+
+    translation_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(np.linalg.norm(diff_vec)/2., 0., 0.)
+
+    connecting_line_nodepath.setMat(thickness_scaling_forrowvecs * length_scaling_forrowvecs * translation_forrowvecs)
+
+    connecting_line_nodepath.setLightOff(1)
+    connecting_line_nodepath.setTwoSided(True)
+    connecting_line_nodepath.setRenderModeWireframe()
+
+    stroke_translation_forrowvecs = math_utils.getTranslationMatrix4x4_forrowvecs(p1[0], p1[1], p1[2])
+
+    stroke_groupnode_nodepath = NodePath("stroke_gn")
+    stroke_groupnode_nodepath.setMat(rotation_forrowvecs * stroke_translation_forrowvecs
+    )
+
+    disks_groupnode_nodepath.reparentTo(stroke_groupnode_nodepath)
+    connecting_line_nodepath.reparentTo(stroke_groupnode_nodepath)
+
+    return stroke_groupnode_nodepath

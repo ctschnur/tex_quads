@@ -498,6 +498,10 @@ class SphereModelShaded(Box2dCentered):
 
         self.setLightOff(1)
 
+# class PathSegment:
+#     """ a 2d path segment, with two circles and """
+#     def __init__(self, p1, p2, thickness):
+
 class OrientedDisk(IndicatorPrimitive):
     """ a disk with a normal vector (rotation) and a radius """
 
@@ -547,55 +551,55 @@ class OrientedDisk(IndicatorPrimitive):
         """ """
         return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
 
-class OrientedDisk(IndicatorPrimitive):
-    """ a disk with a normal vector (rotation) and a radius """
+# class OrientedDisk(IndicatorPrimitive):
+#     """ a disk with a normal vector (rotation) and a radius """
 
-    def __init__(self, thickness=5., target_normal_vector=Vec3(1., 0., 0.), initial_scaling=1., num_of_verts=10, **kwargs):
-        IndicatorPrimitive.__init__(self, **kwargs)
+#     def __init__(self, thickness=5., target_normal_vector=Vec3(1., 0., 0.), initial_scaling=1., num_of_verts=10, **kwargs):
+#         IndicatorPrimitive.__init__(self, **kwargs)
 
-        self.from_geometry_generator_normal_vector = None  # as generated from geometry routine, see makeObject
-        self.initial_scaling = initial_scaling
-        self.target_normal_vector = target_normal_vector  # target normal vector
-        self.num_of_verts = num_of_verts
-        self.additional_trafo_nodepath = TQGraphicsNodePath()
-        self.makeObject()
-        self.doInitialSetupTransformation()
+#         self.from_geometry_generator_normal_vector = None  # as generated from geometry routine, see makeObject
+#         self.initial_scaling = initial_scaling
+#         self.target_normal_vector = target_normal_vector  # target normal vector
+#         self.num_of_verts = num_of_verts
+#         self.additional_trafo_nodepath = TQGraphicsNodePath()
+#         self.makeObject()
+#         self.doInitialSetupTransformation()
 
-    def makeObject(self):
-        node_p3d, _normal_vector_info = custom_geometry.createColoredUnitDisk(color_vec4=Vec4(1., 1., 1., 1.), num_of_verts=self.num_of_verts)
-        self.from_geometry_generator_normal_vector = _normal_vector_info
-        self.set_node_p3d(node_p3d)
+#     def makeObject(self):
+#         node_p3d, _normal_vector_info = custom_geometry.createColoredUnitDisk(color_vec4=Vec4(1., 1., 1., 1.), num_of_verts=self.num_of_verts)
+#         self.from_geometry_generator_normal_vector = _normal_vector_info
+#         self.set_node_p3d(node_p3d)
 
-        # nodepath order: original parent -> additional_trafo nodepath (setup transformations) -> actual OrientedDisk nodepath (it's own transformations)
-        self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
-        self.set_p3d_nodepath(
-            self.additional_trafo_nodepath.attachNewNode_p3d(self.get_node_p3d()))
+#         # nodepath order: original parent -> additional_trafo nodepath (setup transformations) -> actual OrientedDisk nodepath (it's own transformations)
+#         self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
+#         self.set_p3d_nodepath(
+#             self.additional_trafo_nodepath.attachNewNode_p3d(self.get_node_p3d()))
 
-        self.setLightOff(1)
-        self.setTwoSided(True)
+#         self.setLightOff(1)
+#         self.setTwoSided(True)
 
-    def get_additional_trafo_mat(self):
-        """ """
-        return math_utils.getMat4by4_to_rotate_xhat_to_vector(
-            self.target_normal_vector, a=self.from_geometry_generator_normal_vector).dot(math_utils.getScalingMatrix4x4(self.initial_scaling, self.initial_scaling, self.initial_scaling))
+#     def get_additional_trafo_mat(self):
+#         """ """
+#         return math_utils.getMat4by4_to_rotate_xhat_to_vector(
+#             self.target_normal_vector, a=self.from_geometry_generator_normal_vector).dot(math_utils.getScalingMatrix4x4(self.initial_scaling, self.initial_scaling, self.initial_scaling))
 
-    def doInitialSetupTransformation(self):
-        """ initial setup transformation: a unit quad with an image in the
-        background is being scaled so that the pixel height and width fits
-        exactly with the screen resolution"""
+#     def doInitialSetupTransformation(self):
+#         """ initial setup transformation: a unit quad with an image in the
+#         background is being scaled so that the pixel height and width fits
+#         exactly with the screen resolution"""
 
-        # make a new transformation node between it's current parent and itself and
-        # give it a transform
-        self.additional_trafo_nodepath.setMat_normal(self.get_additional_trafo_mat()
-            # math_utils.getTranslationMatrix4x4(1.0, 0., 0.)
-        )
+#         # make a new transformation node between it's current parent and itself and
+#         # give it a transform
+#         self.additional_trafo_nodepath.setMat_normal(self.get_additional_trafo_mat()
+#             # math_utils.getTranslationMatrix4x4(1.0, 0., 0.)
+#         )
 
-        # TODO : CHECK WHY THIS IS NOT EVEN APPLIED
-        print("----SETTING additional trafo: \n", self.additional_trafo_nodepath.getMat())
+#         # TODO : CHECK WHY THIS IS NOT EVEN APPLIED
+#         print("----SETTING additional trafo: \n", self.additional_trafo_nodepath.getMat())
 
-    def reparentTo(self, *args, **kwargs):
-        """ """
-        return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
+#     def reparentTo(self, *args, **kwargs):
+#         """ """
+#         return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)
 
 
 class OrientedCircle(IndicatorPrimitive):

@@ -11,6 +11,8 @@ from simple_objects.text import BasicOrientedText
 
 from p3d_tools import p3d_tools
 
+from simple_objects.primitives import IndicatorPrimitive
+
 from direct.showbase.ShowBase import ShowBase
 from panda3d.core import (
     Vec3,
@@ -838,3 +840,111 @@ class CrossHair3d(TQGraphicsNodePath):
 
         self.l3i.remove()
         self.l3o.remove()
+
+
+class FreehandDrawingPath2d_sample(IndicatorPrimitive):
+    """ """
+    def __init__(self, thickness=5., target_normal_vector=Vec3(1., 0., 0.), # initial_scaling=1.,
+                 num_of_verts=10, **kwargs):
+        IndicatorPrimitive.__init__(self, **kwargs)
+
+
+class FreehandDrawingPath2d(IndicatorPrimitive):
+    """ a path made of circles and lines """
+
+    def __init__(self, thickness=5., target_normal_vector=Vec3(1., 0., 0.), # initial_scaling=1.,
+                 num_of_verts=10, **kwargs):
+        IndicatorPrimitive.__init__(self, **kwargs)
+
+        # self.from_geometry_generator_normal_vector = None  # as generated from geometry routine, see makeObject
+        # self.initial_scaling = initial_scaling
+        self.target_normal_vector = target_normal_vector  # target normal vector
+        self.disk_num_of_verts = num_of_verts
+
+        self.coords = [np.array([0.5, 0.5, 0.5]), np.array([1., 1., 1.])]
+
+        # self.additional_trafo_nodepath = TQGraphicsNodePath()
+        self.makeObject()
+        self.doInitialSetupTransformation()
+
+    def makeObject(self):
+        """ """
+        # for p3d_node in self.path_p3d_nodes:
+        #     p3d_node.remove()
+
+        segments_gn = GroupNode()
+
+        for coord in self.coords:
+            # disk 1
+            d1_node_p3d, _normal_vector_info = custom_geometry.createColoredUnitDisk(color_vec4=Vec4(1., 1., 1., 1.), num_of_verts=self.disk_num_of_verts)
+            # disk 2
+            d2_node_p3d, _normal_vector_info = custom_geometry.createColoredUnitDisk(color_vec4=Vec4(1., 1., 1., 1.), num_of_verts=self.disk_num_of_verts)
+            # connecting quad
+            q_node_p3d = custom_geometry.createColoredUnitQuadGeomNode()
+
+            d1_np = TQGraphicsNodePath()
+            d1_np.set_node_p3d(d1_node_p3d)
+
+            d2_np = TQGraphicsNodePath()
+            d2_np.set_node_p3d(d2_node_p3d)
+
+            q_np = TQGraphicsNodePath()
+            q_np.set_node_p3d(q_node_p3d)
+
+            segment_gn = GroupNode()
+            d1_np.reparentTo(segment_gn)
+            d2_np.reparentTo(segment_gn)
+
+            segment_gn.reparentTo(segments_gn)
+            segment_gn.setPos(coord[0], coord[1], coord[2])
+
+        # self.set_p3d_nodepath(self.getParent_p3d().attachNewNode_p3d(self.p3d_node))
+
+        segments_gn.reparentTo(self)
+
+        # self.reparentTo(engine.tq_graphics_basics.tq_render)
+
+        self.setLightOff(1)
+        self.setTwoSided(True)
+
+
+        # self.additional_trafo_nodepath.reparentTo_p3d(self.getParent_p3d())
+
+        # print("------ --------")
+        # print(self.getParent_p3d())
+
+        # self.getParent_p3d().attachNewNode(segments_gn.get_node_p3d())
+
+        # segments_gn.get_node_p3d()
+
+
+        # self.set_node_p3d(custom_geometry.createTexturedUnitQuadGeomNode())
+        # self.set_p3d_nodepath(
+        #     self.getParent_p3d().attachNewNode(self.get_node_p3d()))
+
+
+
+        # self.set_p3d_nodepath(
+        #     )
+
+    # def get_additional_trafo_mat(self):
+    #     """ """
+    #     return math_utils.getMat4by4_to_rotate_xhat_to_vector(
+    #         self.target_normal_vector, a=self.from_geometry_generator_normal_vector).dot(math_utils.getScalingMatrix4x4(self.initial_scaling, self.initial_scaling, self.initial_scaling))
+
+    def doInitialSetupTransformation(self):
+        """ initial setup transformation: a unit quad with an image in the
+        background is being scaled so that the pixel height and width fits
+        exactly with the screen resolution"""
+
+        # make a new transformation node between it's current parent and itself and
+        # give it a transform
+        # self.additional_trafo_nodepath.setMat_normal(self.get_additional_trafo_mat())
+
+        # TODO : CHECK WHY THIS IS NOT EVEN APPLIED
+        # print("----SETTING additional trafo: \n", self.additional_trafo_nodepath.getMat())
+        pass
+
+    # def reparentTo(self, *args, **kwargs):
+    #     """ """
+    #     return self.additional_trafo_nodepath.reparentTo(*args, **kwargs)

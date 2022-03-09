@@ -18,7 +18,7 @@ from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d,
 
 
 class Point3dCGPanner(Point3d):
-    """ """
+    """ Point3d for a Panner view"""
     def __init__(self, cg_panner2d, **kwargs):
         Point3d.__init__(self, **kwargs)
 

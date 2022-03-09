@@ -7,8 +7,8 @@ from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInter
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d, GroupNode
-from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, TextureOf2dImageData
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d, GroupNode, FreehandDrawingPath2d
+from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, TextureOf2dImageData, OrientedDisk
 
 from simple_objects.text import Fixed2dLabel
 
@@ -89,55 +89,42 @@ from pdf_viewer.tools import PDFViewer, PDFPanner2d
 from pdf_annotator.tools import PDFAnnotator
 
 
-# def plot_audio_file_profile(camera_gear):
-#     """ """
-#     f2d3 = Frame2d(attach_to_space="aspect2d")
-#     # f2d3 = Frame2d(attach_to_space="render", camera_gear=camera_gear, update_labels_orientation=True
-#     # )
+from simple_objects.custom_geometry import createRoundedStrokeSegment2d, createColoredUnitQuadGeomNode, createColoredUnitDisk
+from local_utils import math_utils, texture_utils
 
-#     wave_file_path = "/home/chris/Desktop/playbacktest2.wav"
-#     wf = wave.open(wave_file_path, 'rb')
-#     p = pyaudio.PyAudio()
-#     stream = p.open(format=p.get_format_from_width(wf.getsampwidth()),
-#                               channels=wf.getnchannels(),
-#                               rate=wf.getframerate(),
-#                               output=True)
-#     data = wf.readframes(
-#         CHUNK * get_wave_file_number_of_frames(wave_file_path))
+class Stroke2d(TQGraphicsNodePath):
+    """ a stroke is a collection of stroke segments """
+    def __init__(self, *args, **kwargs):
+        TQGraphicsNodePath.__init__(self, *args, **kwargs)
+        # stroke_segments = []
+        self.last_added_point = None  # np array
 
-#     y = np.fromstring(np.ravel(data), dtype=np.int32)
-#     t_f = get_wave_file_duration(wave_file_path)
-#     t = np.linspace(0., 1., num=len(y)) * t_f
+    def add_stroke_segment(self, stroke_segment_p3d_np):
+        # stroke_segments.append()
+        stroke_segment_p3d_np.reparentTo(self.get_p3d_nodepath())
 
-#     t_scale_factor = 0.05
-#     strip_width = 0.25
-#     space = 0.125
-#     f2d3.set_figsize(*np.array([t_f * t_scale_factor, strip_width]))
-#     f2d3.setPos(0., 0, 0.)
+    def add_point(self, point):
+        """
+        Args: point: 2d tuple (*, *) """
+        add_point_p = None
+        if self.last_added_point is not None:
+            if math_utils.vectors_equal_up_to_epsilon(np.array(self.last_added_point), np.array(point), epsilon_per_component=0.001):
+                add_point_p = False
+            else:
+                add_point_p = True
+        else:
+            self.last_added_point = np.array([point[0], point[1]])
+            add_point_p = True
 
-#     step = int((len(y)-1)/25)
-#     y = np.abs(y[0:-1:step])
-#     t = t[0:-1:step]
+        if add_point_p == True:
+            rss = createRoundedStrokeSegment2d(p1=(self.last_added_point[0], self.last_added_point[1]),
+                                               p2=(point[0], point[1]))
+            self.add_stroke_segment(rss)
 
-#     y = y.astype(float)
-#     t = t.astype(float)
+            self.last_added_point = np.array([point[0], point[1]])
 
-#     y = y/max(y)
-#     t = t/max(t)
-
-#     space = 0.05
-
-#     color="orange"
-
-#     for i, (ti, yi) in enumerate(zip(t, y)):
-#         if np.abs(yi) < 1e-8:
-#             f2d3.plot([ti, ti], [-space, +space], color=color)
-#         else:
-#             f2d3.plot([ti, ti], [0, yi], color=color)
-
-#     f2d3.set_xlim(min(t), max(t))
-#     f2d3.set_ylim(-max(y), max(y))
-
+        else:
+            print("WARNING: point not added")
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -150,250 +137,51 @@ class MyApp(ShowBase):
         shade_of_gray = 0.2
         base.setBackgroundColor(shade_of_gray, shade_of_gray, shade_of_gray)
 
-        # cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=5.)
-        # cg.set_view_to_xz_plane()
-
-        # cg = Panner2d(base.cam)
-
-        # self.cg = cg
+        cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=2.)
+        # cg.set_view_to_yz_plane()
+        cg.set_view_to_xz_plane()
 
         cs = CoordinateSystemP3dPlain()
         cs.attach_to_render()
 
-        # df = DraggableFrame(cg)
-        # df.setPos(Vec3(0., 0., 0.6))
-        # df.attach_to_render()
+        # fdp2d = FreehandDrawingPath2d()
+        # fdp2d.attach_to_render()
 
-        # df = DraggableFrame(cg)
-        # df.setPos(Vec3(0., 0., 0.6))
-        # df.attach_to_render()
+        # -------- create custom geometry --------------
 
-        # df = DraggableFrame(cg, height=0.2, width=0.7)
-        # df.setPos(Vec3(-0.8, 0., 0.7))
-        # df.setColor(Vec4(0., 1., 0., 1.), 1)
-        # df.attach_to_render()
+        # groupnode_pos = Vec3(0., 0., 0.)
+        # p1 = Vec3(0., 0., 0.)
+        # p2 = Vec3(2., 0., 0.)
+        # diff_vec = p2 - p1
+        # disk_num_of_verts = 20
+        # color_vec4=Vec4(1., 1., 1., 1.)
+        # radius = 0.1
 
-        # quad = Quad(height=0.5, width=0.7, thickness=5.)
-        # quad.setColor(Vec4(0., 1., 0., 1.), 1)
-        # quad.reparentTo_p3d(render)
+        # rss = createRoundedStrokeSegment2d()
+        # rss.reparentTo(render)
 
-        # line = Line1dSolid(thickness=5.)
-        # line.setColor(1.0, 1.0, 0., 1.)
-        # line.setTailPoint(Vec3(0.25, 0., 0.))
-        # line.setTipPoint(Vec3(0.75, 0., 0.))
-        # line.reparentTo_p3d(render)
-        # line.setColor(Vec4(0., 1., 1., 1.), 1)
-        # line.setPos(Vec3(-0.8, 0., 0.7))
+        # s2d = Stroke2d()
+        # s2d.attach_to_render()
 
-        # df = DraggableResizableFrame(cg, height=0.2, width=0.7)
-        # df.attach_to_render()
+        # rss1 = createRoundedStrokeSegment2d()
+        # s2d.add_stroke_segment(rss1)
 
-        # df.setPos(Vec3(0.1, 0., 0.))
+        # rss2 = createRoundedStrokeSegment2d(p1=(0., 0.), p2=(2., 3.))
+        # s2d.add_stroke_segment(rss2)
 
-        # df.setColor(Vec4(0., 1., 1., 1.), 1)
+        s2d2 = Stroke2d()
+        s2d2.attach_to_render()
+        s2d2.add_point((0., 0.))
 
-        self.vecp0 = Vector()
-        # self.vecp0.setTipPoint(Vec3(-1., 0., 1.))
-        self.vecp0.setTipPoint(Vec3(1., 0., 0.))
-        self.vecp0.setTailPoint(Vec3(0., 0., 0.))
-        self.vecp0.reparentTo(engine.tq_graphics_basics.tq_render)
-        self.vecp0.setColor(Vec4(1., 0., 0., 0.5), 1)
+        s2d2.add_point((1., 0.))
 
-        self.vecp1 = Vector()
-        self.vecp1.setTipPoint(Vec3(0., 1., 0.))
-        self.vecp1.setTailPoint(Vec3(0., 0., 0.))
-        self.vecp1.reparentTo(engine.tq_graphics_basics.tq_render)
-        self.vecp1.setColor(Vec4(0., 1., 0., 0.5), 1)
+        s2d2.add_point((1., 1.))
 
-        self.vecp2 = Vector()
-        self.vecp2.setTipPoint(Vec3(0., 0., 1.))
-        self.vecp2.setTailPoint(Vec3(0., 0., 0.))
-        self.vecp2.reparentTo(engine.tq_graphics_basics.tq_render)
-        self.vecp2.setColor(Vec4(0., 0., 1., 0.5), 1)
+        s2d2.add_point((1., 1.))
 
-
-        # -------------
-
-        # slp = primitives.SegmentedLinePrimitive(color=get_color("yellow"), thickness=2)
-
-        # slp.extendCoords([np.array([0., 0., 0.]), np.array([1., 1., 1.]), np.array([1., 0., 0.])])
-
-        # slp.attach_to_render()
-
-        # slp.extendCoords([np.array([1., 1., 0.])])
-
-        # slp.attach_to_render()
-
-        # -------------
-
-        # gn = GroupNode()
-        # gn.attach_to_render()
-
-        # slp = primitives.SegmentedLinePrimitive(color=get_color("yellow"), thickness=2)
-
-        # slp.extendCoords([np.array([0., 0., 0.]), np.array([1., 1., 1.]), np.array([1., 0., 0.])])
-
-        # slp.reparentTo(gn)
-
-        # slp.extendCoords([np.array([1., 1., 0.])])
-
-        # slp.reparentTo(gn)
-
-        # print("-----: ", engine.tq_graphics_basics.get_window_size_x())
-
-        # # -------------
-
-        # TODO: set Panner2d position from pdf width
-
-
-        # cg_pdf_panner2d = PDFPanner2d(base.cam)
-
-        # cg = cameras.Orbiter.OrbiterOrtho(base.cam, r_init=5.)
-        # cg.set_view_to_xz_plane()
-
-        # # ------ PDF Viewer -----------
-
-        # cg_pdf_panner2d = PDFPanner2d(base.cam)
-        # pdfv = PDFViewer(cg_pdf_panner2d, "pdfs/sample.pdf")
-        # pdfv.attach_to_render()
-
-        # # slp.reparentTo_p3d(render)
-
-        # ddf = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7)
-        # ddf.attach_to_render()
-        # ddf.setPos(Vec3(-1., -0.5, 1.))
-        # ddf.bg_quad.setColor(Vec4(1., 1., 1., 0.0), 1)
-        # ddf.bg_quad.set_border_color(Vec4(1., 0., 0., 1.0), 1)
-
-        # ------ PDF Annotator -----------
-
-        cg_pdf_panner2d = PDFPanner2d(base.cam)
-        pdfa = PDFAnnotator(cg_pdf_panner2d, "pdfs/sample.pdf")
-        # pdfa = PDFAnnotator(cg_pdf_panner2d, "pdfs/Bruus-Flensberg-1.pdf")
-        pdfa.attach_to_render()
-        # slp.reparentTo_p3d(render)
-
-
-        # ddf = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7)
-        # ddf.attach_to_render()
-        # ddf.setPos(Vec3(-1., -0.5, 1.))
-        # ddf.bg_quad.setColor(Vec4(1., 1., 1., 0.0), 1)
-        # ddf.bg_quad.set_border_color(Vec4(1., 0., 0., 1.0), 1)
-
-        # TODO: Point3d: Scale it to match PDFPanner2d's scaling movements
-
-        from pdf_annotator.gui.point3d import Point3dCGPanner
-        p_ind_panner = Point3dCGPanner(cg_pdf_panner2d, scale=2.)
-        p_ind_panner.setPos(Vec3(1., 0., 1.))
-        p_ind_panner.setColor(Vec4(0., 0., 0., 1.))
-
-        # # -----------
-
-        # b2d1 = Box2d()
-        # b2d1.attach_to_render()
-        # b2d1.setColor(Vec4(1., 1., 1., 0.1), 1)
-
-        # b2d2 = Box2d()
-        # b2d2.attach_to_render()
-        # b2d2.setPos(b2d2.getPos() - Vec3(0., 1., 0.))
-        # b2d2.setColor(Vec4(1., 0., 1., 0.1), 1)
-
-        # b2d2.setScale(0.2, 1.0, 1.)
-
-        # self.a = Vector()
-        # self.a.setTipPoint(Vec3(0., 0., 1.))
-        # self.a.setTailPoint(Vec3(0., 0., 0.))
-        # self.a.reparentTo_p3d(render)
-        # self.a.setColor(Vec4(0., 1., 1., 1.), 1)
-
-        # self.camera = self.cg.camera
-
-        # base.accept('mouse1', self.onPress)
-        # self.p_xy_offset = None
-
-    # def onPress(self):
-    #     mouse_pos = base.mouseWatcherNode.getMouse()
-
-    #     mouse_position_before_dragging = base.mouseWatcherNode.getMouse()
-    #     p_xy_at_init_drag = conventions.getFilmCoordsFromMouseCoords(
-    #         -mouse_position_before_dragging[0],
-    #         -mouse_position_before_dragging[1],
-    #         p_x_0=0., p_y_0=0.)
-
-    #     self.p_xy_at_init_drag = p_xy_at_init_drag
-
-
-
-    #     r0_obj = math_utils.p3d_to_np(-Vec3(p_xy_at_init_drag[0], 0., p_xy_at_init_drag[1]))
-    #     self.position_before_dragging = Vec3(*r0_obj)
-
-    #     self.task_obj_update = taskMgr.add(self.update_vectors, 'update_vectors')
-
-    #     # self.a.setTailPoint(-Vec3(*r0_obj) + self.cg.visual_aids.crosshair.getPos())
-
-    #     print("onPress -----------------")
-
-    # def update_vectors(self, task):
-    #     """ """
-    #     if base.mouseWatcherNode.hasMouse():
-    #         mouse_pos = base.mouseWatcherNode.getMouse()
-    #         # mouse_position_before_dragging = base.mouseWatcherNode.getMouse()
-    #         # p_xy_offset = conventions.getFilmCoordsFromMouseCoords(
-    #         #     -mouse_position_before_dragging[0],
-    #         #     -mouse_position_before_dragging[1],
-    #         #     p_x_0=0., p_y_0=0.)
-
-    #         p_xy_offset = self.p_xy_offset
-
-
-    #         r0_obj = math_utils.p3d_to_np(Vec3(0., 0., 0.))
-
-    #         v_cam_forward = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getViewVector()))
-    #         v_cam_forward = v_cam_forward / np.linalg.norm(v_cam_forward)
-    #         # self.camera.node().getLens().getViewVector()
-
-    #         v_cam_up = math_utils.p3d_to_np(engine.tq_graphics_basics.tq_render.getRelativeVector(self.camera, self.camera.node().getLens().getUpVector()))
-    #         v_cam_up = v_cam_up / np.linalg.norm(v_cam_up)
-
-    #         r_cam = math_utils.p3d_to_np(self.camera.getPos())
-
-    #         e_up = math_utils.p3d_to_np(v_cam_up/np.linalg.norm(v_cam_up))
-
-    #         e_cross = math_utils.p3d_to_np(np.cross(v_cam_forward/np.linalg.norm(v_cam_forward), e_up))
-
-    #         # determine the middle origin of the draggable plane (where the plane intersects the camera's forward vector)
-    #         r0_middle_origin = math_utils.LinePlaneCollision(v_cam_forward, r0_obj, v_cam_forward, r_cam)
-
-    #         # print("r0_obj", r0_obj)
-    #         # print("v_cam_forward", v_cam_forward)
-    #         # print("v_cam_up", v_cam_up)
-    #         # print("r_cam", r_cam)
-    #         # print("e_up", e_up)
-    #         # print("e_cross", e_cross)
-    #         # print("r0_middle_origin", r0_middle_origin)
-
-    #         # -- calculate the bijection between mouse coordinates m_x, m_y and plane coordinates p_x, p_y
-
-    #         mouse_pos = base.mouseWatcherNode.getMouse()  # between -1 and 1 in both x and y
-    #         # filmsize = base.cam.node().getLens().getFilmSize()  # the actual width of the film size
-
-    #         # print("p_xy_offset: ", self.p_xy_at_init_drag)
-
-    #         p_x, p_y = conventions.getFilmCoordsFromMouseCoords(mouse_pos[0], mouse_pos[1], self.p_xy_at_init_drag[0], self.p_xy_at_init_drag[1])
-    #         # p_x, p_y = conventions.getFilmCoordsFromMouseCoords(mouse_pos[0], mouse_pos[1], 0., 0.)
-
-    #         drag_vec = p_x * e_cross + p_y * e_up
-
-    #         # print("drag_vec", drag_vec)
-
-    #         # set the position while dragging
-    #         self.this_frame_drag_pos = self.position_before_dragging + Vec3(*drag_vec)
-
-    #         self.a.setTipPoint(self.this_frame_drag_pos)
-    #         return task.cont
-    #     else:
-    #         return task.done
+        # rss2 = createRoundedStrokeSegment2d()
+        # rss1.reparentTo(render
 
 app = MyApp()
 app.run()
-base.movie(namePrefix='frame', duration=407, fps=24, format='png')
+# base.movie(namePrefix='frame', duration=407, fps=24, format='png')

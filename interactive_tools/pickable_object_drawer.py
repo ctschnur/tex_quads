@@ -54,7 +54,9 @@ class PanelDragDrawer(DragDropEventManager):
         print("######## init drag drawing")
 
         # init stroke graphics
-        self.current_line = primitives.SegmentedLinePrimitive(color=get_color("blue"), thickness=2)
+        # self.current_line = primitives.SegmentedLinePrimitive(color=get_color("blue"), thickness=2)
+        self.current_line = primitives.SegmentedSmooth2dLinePrimitive(color=get_color("blue"), thickness=2)
+
 
         coords_2d = np.array([self.getCoords2dForStroke()])
         coords_3d = self.convertPanel2dTo3dCoords(coords_2d)
