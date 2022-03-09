@@ -54,3 +54,28 @@ class DraggableResizableDrawableOnFrame(DraggableResizableFrame):
     def resize_frame_when_dragged(self):
         self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
         DraggableResizableFrame.resize_frame_when_dragged(self)
+
+
+# class DraggableResizableDrawableOnFrame2dLines(DraggableResizableFrame):
+#     """ in 2d """
+#     def __init__(self, *args, **kwargs):
+#         """ """
+#         DraggableResizableFrame.__init__(self, *args, **kwargs)
+#         self.pom.tag(self.bg_quad.get_p3d_nodepath())
+
+#         panel_graphics = PanelGraphics()
+#         panel_graphics.reparentTo(self)
+
+#         self.panel_drag_drawer = PanelDragDrawer(self.bg_quad, self.camera_gear, self.get_panel_geometry(), panel_graphics)
+#         self.dadom.add_dragger(self.panel_drag_drawer)
+
+#         self.change_ctr = 0
+
+#     def move_frame_when_dragged(self):
+#         self.update_logical_position_from_drag_point()
+#         self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
+#         self.update_window_graphics()
+
+#     def resize_frame_when_dragged(self):
+#         self.panel_drag_drawer.set_panel_geometry(self.get_panel_geometry())
+#         DraggableResizableFrame.resize_frame_when_dragged(self)

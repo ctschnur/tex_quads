@@ -7,7 +7,7 @@ from direct.interval.LerpInterval import LerpFunc, LerpPosInterval, LerpHprInter
 from conventions import conventions
 from latex_objects.latex_texture_object import LatexTextureObject
 from simple_objects.polygon import Polygon2d, Polygon2dTestTriangles, Polygon2dTestLineStrips
-from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d, GroupNode, FreehandDrawingPath2d
+from composed_objects.composed_objects import ParallelLines, GroupNode, Vector, CoordinateSystem, Scatter, Axis, Box2dOfLines, CoordinateSystemP3dPlain, Point3dCursor, CrossHair3d, GroupNode
 from simple_objects.simple_objects import Line2dObject, PointPrimitive, Point3d, Point2d, ArrowHead, Line1dSolid, Line1dDashed, ArrowHeadCone, ArrowHeadConeShaded, OrientedDisk, OrientedCircle, TextureOf2dImageData, OrientedDisk
 
 from simple_objects.text import Fixed2dLabel
@@ -32,7 +32,7 @@ from direct.task import Task
 from plot_utils.bezier_curve import BezierCurve, DraggableBezierCurve, SelectableBezierCurve
 from panda3d.core import CollisionTraverser, CollisionHandlerQueue, CollisionRay, CollisionNode, GeomNode, BitMask32, VBase4
 from plot_utils.graph import Graph, DraggableGraph, GraphHoverer
-from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive, Box2d
+from simple_objects.primitives import IndicatorPrimitive, Box2dCentered, ConePrimitive, Box2d, Stroke2d
 from sequence.sequence import Sequence, WavSequence
 from plot_utils.quad import Quad
 
@@ -87,44 +87,6 @@ from plot_utils.pdf_renderer import PDFPageTextureObject, PopplerPDFRenderer
 from pdf_viewer.tools import PDFViewer, PDFPanner2d
 
 from pdf_annotator.tools import PDFAnnotator
-
-
-from simple_objects.custom_geometry import createRoundedStrokeSegment2d, createColoredUnitQuadGeomNode, createColoredUnitDisk
-from local_utils import math_utils, texture_utils
-
-class Stroke2d(TQGraphicsNodePath):
-    """ a stroke is a collection of stroke segments """
-    def __init__(self, *args, **kwargs):
-        TQGraphicsNodePath.__init__(self, *args, **kwargs)
-        # stroke_segments = []
-        self.last_added_point = None  # np array
-
-    def add_stroke_segment(self, stroke_segment_p3d_np):
-        # stroke_segments.append()
-        stroke_segment_p3d_np.reparentTo(self.get_p3d_nodepath())
-
-    def add_point(self, point):
-        """
-        Args: point: 2d tuple (*, *) """
-        add_point_p = None
-        if self.last_added_point is not None:
-            if math_utils.vectors_equal_up_to_epsilon(np.array(self.last_added_point), np.array(point), epsilon_per_component=0.001):
-                add_point_p = False
-            else:
-                add_point_p = True
-        else:
-            self.last_added_point = np.array([point[0], point[1]])
-            add_point_p = True
-
-        if add_point_p == True:
-            rss = createRoundedStrokeSegment2d(p1=(self.last_added_point[0], self.last_added_point[1]),
-                                               p2=(point[0], point[1]))
-            self.add_stroke_segment(rss)
-
-            self.last_added_point = np.array([point[0], point[1]])
-
-        else:
-            print("WARNING: point not added")
 
 class MyApp(ShowBase):
     def __init__(self):
@@ -182,6 +144,19 @@ class MyApp(ShowBase):
         # rss2 = createRoundedStrokeSegment2d()
         # rss1.reparentTo(render
 
+        cg_pdf_panner2d = PDFPanner2d(base.cam)
+
+
+        drawing_frame = DraggableResizableDrawableOnFrame(cg_pdf_panner2d, height=0.2, width=0.7, quad_border_thickness=10.)
+        # drawing_frame.reparentTo(self)
+
+        drawing_frame.attach_to_render()
+        # drawing_frame.setPos(Vec3(-1., -0.5, 1.))
+        drawing_frame.bg_quad.setColor(Vec4(1., 1., 1., 0.2), 1)
+        # drawing_frame.bg_quad.set_border_color(Vec4(1., 0., 0., 1.0), 1)
+        drawing_frame.setPos(Vec3(-1., -0.5, 1.))
+
 app = MyApp()
+
 app.run()
 # base.movie(namePrefix='frame', duration=407, fps=24, format='png')
