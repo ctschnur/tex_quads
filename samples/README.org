@@ -8,10 +8,12 @@
 [[file:two-body-motion.gif]]
 
 * User interface development
-** Live audio plotting
+** Live plotting
 [[file:Peek-FT-from-audio.gif]]
+- data recording, processing and plotting in separate threads 
 ** Interactive 3d bezier curves
 [[file:Peek-interactive-3d-bezier-curves.gif]]
+- custom-built drag- and drop implementation in Panda3D
 ** PDF annotation
 [[file:Peek-pdf-annotator-1.gif]]
 
