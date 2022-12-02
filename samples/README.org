@@ -1,16 +1,20 @@
-* Samples
-** PDF annotation
-[[file:Peek-pdf-annotator-1.gif]]
-** Live audio plotting
-[[file:Peek-FT-from-audio.gif]]
+* Mathematical Visualization 
 ** N-body motion
 [[file:Peek-n-body-movement.gif]]
 - numerical solution of Newton's equations of motion for n bodies with different masses and different charges (using ~scipy.integrate.odeint~)
 - plotting velocity vectors (logarithmized above a threshold of the magnitude)
 - tracing paths
-** Interactive 3d bezier curves
-[[file:Peek-interactive-3d-bezier-curves.gif]]
-** Parametric solid and dashed curves, vectors
-[[file:Peek-rotating-vectors.gif]]
 ** Two-body motion
 [[file:two-body-motion.gif]]
+
+* User interface development
+** Live audio plotting
+[[file:Peek-FT-from-audio.gif]]
+** Interactive 3d bezier curves
+[[file:Peek-interactive-3d-bezier-curves.gif]]
+** PDF annotation
+[[file:Peek-pdf-annotator-1.gif]]
+
+* Misc
+** Parametric solid and dashed curves, vectors
+[[file:Peek-rotating-vectors.gif]]
