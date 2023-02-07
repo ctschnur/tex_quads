@@ -4,7 +4,7 @@ autopep8==1.5.4
 backcall==0.1.0
 certifi==2020.4.5.1
 cffi==1.14.0
-cryptography==2.9
+cryptography==39.0.1
 -e git+git@github.com:ctschnur/ctsutils.git@4785d4a250b19291549145870be4ef61d43e9d2b#egg=ctsutils
 cycler==0.10.0
 decorator==4.4.2
